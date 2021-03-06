@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\PluginSettings.cs" />
+    <Compile Include="Data\PluginCommand.cs" />
     <Compile Include="Data\UserMessageInfo.cs" />
     <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Patches\Chat\Chat.UpdateWorldTextField.cs" />
     <Compile Include="Patches\Game\Game.Update.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\CommandHandler.cs" />
     <Compile Include="VChatPlugin.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
