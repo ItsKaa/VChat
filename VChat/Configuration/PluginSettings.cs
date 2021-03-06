@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using System;
+using System.IO;
 using UnityEngine;
 using VChat.Extensions;
 
@@ -13,6 +14,8 @@ namespace VChat.Configuration
         private const string ChatWindowDescription = "Change options for the chat window, should be self explanatory.";
 
         public ConfigFile ConfigFile { get; private set; }
+        private DateTime LastTickDate { get; set; }
+        private DateTime LastFileModifiedDate { get; set; }
 
         #region Colors
         private ConfigEntry<string> LocalChatColorEntry { get; set; }
@@ -76,9 +79,51 @@ namespace VChat.Configuration
         
         public PluginSettings(ConfigFile configFile)
         {
+            LastTickDate = DateTime.MinValue;
+            LastFileModifiedDate = DateTime.MinValue;
             ConfigFile = configFile;
             SetupConfig();
+            ConfigFile.ConfigReloaded += ConfigFile_ConfigReloaded;
         }
+
+        /// <summary>
+        /// Checks and reloads the settings when the file on disk has been modified.
+        /// </summary>
+        public void Tick()
+        {
+            if ((DateTime.UtcNow - LastTickDate).TotalSeconds > 5)
+            {
+                // Try-catch in case file operations fail.
+                try
+                {
+                    if (File.Exists(ConfigFile.ConfigFilePath))
+                    {
+                        var modifiedDate = File.GetLastWriteTimeUtc(ConfigFile.ConfigFilePath);
+                        if(LastFileModifiedDate == DateTime.MinValue)
+                        {
+                            LastFileModifiedDate = modifiedDate;
+                        }
+                        else if (modifiedDate > LastFileModifiedDate)
+                        {
+                            ConfigFile.Reload();
+                            LastFileModifiedDate = modifiedDate;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error in Settings.Tick: {ex}");
+                }
+
+                LastTickDate = DateTime.UtcNow;
+            }
+        }
+
+        private void ConfigFile_ConfigReloaded(object sender, EventArgs e)
+        {
+            Debug.Log($"Reloaded settings.");
+        }
+
 
         public void Dispose()
         {
