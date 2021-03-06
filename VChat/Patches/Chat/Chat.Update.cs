@@ -12,7 +12,7 @@ namespace VChat.Patches
         {
             if (__instance.m_input.isActiveAndEnabled && __instance.m_input.isFocused)
             {
-                if (VChatPlugin.MessageSendHistory.Count > 0 && VChatPlugin.MaxMessageSendHistoryCount > 0)
+                if (VChatPlugin.MessageSendHistory.Count > 0 && VChatPlugin.Settings.MaxPlayerMessageHistoryCount > 0)
                 {
                     bool showMessageHistory = false;
                     // Increase or decrease the history counter when pressing up/down arrows.
@@ -51,7 +51,7 @@ namespace VChat.Patches
                     }
                 }
             }
-            else if (VChatPlugin.AlwaysShowChatWindow)
+            else if (VChatPlugin.Settings.AlwaysShowChatWindow)
             {
                 __instance.m_hideTimer = 0;
             }

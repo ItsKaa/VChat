@@ -40,7 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\PluginSettings.cs" />
     <Compile Include="Data\UserMessageInfo.cs" />
+    <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
     <Compile Include="Patches\Chat\Chat.Awake.cs" />
     <Compile Include="Patches\Chat\Chat.InputText.cs" />

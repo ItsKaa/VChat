@@ -8,7 +8,7 @@ namespace VChat.Patches
     {
         private static void Postfix(ref Chat __instance)
         {
-            if (VChatPlugin.EnableClickThroughChatWindow)
+            if (VChatPlugin.Settings.EnableClickThroughChatWindow)
             {
                 var chat = __instance;
                 __instance.m_input.onEndEdit.AddListener((text) =>

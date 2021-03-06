@@ -10,9 +10,9 @@ namespace VChat.Patches
             var text = __instance.m_input.text;
 
             // Add the message to the chat history.
-            if (VChatPlugin.MaxMessageSendHistoryCount > 0)
+            if (VChatPlugin.Settings.MaxPlayerMessageHistoryCount > 0)
             {
-                if (VChatPlugin.MessageSendHistory.Count > VChatPlugin.MaxMessageSendHistoryCount)
+                if (VChatPlugin.MessageSendHistory.Count > VChatPlugin.Settings.MaxPlayerMessageHistoryCount)
                 {
                     VChatPlugin.MessageSendHistory.RemoveAt(0);
                 }
@@ -21,7 +21,7 @@ namespace VChat.Patches
                 VChatPlugin.MessageSendHistoryIndex = 0;
             }
 
-            if (VChatPlugin.AutoShout)
+            if (VChatPlugin.Settings.AutoShout)
             {
                 __instance.SendText(Talker.Type.Shout, text);
                 return false;

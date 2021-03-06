@@ -3,6 +3,7 @@ using HarmonyLib;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
+using VChat.Configuration;
 using VChat.Data;
 
 namespace VChat
@@ -16,18 +17,10 @@ namespace VChat
         public const string Version = "0.1.0";
         public const string Repository = "https://github.com/ItsKaa/VChat";
 
+        internal static PluginSettings Settings { get; private set; }
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
         public static List<string> MessageSendHistory { get; private set; }
-
-        public static Color LocalChatColor { get; set; } = Color.white;
-        public static Color ShoutChatColor { get; set; } = Color.yellow;
-        public static Color WhisperChatColor { get; set; } = new Color(1.0f, 1.0f, 1.0f, 0.75f);
-        public static bool AutoShout { get; set; } = false;
-        public static bool AlwaysShowChatWindow { get; set; } = true;
-        public static bool ShowChatWindowOnMessageReceived { get; set; } = true;
-        public static bool EnableClickThroughChatWindow { get; set; } = true;
         public static int MessageSendHistoryIndex { get; set; } = 0;
-        public static int MaxMessageSendHistoryCount { get; set; } = 50;
 
         static VChatPlugin()
         {
@@ -39,6 +32,7 @@ namespace VChat
         {
             var harmony = new Harmony(GUID);
             harmony.PatchAll();
+            Settings = new PluginSettings(Config);
         }
 
         public static Color GetTextColor(Talker.Type type)
@@ -47,13 +41,13 @@ namespace VChat
             switch (type)
             {
                 case Talker.Type.Normal:
-                    color = LocalChatColor;
+                    color = Settings.LocalChatColor ?? Color.white;
                     break;
                 case Talker.Type.Shout:
-                    color = ShoutChatColor;
+                    color = Settings.ShoutChatColor ?? Color.yellow;
                     break;
                 case Talker.Type.Whisper:
-                    color = WhisperChatColor;
+                    color = Settings.WhisperChatColor ?? new Color(1.0f, 1.0f, 1.0f, 0.75f);
                     break;
             }
             return color;

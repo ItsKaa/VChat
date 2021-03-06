@@ -22,7 +22,7 @@ namespace VChat.Patches
             VChatPlugin.ReceivedMessageInfo.AddOrUpdate(senderID, userInfo, (key, oldValue) => userInfo);
 
             // Display chat window when a new message is received.
-            if (VChatPlugin.ShowChatWindowOnMessageReceived)
+            if (VChatPlugin.Settings.ShowChatWindowOnMessageReceived)
             {
                 __instance.m_hideTimer = 0;
             }
