@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using UnityEngine;
 using VChat.Data;
 
@@ -16,6 +17,7 @@ namespace VChat
         public const string Repository = "https://github.com/ItsKaa/VChat";
 
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
+        public static List<string> MessageSendHistory { get; private set; }
 
         public static Color LocalChatColor { get; set; } = Color.white;
         public static Color ShoutChatColor { get; set; } = Color.yellow;
@@ -23,10 +25,13 @@ namespace VChat
         public static bool AutoShout { get; set; } = false;
         public static bool AlwaysShowChatWindow { get; set; } = true;
         public static bool EnableClickThroughChatWindow { get; set; } = true;
+        public static int MessageSendHistoryIndex { get; set; } = 0;
+        public static int MaxMessageSendHistoryCount { get; set; } = 50;
 
         static VChatPlugin()
         {
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
+            MessageSendHistory = new List<string>();
         }
 
         public void Awake()

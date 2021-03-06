@@ -43,6 +43,7 @@
     <Compile Include="Data\UserMessageInfo.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
     <Compile Include="Patches\Chat\Chat.Awake.cs" />
+    <Compile Include="Patches\Chat\Chat.InputText.cs" />
     <Compile Include="Patches\Chat\Chat.OnNewChatMessage.cs" />
     <Compile Include="Patches\Chat\Chat.Update.cs" />
     <Compile Include="Patches\Chat\Chat.UpdateWorldTextField.cs" />
