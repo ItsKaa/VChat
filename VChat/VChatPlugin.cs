@@ -1,8 +1,10 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using VChat.Configuration;
 using VChat.Data;
 
@@ -21,6 +23,7 @@ namespace VChat
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
         public static List<string> MessageSendHistory { get; private set; }
         public static int MessageSendHistoryIndex { get; set; } = 0;
+        public static Talker.Type CurrentChatType { get; set; }
 
         static VChatPlugin()
         {
@@ -59,5 +62,43 @@ namespace VChat
             var userColor = new Color(textColor.r, textColor.g, textColor.b, 0.33f);
             return $"<color=#{ColorUtility.ToHtmlStringRGBA(userColor)}>{user}</color>: <color=#{ColorUtility.ToHtmlStringRGBA(textColor)}>{text}</color>";
         }
+
+        public static bool UpdateCurrentChatTypeAndColor(InputField inputField, string text)
+        {
+            if (inputField != null && text != null)
+            {
+                Talker.Type chatType;
+                if (text.StartsWith("/s ", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    chatType = Talker.Type.Shout;
+                }
+                else if (text.StartsWith("/w ", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    chatType = Talker.Type.Whisper;
+                }
+                else
+                {
+                    chatType = (Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal);
+                }
+
+                if (CurrentChatType != chatType)
+                {
+                    CurrentChatType = chatType;
+                    UpdateChatInputColor(inputField, CurrentChatType);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static void UpdateChatInputColor(InputField inputField, Talker.Type type)
+        {
+            if (inputField?.textComponent != null)
+            {
+                inputField.textComponent.color = GetTextColor(type);
+            }
+        }
+
     }
 }
