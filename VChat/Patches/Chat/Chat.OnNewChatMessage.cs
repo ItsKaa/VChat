@@ -19,8 +19,13 @@ namespace VChat.Patches
                 User = user,
                 Text = text
             };
-
             VChatPlugin.ReceivedMessageInfo.AddOrUpdate(senderID, userInfo, (key, oldValue) => userInfo);
+
+            // Display chat window when a new message is received.
+            if (VChatPlugin.ShowChatWindowOnMessageReceived)
+            {
+                __instance.m_hideTimer = 0;
+            }
         }
     }
 }
