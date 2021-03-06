@@ -59,7 +59,7 @@ namespace VChat
         public static string GetFormattedMessage(Talker.Type type, string user, string text)
         {
             var textColor = GetTextColor(type);
-            var userColor = new Color(textColor.r, textColor.g, textColor.b, 0.33f);
+            var userColor = Color.Lerp(textColor, Color.black, 0.33f);
             return $"<color=#{ColorUtility.ToHtmlStringRGBA(userColor)}>{user}</color>: <color=#{ColorUtility.ToHtmlStringRGBA(textColor)}>{text}</color>";
         }
 
