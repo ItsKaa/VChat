@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31025.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VChat", "VChat\VChat.csproj", "{C1D1073E-FC9E-4732-B455-E07387547EDB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1D1073E-FC9E-4732-B455-E07387547EDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1D1073E-FC9E-4732-B455-E07387547EDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1D1073E-FC9E-4732-B455-E07387547EDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1D1073E-FC9E-4732-B455-E07387547EDB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8112E5EB-7701-428E-A284-60118C87CDC2}
+	EndGlobalSection
+EndGlobal

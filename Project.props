@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+		<GameDir>C:\Program Files (x86)\Steam\steamapps\common\Valheim\</GameDir>
+		<ServerDir>C:\Program Files (x86)\Steam\steamapps\common\Valheim dedicated server\</ServerDir>
+		<GameManagedDir>$(GameDir)unstripped_corlib\</GameManagedDir>
+		<BuildGenDir>$(GameDir)valheim_Data\Managed\</BuildGenDir>
+		
+        <LangVersion>9</LangVersion>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    </PropertyGroup>
+</Project>
