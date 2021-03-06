@@ -22,6 +22,7 @@ namespace VChat
         public static Color WhisperChatColor { get; set; } = new Color(1.0f, 1.0f, 1.0f, 0.75f);
         public static bool AutoShout { get; set; } = false;
         public static bool AlwaysShowChatWindow { get; set; } = true;
+        public static bool EnableClickThroughChatWindow { get; set; } = true;
 
         static VChatPlugin()
         {
