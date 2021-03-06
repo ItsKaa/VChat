@@ -8,8 +8,6 @@ namespace VChat.Patches
     {
         private static void Postfix(ref Chat __instance)
         {
-            if (VChatPlugin.Settings.EnableClickThroughChatWindow)
-            {
                 var chat = __instance;
 
                 // Listen on value changed, this updated the input field and carrot text color to match the targeted channel.
@@ -30,7 +28,9 @@ namespace VChat.Patches
                     }
                 });
 
-                // Click-through, currently only once on start-up.
+            // Click-through, currently only once on start-up.
+            if (VChatPlugin.Settings.EnableClickThroughChatWindow)
+            {
                 var chatWindowChildComponents = __instance.m_chatWindow.GetComponentsInChildren<Graphic>();
                 foreach (var component in chatWindowChildComponents)
                 {
