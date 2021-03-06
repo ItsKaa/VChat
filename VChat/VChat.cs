@@ -19,9 +19,8 @@ namespace VChat
             harmony.PatchAll();
         }
 
-        public static string GetFormattedMessage(Talker.Type type, string user, string text)
+        public static Color GetTextColor(Talker.Type type)
         {
-
             var color = Color.white;
             switch (type)
             {
@@ -35,7 +34,12 @@ namespace VChat
                     color = new Color(1.0f, 1.0f, 1.0f, 0.75f);
                     break;
             }
+            return color;
+        }
 
+        public static string GetFormattedMessage(Talker.Type type, string user, string text)
+        {
+            var color = GetTextColor(type);
             return $"<color=orange>{user}</color>: <color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>";
         }
     }
