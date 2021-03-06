@@ -1,6 +1,8 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System.Collections.Concurrent;
 using UnityEngine;
+using VChat.Data;
 
 namespace VChat
 {
@@ -12,6 +14,13 @@ namespace VChat
         public const string Name = "VChat";
         public const string Version = "0.1.0";
         public const string Repository = "https://github.com/ItsKaa/VChat";
+
+        public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
+
+        static VChatPlugin()
+        {
+            ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
+        }
 
         public void Awake()
         {
