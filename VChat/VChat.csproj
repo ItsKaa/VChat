@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
     <Compile Include="Patches\Chat\Chat.OnNewChatMessage.cs" />
+    <Compile Include="Patches\Chat\Chat.Update.cs" />
     <Compile Include="Patches\Chat\Chat.UpdateWorldTextField.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VChat.cs" />
