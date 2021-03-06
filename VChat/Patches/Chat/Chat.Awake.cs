@@ -1,5 +1,5 @@
 ﻿using HarmonyLib;
-using UnityEngine.UI;
+using VChat.Extensions;
 
 namespace VChat.Patches
 {
@@ -28,17 +28,10 @@ namespace VChat.Patches
                     }
                 });
 
-            // Click-through, currently only once on start-up.
+            // Enable chat window click-through.
             if (VChatPlugin.Settings.EnableClickThroughChatWindow)
             {
-                var chatWindowChildComponents = __instance.m_chatWindow.GetComponentsInChildren<Graphic>();
-                foreach (var component in chatWindowChildComponents)
-                {
-                    if (component != null)
-                    {
-                        component.raycastTarget = false;
-                    }
-                }
+                __instance.m_chatWindow?.ChangeClickThroughInChildren(VChatPlugin.Settings.EnableClickThroughChatWindow);
             }
         }
     }
