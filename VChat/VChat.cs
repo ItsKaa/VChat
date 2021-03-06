@@ -20,6 +20,7 @@ namespace VChat
         public static Color LocalChatColor { get; set; } = Color.white;
         public static Color ShoutChatColor { get; set; } = Color.yellow;
         public static Color WhisperChatColor { get; set; } = new Color(1.0f, 1.0f, 1.0f, 0.75f);
+        public static bool AutoShout { get; set; } = false;
 
         static VChatPlugin()
         {
