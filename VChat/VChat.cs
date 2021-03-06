@@ -17,6 +17,10 @@ namespace VChat
 
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
 
+        public static Color LocalChatColor { get; set; } = Color.white;
+        public static Color ShoutChatColor { get; set; } = Color.yellow;
+        public static Color WhisperChatColor { get; set; } = new Color(1.0f, 1.0f, 1.0f, 0.75f);
+
         static VChatPlugin()
         {
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
@@ -34,13 +38,13 @@ namespace VChat
             switch (type)
             {
                 case Talker.Type.Normal:
-                    color = Color.white;
+                    color = LocalChatColor;
                     break;
                 case Talker.Type.Shout:
-                    color = Color.yellow;
+                    color = ShoutChatColor;
                     break;
                 case Talker.Type.Whisper:
-                    color = new Color(1.0f, 1.0f, 1.0f, 0.75f);
+                    color = WhisperChatColor;
                     break;
             }
             return color;
@@ -48,8 +52,9 @@ namespace VChat
 
         public static string GetFormattedMessage(Talker.Type type, string user, string text)
         {
-            var color = GetTextColor(type);
-            return $"<color=orange>{user}</color>: <color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>";
+            var textColor = GetTextColor(type);
+            var userColor = new Color(textColor.r, textColor.g, textColor.b, 0.33f);
+            return $"<color=#{ColorUtility.ToHtmlStringRGBA(userColor)}>{user}</color>: <color=#{ColorUtility.ToHtmlStringRGBA(textColor)}>{text}</color>";
         }
     }
 }
