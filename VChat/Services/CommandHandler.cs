@@ -91,7 +91,7 @@ namespace VChat.Services
                 foreach (var commandName in cmd.CommandNames)
                 {
                     if (!string.IsNullOrEmpty(commandName)
-                        && (input.TrimEnd().Equals($"{Prefix}{commandName}")))
+                        && input.TrimEnd().StartsWith($"{Prefix}{commandName}"))
                     {
                         remainderString = input.Remove(0, Prefix.Length + commandName.Length).TrimStart();
                         foundCommand = cmd;
