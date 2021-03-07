@@ -64,13 +64,22 @@ namespace VChat
                 Chat.instance.AddString($"<color=#23ff00>[Chat] {message}</color>");
             });
 
-            var applyChannelColorCommand = new Func<string, string, Color?>((string text, string channelName) =>
+            var applyChannelColorCommand = new Func<string, CombinedMessageType, Color?>((string text, CombinedMessageType messageType) =>
             {
                 text = text?.Trim();
                 var color = text?.ToColor();
+
+                // Get default color if text is empty.
+                if (string.IsNullOrEmpty(text))
+                {
+                    text = "default";
+                    color = GetTextColor(messageType, true);
+                }
+
+                // Write the response message.
                 if (color != null)
                 {
-                    writeSuccessMessage(string.Format(changedColorMessageSuccess, channelName, color?.ToHtmlString(), text));
+                    writeSuccessMessage(string.Format(changedColorMessageSuccess, messageType.ToString().ToLower(), color?.ToHtmlString(), text));
                 }
                 else
                 {
@@ -99,7 +108,7 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
-                    var color = applyChannelColorCommand(text, "local");
+                    var color = applyChannelColorCommand(text, new CombinedMessageType(Talker.Type.Normal));
                     if (color != null)
                     {
                         Settings.LocalChatColor = color;
@@ -107,7 +116,7 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetShoutColor, Settings.SetShoutChatColorCommandName, (text, instance) =>
                 {
-                    var color = applyChannelColorCommand(text, "shout");
+                    var color = applyChannelColorCommand(text, new CombinedMessageType(Talker.Type.Shout));
                     if (color != null)
                     {
                         Settings.ShoutChatColor = color;
@@ -115,7 +124,7 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetWhisperColor, Settings.SetWhisperChatColorCommandName, (text, instance) =>
                 {
-                    var color = applyChannelColorCommand(text, "whisper");
+                    var color = applyChannelColorCommand(text, new CombinedMessageType(Talker.Type.Whisper));
                     if (color != null)
                     {
                         Settings.WhisperChatColor = color;
@@ -123,7 +132,7 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetGlobalColor, Settings.GlobalWhisperChatColorCommandName, (text, instance) =>
                 {
-                    var color = applyChannelColorCommand(text, "global");
+                    var color = applyChannelColorCommand(text, new CombinedMessageType(CustomMessageType.GlobalChat));
                     if (color != null)
                     {
                         Settings.GlobalChatColor = color;
@@ -186,7 +195,7 @@ namespace VChat
             );
         }
 
-        public static Color GetTextColor(CombinedMessageType type)
+        public static Color GetTextColor(CombinedMessageType type, bool getDefault = false)
         {
             var color = Color.white;
             if (type.IsDefaultType())
@@ -194,13 +203,13 @@ namespace VChat
                 switch (type.DefaultTypeValue.Value)
                 {
                     case Talker.Type.Normal:
-                        color = Settings.LocalChatColor ?? Color.white;
+                        color = (getDefault ? null : Settings.LocalChatColor) ?? Color.white;
                         break;
                     case Talker.Type.Shout:
-                        color = Settings.ShoutChatColor ?? Color.yellow;
+                        color = (getDefault ? null : Settings.ShoutChatColor) ?? Color.yellow;
                         break;
                     case Talker.Type.Whisper:
-                        color = Settings.WhisperChatColor ?? new Color(1.0f, 1.0f, 1.0f, 0.75f);
+                        color = (getDefault ? null : Settings.WhisperChatColor) ?? new Color(1.0f, 1.0f, 1.0f, 0.75f);
                         break;
                 }
             }
@@ -209,7 +218,7 @@ namespace VChat
                 switch(type.CustomTypeValue.Value)
                 {
                     case CustomMessageType.GlobalChat:
-                        color = Settings.GlobalChatColor ?? new Color(0.890f, 0.376f, 0.050f);
+                        color = (getDefault ? null : Settings.GlobalChatColor) ?? new Color(0.890f, 0.376f, 0.050f);
                         break;
                 }
             }
