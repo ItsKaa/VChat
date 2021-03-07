@@ -60,7 +60,7 @@ namespace VChat
         {
             var textColor = GetTextColor(type);
             var userColor = Color.Lerp(textColor, Color.black, 0.33f);
-            return $"<color=#{ColorUtility.ToHtmlStringRGBA(userColor)}>{user}</color>: <color=#{ColorUtility.ToHtmlStringRGBA(textColor)}>{text}</color>";
+            return $"<color={userColor.ToHtmlString()}>{user}</color>: <color={textColor.ToHtmlString()}>{text}</color>";
         }
 
         public static bool UpdateCurrentChatTypeAndColor(InputField inputField, string text)

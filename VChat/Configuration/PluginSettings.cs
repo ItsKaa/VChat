@@ -22,21 +22,21 @@ namespace VChat.Configuration
         public Color? LocalChatColor
         {
             get => LocalChatColorEntry.Value.GetColorFromString();
-            set => LocalChatColorEntry.Value = value == null ? null : $"#{ColorUtility.ToHtmlStringRGBA(value.Value)}";
+            set => LocalChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
 
         private ConfigEntry<string> ShoutChatColorEntry { get; set; }
         public Color? ShoutChatColor
         {
             get => ShoutChatColorEntry.Value.GetColorFromString();
-            set => ShoutChatColorEntry.Value = value == null ? null : $"#{ColorUtility.ToHtmlStringRGBA(value.Value)}";
+            set => ShoutChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
 
         private ConfigEntry<string> WhisperChatColorEntry { get; set; }
         public Color? WhisperChatColor
         {
             get => WhisperChatColorEntry.Value.GetColorFromString();
-            set => WhisperChatColorEntry.Value = value == null ? null : $"#{ColorUtility.ToHtmlStringRGBA(value.Value)}";
+            set => WhisperChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
         #endregion Colors
         #region Chat Window

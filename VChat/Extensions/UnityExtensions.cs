@@ -14,6 +14,11 @@ namespace VChat.Extensions
             return null;
         }
 
+        public static string ToHtmlString(this Color color, bool includeAlpha = true, bool includeAlphaWhenNeeded = true)
+        {
+            return "#" + ((includeAlpha || (includeAlphaWhenNeeded && color.a < 1.0f)) ? ColorUtility.ToHtmlStringRGBA(color) : ColorUtility.ToHtmlStringRGB(color));
+        }
+
         /// <summary>
         /// Changes the click-through value for a graphic.
         /// This will not affect any child components the graphic might have.
