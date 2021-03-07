@@ -35,15 +35,11 @@ namespace VChat.Services
                         {
                             if (string.Equals(commandName1, commandName2, StringComparison.CurrentCultureIgnoreCase))
                             {
+                                Debug.LogError($"Command with the name \"{Prefix}{duplicateCommandName}\" already exists, types {command.Type} and {pluginCommand.Type}.");
                                 duplicateCommandName = commandName1;
                                 break;
                             }
                         }
-                    }
-
-                    if(duplicateCommandName != null)
-                    {
-                        Debug.LogError($"Command with the same name already exists: \"{Prefix}{duplicateCommandName}\".");
                     }
                 }
 
