@@ -89,17 +89,14 @@ namespace VChat.Messages
             if (senderId == ZRoutedRpc.instance.GetServerPeerID())
             {
                 Debug.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
-                if (senderId == ZRoutedRpc.instance.GetServerPeerID())
+                if (Chat.instance != null)
                 {
-                    if (Chat.instance != null)
-                    {
-                        var formattedMessage = VChatPlugin.GetFormattedMessage(new CombinedMessageType(CustomMessageType.GlobalChat), playerName, text);
-                        Chat.instance?.AddString(formattedMessage);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Received a message but Chat instance is undefined.");
-                    }
+                    var formattedMessage = VChatPlugin.GetFormattedMessage(new CombinedMessageType(CustomMessageType.GlobalChat), playerName, text);
+                    Chat.instance?.AddString(formattedMessage);
+                }
+                else
+                {
+                    Debug.LogWarning($"Received a message but Chat instance is undefined.");
                 }
             }
             else
