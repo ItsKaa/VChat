@@ -61,6 +61,34 @@ namespace VChat.Data
             return -1937169414 + Value.GetHashCode();
         }
 
+        public override string ToString()
+        {
+            if(IsDefaultType())
+            {
+                switch(DefaultTypeValue.Value)
+                {
+                    case Talker.Type.Normal:
+                        return "Local";
+                    case Talker.Type.Shout:
+                        return "Shout";
+                    case Talker.Type.Whisper:
+                        return "Whisper";
+                    case Talker.Type.Ping:
+                        return "Ping";
+                }
+            }
+            else if (IsCustomType())
+            {
+                switch (CustomTypeValue.Value)
+                {
+                    case CustomMessageType:
+                        return "Global";
+                }
+            }
+
+            return Value.ToString();
+        }
+
         // Equal implementations
         public bool Equals(int other)
         {
