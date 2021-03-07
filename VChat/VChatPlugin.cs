@@ -51,6 +51,9 @@ namespace VChat
         {
             CommandHandler.ClearCommands();
 
+            const string changedColorMessageSuccess = "Changed the {0} color to <color={1}>{2}</color>.";
+            const string errorParseColorMessage = "Could not parse the color \"{0}\".";
+
             var writeErrorMessage = new Action<string>((string message) =>
             {
                 Chat.instance.AddString($"<color=red>[Chat][Error] {message}</color>");
@@ -61,8 +64,21 @@ namespace VChat
                 Chat.instance.AddString($"<color=#23ff00>[Chat] {message}</color>");
             });
 
-            const string changedColorMessageSuccess = "Changed the {0} color to <color={1}>color</color>.";
-            const string errorParseColorMessage = "Could not parse the color \"{0}\".";
+            var applyChannelColorCommand = new Func<string, string, Color?>((string text, string channelName) =>
+            {
+                text = text?.Trim();
+                var color = text?.ToColor();
+                if (color != null)
+                {
+                    writeSuccessMessage(string.Format(changedColorMessageSuccess, channelName, color?.ToHtmlString(), text));
+                }
+                else
+                {
+                    writeErrorMessage(string.Format(errorParseColorMessage, text));
+                }
+                return color;
+            });
+
 
             CommandHandler.AddCommands(
                 new PluginCommand(PluginCommandType.SendLocalMessage, Settings.LocalChatCommandName, (text, instance) =>
@@ -83,58 +99,34 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
-                    text = text?.Trim();
-                    var color = text?.ToColor();
+                    var color = applyChannelColorCommand(text, "local");
                     if (color != null)
                     {
                         Settings.LocalChatColor = color;
-                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "local", color?.ToHtmlString()));
-                    }
-                    else
-                    {
-                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.SetShoutColor, Settings.SetShoutChatColorCommandName, (text, instance) =>
                 {
-                    text = text?.Trim();
-                    var color = text?.ToColor();
+                    var color = applyChannelColorCommand(text, "shout");
                     if (color != null)
                     {
                         Settings.ShoutChatColor = color;
-                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "shout", color?.ToHtmlString()));
-                    }
-                    else
-                    {
-                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.SetWhisperColor, Settings.SetWhisperChatColorCommandName, (text, instance) =>
                 {
-                    text = text?.Trim();
-                    var color = text?.ToColor();
+                    var color = applyChannelColorCommand(text, "whisper");
                     if (color != null)
                     {
                         Settings.WhisperChatColor = color;
-                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "whisper", color?.ToHtmlString()));
-                    }
-                    else
-                    {
-                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.SetGlobalColor, Settings.GlobalWhisperChatColorCommandName, (text, instance) =>
                 {
-                    text = text?.Trim();
-                    var color = text?.ToColor();
+                    var color = applyChannelColorCommand(text, "global");
                     if (color != null)
                     {
                         Settings.GlobalChatColor = color;
-                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "global", color?.ToHtmlString()));
-                    }
-                    else
-                    {
-                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.ToggleAutoShout, Settings.AutoShoutCommandName, (text, instance) =>
