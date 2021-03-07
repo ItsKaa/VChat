@@ -195,20 +195,37 @@ namespace VChat
         {
             if (inputField != null && text != null)
             {
-                Talker.Type chatType;
-                if (text.StartsWith("/s ", StringComparison.CurrentCultureIgnoreCase))
+                bool foundCommand = false;
+                Talker.Type chatType = Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal;
+
+                // Attempt to look for the used chat channel if we're starting with the command prefix.
+                if (text.StartsWith(CommandHandler.Prefix, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendLocalMessage))
+                    {
+                        chatType = Talker.Type.Normal;
+                        foundCommand = true;
+                    }
+                    else if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendWhisperMessage))
+                    {
+                        chatType = Talker.Type.Whisper;
+                        foundCommand = true;
+                    }
+                    else if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendShoutMessage))
+                    {
+                        chatType = Talker.Type.Shout;
+                        foundCommand = true;
+                    }
+                }
+
+                // Use the default if we didn't bind /s yet.
+                if ((!foundCommand || CommandHandler.Prefix != "/")
+                    && text.StartsWith("/s ", StringComparison.CurrentCultureIgnoreCase))
                 {
                     chatType = Talker.Type.Shout;
                 }
-                else if (text.StartsWith("/w ", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    chatType = Talker.Type.Whisper;
-                }
-                else
-                {
-                    chatType = (Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal);
-                }
 
+                // Update the text to the used channel in the input box.
                 if (CurrentChatType != chatType)
                 {
                     CurrentChatType = chatType;
