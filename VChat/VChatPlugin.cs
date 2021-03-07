@@ -65,19 +65,19 @@ namespace VChat
             const string errorParseColorMessage = "Could not parse the color \"{0}\".";
 
             CommandHandler.AddCommands(
-                new PluginCommand(PluginCommandType.SendLocalMessage, new[] { "s", "say", "l", "local" }, (text, instance) =>
+                new PluginCommand(PluginCommandType.SendLocalMessage, Settings.LocalChatCommandName, (text, instance) =>
                 {
                     ((Chat)instance).SendText(Talker.Type.Normal, text);
                 }),
-                new PluginCommand(PluginCommandType.SendShoutMessage, new[] { "y", "yell", "sh", "shout" }, (text, instance) =>
+                new PluginCommand(PluginCommandType.SendShoutMessage, Settings.ShoutChatCommandName, (text, instance) =>
                 {
                     ((Chat)instance).SendText(Talker.Type.Shout, text);
                 }),
-                new PluginCommand(PluginCommandType.SendWhisperMessage, new[] { "w", "whisper" }, (text, instance) =>
+                new PluginCommand(PluginCommandType.SendWhisperMessage, Settings.WhisperChatCommandName, (text, instance) =>
                 {
                     ((Chat)instance).SendText(Talker.Type.Whisper, text);
                 }),
-                new PluginCommand(PluginCommandType.SetLocalColor, "setlocalcolor", (text, instance) =>
+                new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
                     var color = text.Trim().ToColor();
                     if (color != null)
@@ -90,7 +90,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseColorMessage, color));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetShoutColor, "setshoutcolor", (text, instance) =>
+                new PluginCommand(PluginCommandType.SetShoutColor, Settings.SetShoutChatColorCommandName, (text, instance) =>
                 {
                     var color = text.Trim().ToColor();
                     if(color != null)
@@ -103,7 +103,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseColorMessage, color));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetWhisperColor, "setwhispercolor", (text, instance) =>
+                new PluginCommand(PluginCommandType.SetWhisperColor, Settings.SetWhisperChatColorCommandName, (text, instance) =>
                 {
                     var color = text.Trim().ToColor();
                     if (color != null)
@@ -116,7 +116,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseColorMessage, color));
                     }
                 }),
-                new PluginCommand(PluginCommandType.ToggleAutoShout, "autoshout", (text, instance) =>
+                new PluginCommand(PluginCommandType.ToggleAutoShout, Settings.AutoShoutCommandName, (text, instance) =>
                 {
                     Settings.AutoShout = !Settings.AutoShout;
                     writeSuccessMessage($"{(Settings.AutoShout ? "Enabled" : "Disabled")} auto shout.");
@@ -126,18 +126,18 @@ namespace VChat
                     Settings.AlwaysShowChatWindow = !Settings.AlwaysShowChatWindow;
                     writeSuccessMessage($"{(Settings.AlwaysShowChatWindow ? "Always displaying" : "Auto hiding")} chat window.");
                 }),
-                new PluginCommand(PluginCommandType.ToggleShowChatWindowOnMessage, "showchatonmessage", (text, instance) =>
+                new PluginCommand(PluginCommandType.ToggleShowChatWindowOnMessage, Settings.ShowChatOnMessageCommandName, (text, instance) =>
                 {
                     Settings.ShowChatWindowOnMessageReceived = !Settings.ShowChatWindowOnMessageReceived;
                     writeSuccessMessage($"{(Settings.ShowChatWindowOnMessageReceived ? "Displaying" : "Not displaying")} chat window when receiving a message.");
                 }),
-                new PluginCommand(PluginCommandType.ToggleChatWindowClickThrough, "chatclickthrough", (text, instance) =>
+                new PluginCommand(PluginCommandType.ToggleChatWindowClickThrough, Settings.ChatClickThroughCommandName, (text, instance) =>
                 {
                     Settings.EnableClickThroughChatWindow = !Settings.EnableClickThroughChatWindow;
                     writeSuccessMessage($"{(Settings.EnableClickThroughChatWindow ? "Enabled" : "Disabled")} clicking through the chat window.");
                     ((Chat)instance).m_chatWindow?.ChangeClickThroughInChildren(Settings.EnableClickThroughChatWindow);
                 }),
-                new PluginCommand(PluginCommandType.SetMaxPlayerHistory, "maxplayerhistory", (text, instance) =>
+                new PluginCommand(PluginCommandType.SetMaxPlayerHistory, Settings.MaxPlayerChatHistoryCommandName, (text, instance) =>
                 {
                     if (ushort.TryParse(text, out ushort value))
                     {
