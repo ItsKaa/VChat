@@ -135,7 +135,7 @@ namespace VChat
                 {
                     Settings.EnableClickThroughChatWindow = !Settings.EnableClickThroughChatWindow;
                     writeSuccessMessage($"{(Settings.EnableClickThroughChatWindow ? "Enabled" : "Disabled")} clicking through the chat window.");
-                    ((Chat)instance).m_chatWindow?.ChangeClickThroughInChildren(Settings.EnableClickThroughChatWindow);
+                    ((Chat)instance).m_chatWindow?.ChangeClickThroughInChildren(!Settings.EnableClickThroughChatWindow);
                 }),
                 new PluginCommand(PluginCommandType.SetMaxPlayerHistory, Settings.MaxPlayerChatHistoryCommandName, (text, instance) =>
                 {
