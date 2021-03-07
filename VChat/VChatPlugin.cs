@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using VChat.Configuration;
 using VChat.Data;
+using VChat.Extensions;
+using VChat.Services;
 
 namespace VChat
 {
@@ -24,11 +26,13 @@ namespace VChat
         public static List<string> MessageSendHistory { get; private set; }
         public static int MessageSendHistoryIndex { get; set; } = 0;
         public static Talker.Type CurrentChatType { get; set; }
+        public static CommandHandler CommandHandler { get; set; }
 
         static VChatPlugin()
         {
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
             MessageSendHistory = new List<string>();
+            CommandHandler = new CommandHandler();
         }
 
         public void Awake()
@@ -36,6 +40,130 @@ namespace VChat
             var harmony = new Harmony(GUID);
             harmony.PatchAll();
             Settings = new PluginSettings(Config);
+            InitialiseCommands();
+
+            Debug.Log($"{Name} initialised, version {Version}.");
+        }
+
+        private void InitialiseCommands()
+        {
+            CommandHandler.ClearCommands();
+
+            var writeErrorMessage = new Action<string>((string message) =>
+            {
+                Chat.instance.m_chatBuffer?.Add($"<color=red>[Chat][Error] {message}</color>");
+                Chat.instance.UpdateChat();
+            });
+
+            var writeSuccessMessage = new Action<string>((string message) =>
+            {
+                Chat.instance.m_chatBuffer?.Add($"<color=#23ff00>[Chat] {message}</color>");
+                Chat.instance.UpdateChat();
+            });
+
+            const string changedColorMessageSuccess = "Changed the {0} color to<color={1}>color</color>.";
+            const string errorParseColorMessage = "Could not parse the color \"{0}\".";
+
+            CommandHandler.AddCommands(
+                new PluginCommand(new[] { "s", "say", "l", "local" }, (text, instance) =>
+                {
+                    ((Chat)instance).SendText(Talker.Type.Normal, text);
+                }),
+                new PluginCommand(new[] { "y", "yell" }, (text, instance) =>
+                {
+                    ((Chat)instance).SendText(Talker.Type.Shout, text);
+                }),
+                new PluginCommand(new[] { "w", "whisper" }, (text, instance) =>
+                {
+                    ((Chat)instance).SendText(Talker.Type.Whisper, text);
+                }),
+                new PluginCommand("setlocalcolor", (text, instance) =>
+                {
+                    var color = text.Trim().ToColor();
+                    if (color != null)
+                    {
+                        Settings.LocalChatColor = color;
+                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "local", color?.ToHtmlString()));
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseColorMessage, color));
+                    }
+                }),
+                new PluginCommand("setshoutcolor", (text, instance) =>
+                {
+                    var color = text.Trim().ToColor();
+                    if(color != null)
+                    {
+                        Settings.ShoutChatColor = color;
+                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "shout", color?.ToHtmlString()));
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseColorMessage, color));
+                    }
+                }),
+                new PluginCommand("setwhispercolor", (text, instance) =>
+                {
+                    var color = text.Trim().ToColor();
+                    if (color != null)
+                    {
+                        Settings.WhisperChatColor = color;
+                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "whisper", color?.ToHtmlString()));
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseColorMessage, color));
+                    }
+                }),
+                new PluginCommand("autoshout", (text, instance) =>
+                {
+                    Settings.AutoShout = !Settings.AutoShout;
+                    writeSuccessMessage($"{(Settings.AutoShout ? "Enabled" : "Disabled")} auto shout.");
+                }),
+                new PluginCommand("showchat", (text, instance) =>
+                {
+                    Settings.AlwaysShowChatWindow = !Settings.AlwaysShowChatWindow;
+                    writeSuccessMessage($"{(Settings.AlwaysShowChatWindow ? "Always displaying" : "Auto hiding")} chat window.");
+                }),
+                new PluginCommand("showchatonmessage", (text, instance) =>
+                {
+                    Settings.ShowChatWindowOnMessageReceived = !Settings.ShowChatWindowOnMessageReceived;
+                    writeSuccessMessage($"{(Settings.ShowChatWindowOnMessageReceived ? "Displaying" : "Not displaying")} chat window when receiving a message.");
+                }),
+                new PluginCommand("chatclickthrough", (text, instance) =>
+                {
+                    Settings.EnableClickThroughChatWindow = !Settings.EnableClickThroughChatWindow;
+                    writeSuccessMessage($"{(Settings.EnableClickThroughChatWindow ? "Enabled" : "Disabled")} clicking through the chat window.");
+                    ((Chat)instance).m_chatWindow?.ChangeClickThroughInChildren(Settings.EnableClickThroughChatWindow);
+                }),
+                new PluginCommand("maxplayerhistory", (text, instance) =>
+                {
+                    if (ushort.TryParse(text, out ushort value))
+                    {
+                        Settings.MaxPlayerMessageHistoryCount = value;
+                        if (value > 0)
+                        {
+                            writeSuccessMessage($"Changed the maximum stored player messages to {value}.");
+                        }
+                        else
+                        {
+                            writeSuccessMessage($"Disabled capturing player chat history.");
+                            MessageSendHistory.Clear();
+                        }
+
+                        // Readjust buffer size
+                        while (MessageSendHistory.Count > 0 && MessageSendHistory.Count < Settings.MaxPlayerMessageHistoryCount)
+                        {
+                            MessageSendHistory.RemoveAt(0);
+                        }
+                    }
+                    else
+                    {
+                        writeErrorMessage($"Could not convert the value \"{text}\" to a number.");
+                    }
+                })
+            );
         }
 
         public static Color GetTextColor(Talker.Type type)
