@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Configuration\PluginSettings.cs" />
     <Compile Include="Data\CombinedMessageType.cs" />
+    <Compile Include="Data\GreetingMessagePeerInfo.cs" />
     <Compile Include="Data\GlobalMessageType.cs" />
     <Compile Include="Data\PluginCommand.cs" />
     <Compile Include="Data\PluginCommandType.cs" />
@@ -49,6 +50,7 @@
     <Compile Include="Data\UserMessageInfo.cs" />
     <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Messages\GlobalMessages.cs" />
+    <Compile Include="Messages\GreetingMessage.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
     <Compile Include="Patches\Chat\Chat.Awake.cs" />
     <Compile Include="Patches\Chat\Chat.InputText.cs" />
@@ -56,7 +58,11 @@
     <Compile Include="Patches\Chat\Chat.Update.cs" />
     <Compile Include="Patches\Chat\Chat.UpdateWorldTextField.cs" />
     <Compile Include="Patches\Game\Game.Update.cs" />
+    <Compile Include="Patches\Player\Player.OnSpawned.cs" />
+    <Compile Include="Patches\ZNet\ZNet.RPC_CharacterID.cs" />
     <Compile Include="Patches\ZNet\ZNet.Awake.cs" />
+    <Compile Include="Patches\ZNet\ZNet.Shutdown.cs" />
+    <Compile Include="Patches\ZRoutedRpc\ZRoutedRpc.AddPeer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\CommandHandler.cs" />
     <Compile Include="VChatPlugin.cs" />
