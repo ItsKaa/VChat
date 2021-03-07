@@ -139,28 +139,35 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetMaxPlayerHistory, Settings.MaxPlayerChatHistoryCommandName, (text, instance) =>
                 {
-                    if (ushort.TryParse(text, out ushort value))
+                    if (string.IsNullOrEmpty(text))
                     {
-                        Settings.MaxPlayerMessageHistoryCount = value;
-                        if (value > 0)
-                        {
-                            writeSuccessMessage($"Changed the maximum stored player messages to {value}.");
-                        }
-                        else
-                        {
-                            writeSuccessMessage($"Disabled capturing player chat history.");
-                            MessageSendHistory.Clear();
-                        }
-
-                        // Readjust buffer size
-                        while (MessageSendHistory.Count > 0 && MessageSendHistory.Count < Settings.MaxPlayerMessageHistoryCount)
-                        {
-                            MessageSendHistory.RemoveAt(0);
-                        }
+                        writeSuccessMessage($"The number of stored player messages is set to {Settings.MaxPlayerMessageHistoryCount}.");
                     }
                     else
                     {
-                        writeErrorMessage($"Could not convert the value \"{text}\" to a number.");
+                        if (ushort.TryParse(text, out ushort value))
+                        {
+                            Settings.MaxPlayerMessageHistoryCount = value;
+                            if (value > 0)
+                            {
+                                writeSuccessMessage($"Changed the maximum stored player messages to {value}.");
+                            }
+                            else
+                            {
+                                writeSuccessMessage($"Disabled capturing player chat history.");
+                                MessageSendHistory.Clear();
+                            }
+
+                            // Readjust buffer size
+                            while (MessageSendHistory.Count > 0 && MessageSendHistory.Count < Settings.MaxPlayerMessageHistoryCount)
+                            {
+                                MessageSendHistory.RemoveAt(0);
+                            }
+                        }
+                        else
+                        {
+                            writeErrorMessage($"Could not convert the value \"{text}\" to a number.");
+                        }
                     }
                 })
             );
