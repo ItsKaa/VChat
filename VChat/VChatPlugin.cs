@@ -69,7 +69,7 @@ namespace VChat
                 {
                     ((Chat)instance).SendText(Talker.Type.Normal, text);
                 }),
-                new PluginCommand(PluginCommandType.SendShoutMessage, new[] { "y", "yell" }, (text, instance) =>
+                new PluginCommand(PluginCommandType.SendShoutMessage, new[] { "y", "yell", "sh", "shout" }, (text, instance) =>
                 {
                     ((Chat)instance).SendText(Talker.Type.Shout, text);
                 }),
