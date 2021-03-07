@@ -44,6 +44,13 @@ namespace VChat.Configuration
             get => WhisperChatColorEntry.Value.ToColor();
             set => WhisperChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
+
+        private ConfigEntry<string> GlobalChatColorEntry { get; set; }
+        public Color? GlobalChatColor
+        {
+            get => GlobalChatColorEntry.Value.ToColor();
+            set => GlobalChatColorEntry.Value = value?.ToHtmlString() ?? null;
+        }
         #endregion Colors
         #region Chat Window
         private ConfigEntry<bool> AlwaysShowChatWindowEntry { get; set; }
@@ -154,6 +161,13 @@ namespace VChat.Configuration
             get => GetConfigEntryAsCollection(WhisperChatCommandNameEntry);
             set => SetConfigEntryValue(WhisperChatCommandNameEntry, value);
         }
+
+        private ConfigEntry<string> GlobalChatCommandNameEntry { get; set; }
+        public IEnumerable<string> GlobalChatCommandName
+        {
+            get => GetConfigEntryAsCollection(GlobalChatCommandNameEntry);
+            set => SetConfigEntryValue(GlobalChatCommandNameEntry, value);
+        }
         #endregion Command Names: Channels
         #region Command Names: Colors
         private ConfigEntry<string> SetLocalChatColorCommandNameEntry { get; set; }
@@ -175,6 +189,13 @@ namespace VChat.Configuration
         {
             get => GetConfigEntryAsCollection(SetWhisperChatColorCommandNameEntry);
             set => SetConfigEntryValue(SetWhisperChatColorCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> GlobalWhisperChatColorCommandNameEntry { get; set; }
+        public IEnumerable<string> GlobalWhisperChatColorCommandName
+        {
+            get => GetConfigEntryAsCollection(GlobalWhisperChatColorCommandNameEntry);
+            set => SetConfigEntryValue(GlobalWhisperChatColorCommandNameEntry, value);
         }
         #endregion Command Names: Colors
         #endregion Command Names
@@ -240,6 +261,7 @@ namespace VChat.Configuration
             LocalChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(LocalChatColor), null, ColorDescription);
             ShoutChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(ShoutChatColor), null, string.Empty);
             WhisperChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(WhisperChatColor), null, string.Empty);
+            GlobalChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(GlobalChatColor), null, string.Empty);
 
             // Chat window
             AlwaysShowChatWindowEntry = ConfigFile.Bind(ChatWindowSection, nameof(AlwaysShowChatWindow), false, ChatWindowDescription);
@@ -249,15 +271,16 @@ namespace VChat.Configuration
             MaxPlayerMessageHistoryCountEntry = ConfigFile.Bind(ChatWindowSection, nameof(MaxPlayerMessageHistoryCount), (ushort)25u, string.Empty);
 
             // Command Names
-
             CommandPrefixEntry = ConfigFile.Bind(CommandsSection, nameof(CommandPrefix), DefaultCommandPrefix, CommandDescription);
             LocalChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(LocalChatCommandName), "s|l|say|local", string.Empty);
             ShoutChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShoutChatCommandName), "y|sh|yell|shout", string.Empty);
             WhisperChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(WhisperChatCommandName), "w|whisper", string.Empty);
+            GlobalChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(GlobalChatCommandName), "g|global", string.Empty);
 
             SetLocalChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetLocalChatColorCommandName), "setlocalcolor", string.Empty);
             SetShoutChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetShoutChatColorCommandName), "setshoutcolor", string.Empty);
             SetWhisperChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetWhisperChatColorCommandName), "setwhispercolor", string.Empty);
+            GlobalWhisperChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(GlobalWhisperChatColorCommandName), "setglobalcolor", string.Empty);
 
             // Chat Window
             AutoShoutCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(AutoShoutCommandName), "autoshout", string.Empty);

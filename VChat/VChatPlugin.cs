@@ -79,6 +79,10 @@ namespace VChat
                 {
                     ((Chat)instance).SendText(Talker.Type.Whisper, text);
                 }),
+                new PluginCommand(PluginCommandType.SendGlobalMessage, Settings.GlobalChatCommandName, (text, instance) =>
+                {
+                    GlobalMessages.SendGlobalMessageToServer(text);
+                }),
                 new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
                     text = text?.Trim();
@@ -115,6 +119,20 @@ namespace VChat
                     {
                         Settings.WhisperChatColor = color;
                         writeSuccessMessage(string.Format(changedColorMessageSuccess, "whisper", color?.ToHtmlString()));
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseColorMessage, text));
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetGlobalColor, Settings.GlobalWhisperChatColorCommandName, (text, instance) =>
+                {
+                    text = text?.Trim();
+                    var color = text?.ToColor();
+                    if (color != null)
+                    {
+                        Settings.GlobalChatColor = color;
+                        writeSuccessMessage(string.Format(changedColorMessageSuccess, "global", color?.ToHtmlString()));
                     }
                     else
                     {
@@ -201,7 +219,7 @@ namespace VChat
                 switch(type.CustomTypeValue.Value)
                 {
                     case CustomMessageType.GlobalChat:
-                        color = new Color(0.890f, 0.376f, 0.050f);
+                        color = Settings.GlobalChatColor ?? new Color(0.890f, 0.376f, 0.050f);
                         break;
                 }
             }
