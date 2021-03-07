@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using VChat.Configuration;
 using VChat.Data;
 using VChat.Extensions;
+using VChat.Messages;
 using VChat.Services;
 
 namespace VChat
@@ -25,7 +26,7 @@ namespace VChat
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
         public static List<string> MessageSendHistory { get; private set; }
         public static int MessageSendHistoryIndex { get; set; } = 0;
-        public static Talker.Type CurrentChatType { get; set; }
+        public static CombinedMessageType CurrentChatType { get; set; }
         public static CommandHandler CommandHandler { get; set; }
 
         static VChatPlugin()
@@ -33,6 +34,7 @@ namespace VChat
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
             MessageSendHistory = new List<string>();
             CommandHandler = new CommandHandler();
+            CurrentChatType = new CombinedMessageType(Talker.Type.Normal);
         }
 
         public void Awake()
@@ -176,27 +178,39 @@ namespace VChat
             );
         }
 
-        public static Color GetTextColor(Talker.Type type)
+        public static Color GetTextColor(CombinedMessageType type)
         {
             var color = Color.white;
-            switch (type)
+            if (type.IsDefaultType())
             {
-                case Talker.Type.Normal:
-                    color = Settings.LocalChatColor ?? Color.white;
-                    break;
-                case Talker.Type.Shout:
-                    color = Settings.ShoutChatColor ?? Color.yellow;
-                    break;
-                case Talker.Type.Whisper:
-                    color = Settings.WhisperChatColor ?? new Color(1.0f, 1.0f, 1.0f, 0.75f);
-                    break;
+                switch (type.DefaultTypeValue.Value)
+                {
+                    case Talker.Type.Normal:
+                        color = Settings.LocalChatColor ?? Color.white;
+                        break;
+                    case Talker.Type.Shout:
+                        color = Settings.ShoutChatColor ?? Color.yellow;
+                        break;
+                    case Talker.Type.Whisper:
+                        color = Settings.WhisperChatColor ?? new Color(1.0f, 1.0f, 1.0f, 0.75f);
+                        break;
+                }
+            }
+            else if(type.IsCustomType())
+            {
+                switch(type.CustomTypeValue.Value)
+                {
+                    case CustomMessageType.GlobalChat:
+                        color = new Color(0.890f, 0.376f, 0.050f);
+                        break;
+                }
             }
             return color;
         }
 
-        public static string GetFormattedMessage(Talker.Type type, string user, string text)
+        public static string GetFormattedMessage(CombinedMessageType messageType, string user, string text)
         {
-            var textColor = GetTextColor(type);
+            var textColor = GetTextColor(messageType);
             var userColor = Color.Lerp(textColor, Color.black, 0.33f);
             return $"<color={userColor.ToHtmlString()}>{user}</color>: <color={textColor.ToHtmlString()}>{text}</color>";
         }
@@ -206,24 +220,29 @@ namespace VChat
             if (inputField != null && text != null)
             {
                 bool foundCommand = false;
-                Talker.Type chatType = Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal;
+                var messageType = new CombinedMessageType(Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal);
 
                 // Attempt to look for the used chat channel if we're starting with the command prefix.
                 if (text.StartsWith(CommandHandler.Prefix, StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendLocalMessage))
                     {
-                        chatType = Talker.Type.Normal;
+                        messageType.Set(Talker.Type.Normal);
                         foundCommand = true;
                     }
                     else if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendWhisperMessage))
                     {
-                        chatType = Talker.Type.Whisper;
+                        messageType.Set(Talker.Type.Whisper);
                         foundCommand = true;
                     }
                     else if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendShoutMessage))
                     {
-                        chatType = Talker.Type.Shout;
+                        messageType.Set(Talker.Type.Shout);
+                        foundCommand = true;
+                    }
+                    else if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendGlobalMessage))
+                    {
+                        messageType.Set(CustomMessageType.GlobalChat);
                         foundCommand = true;
                     }
                 }
@@ -232,13 +251,13 @@ namespace VChat
                 if ((!foundCommand || CommandHandler.Prefix != "/")
                     && text.StartsWith("/s ", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    chatType = Talker.Type.Shout;
+                    messageType.Set(Talker.Type.Shout);
                 }
 
                 // Update the text to the used channel in the input box.
-                if (CurrentChatType != chatType)
+                if (!CurrentChatType.Equals(messageType))
                 {
-                    CurrentChatType = chatType;
+                    CurrentChatType = messageType;
                     UpdateChatInputColor(inputField, CurrentChatType);
                     return true;
                 }
@@ -247,11 +266,11 @@ namespace VChat
             return false;
         }
 
-        public static void UpdateChatInputColor(InputField inputField, Talker.Type type)
+        public static void UpdateChatInputColor(InputField inputField, CombinedMessageType messageType)
         {
             if (inputField?.textComponent != null)
             {
-                inputField.textComponent.color = GetTextColor(type);
+                inputField.textComponent.color = GetTextColor(messageType);
             }
         }
 

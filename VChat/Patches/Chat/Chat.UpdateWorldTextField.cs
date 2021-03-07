@@ -17,7 +17,7 @@ namespace VChat.Patches
                 if (messageInfo?.Equals(wt) == true)
                 {
                     wt.m_text = messageInfo.Text;
-                    wt.m_textField.color = VChatPlugin.GetTextColor(wt.m_type);
+                    wt.m_textField.color = VChatPlugin.GetTextColor(new CombinedMessageType(wt.m_type));
                     // Not required but setting the floating text anyway.
                     wt.m_textField.text = messageInfo.Text;
 
