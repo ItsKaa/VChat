@@ -5,9 +5,9 @@ namespace VChat.Extensions
 {
     public static class UnityExtensions
     {
-        public static Color? GetColorFromString(this string nameOrHtmlString)
+        public static Color? ToColor(this string nameOrHtmlString)
         {
-            if (ColorUtility.TryParseHtmlString(nameOrHtmlString, out Color color))
+            if (ColorUtility.TryParseHtmlString(nameOrHtmlString.Replace("#", ""), out Color color))
             {
                 return color;
             }

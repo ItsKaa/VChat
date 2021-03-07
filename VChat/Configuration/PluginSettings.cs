@@ -21,21 +21,21 @@ namespace VChat.Configuration
         private ConfigEntry<string> LocalChatColorEntry { get; set; }
         public Color? LocalChatColor
         {
-            get => LocalChatColorEntry.Value.GetColorFromString();
+            get => LocalChatColorEntry.Value?.ToColor();
             set => LocalChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
 
         private ConfigEntry<string> ShoutChatColorEntry { get; set; }
         public Color? ShoutChatColor
         {
-            get => ShoutChatColorEntry.Value.GetColorFromString();
+            get => ShoutChatColorEntry.Value.ToColor();
             set => ShoutChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
 
         private ConfigEntry<string> WhisperChatColorEntry { get; set; }
         public Color? WhisperChatColor
         {
-            get => WhisperChatColorEntry.Value.GetColorFromString();
+            get => WhisperChatColorEntry.Value.ToColor();
             set => WhisperChatColorEntry.Value = value?.ToHtmlString() ?? null;
         }
         #endregion Colors
