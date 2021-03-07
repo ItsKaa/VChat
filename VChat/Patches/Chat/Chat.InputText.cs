@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using VChat.Data;
 
 namespace VChat.Patches
 {
@@ -21,12 +22,20 @@ namespace VChat.Patches
                 VChatPlugin.MessageSendHistoryIndex = 0;
             }
 
+            // Attempt to parse a command.
+            if (VChatPlugin.CommandHandler.TryFindAndExecuteCommand(text, __instance, out PluginCommand _))
+            {
+                return false;
+            }
+
+            // Send a shout message if enabled by default
             if (VChatPlugin.Settings.AutoShout)
             {
                 __instance.SendText(Talker.Type.Shout, text);
                 return false;
             }
 
+            // Resume normal procedure.
             return true;
         }
     }
