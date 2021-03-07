@@ -61,7 +61,7 @@ namespace VChat
                 Chat.instance.UpdateChat();
             });
 
-            const string changedColorMessageSuccess = "Changed the {0} color to<color={1}>color</color>.";
+            const string changedColorMessageSuccess = "Changed the {0} color to <color={1}>color</color>.";
             const string errorParseColorMessage = "Could not parse the color \"{0}\".";
 
             CommandHandler.AddCommands(
