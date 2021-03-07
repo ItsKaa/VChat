@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Configuration\PluginSettings.cs" />
     <Compile Include="Data\PluginCommand.cs" />
+    <Compile Include="Data\PluginCommandType.cs" />
     <Compile Include="Data\UserMessageInfo.cs" />
     <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
