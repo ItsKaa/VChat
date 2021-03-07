@@ -53,14 +53,12 @@ namespace VChat
 
             var writeErrorMessage = new Action<string>((string message) =>
             {
-                Chat.instance.m_chatBuffer?.Add($"<color=red>[Chat][Error] {message}</color>");
-                Chat.instance.UpdateChat();
+                Chat.instance.AddString($"<color=red>[Chat][Error] {message}</color>");
             });
 
             var writeSuccessMessage = new Action<string>((string message) =>
             {
-                Chat.instance.m_chatBuffer?.Add($"<color=#23ff00>[Chat] {message}</color>");
-                Chat.instance.UpdateChat();
+                Chat.instance.AddString($"<color=#23ff00>[Chat] {message}</color>");
             });
 
             const string changedColorMessageSuccess = "Changed the {0} color to <color={1}>color</color>.";
