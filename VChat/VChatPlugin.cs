@@ -79,7 +79,8 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
-                    var color = text.Trim().ToColor();
+                    text = text?.Trim();
+                    var color = text?.ToColor();
                     if (color != null)
                     {
                         Settings.LocalChatColor = color;
@@ -87,25 +88,27 @@ namespace VChat
                     }
                     else
                     {
-                        writeErrorMessage(string.Format(errorParseColorMessage, color));
+                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.SetShoutColor, Settings.SetShoutChatColorCommandName, (text, instance) =>
                 {
-                    var color = text.Trim().ToColor();
-                    if(color != null)
+                    text = text?.Trim();
+                    var color = text?.ToColor();
+                    if (color != null)
                     {
                         Settings.ShoutChatColor = color;
                         writeSuccessMessage(string.Format(changedColorMessageSuccess, "shout", color?.ToHtmlString()));
                     }
                     else
                     {
-                        writeErrorMessage(string.Format(errorParseColorMessage, color));
+                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.SetWhisperColor, Settings.SetWhisperChatColorCommandName, (text, instance) =>
                 {
-                    var color = text.Trim().ToColor();
+                    text = text?.Trim();
+                    var color = text?.ToColor();
                     if (color != null)
                     {
                         Settings.WhisperChatColor = color;
@@ -113,7 +116,7 @@ namespace VChat
                     }
                     else
                     {
-                        writeErrorMessage(string.Format(errorParseColorMessage, color));
+                        writeErrorMessage(string.Format(errorParseColorMessage, text));
                     }
                 }),
                 new PluginCommand(PluginCommandType.ToggleAutoShout, Settings.AutoShoutCommandName, (text, instance) =>
