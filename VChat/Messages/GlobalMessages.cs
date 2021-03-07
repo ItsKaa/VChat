@@ -41,19 +41,26 @@ namespace VChat.Messages
             {
                 try
                 {
-                    // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
-                    // We simply apply the position and player name the server knows rather than the reported values first.
-                    var peers = ZRoutedRpc.instance.m_peers;
-                    var sender = peers.FirstOrDefault(x => !x.m_server && x?.m_uid == senderId);
-
-                    // Loop through every connected peer and redirect the received message, including the original sender because the code is currently set so that the client knows that it's been sent.
-                    foreach (var peer in peers)
+                    var peer = ZRoutedRpc.instance?.GetPeer(senderId);
+                    if (peer?.m_server == false)
                     {
-                        if (peer != null && !peer.m_server && peer.IsReady() && peer.m_socket?.IsConnected() == true)
+                        // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
+                        // We simply apply the position and player name the server knows rather than the reported values first.
+                        var connectedPeers = ZRoutedRpc.instance.m_peers.Where(x => x != null && x.IsReady() && x.m_socket?.IsConnected() == true);
+
+                        // Loop through every connected peer and redirect the received message, including the original sender because the code is currently set so that the client knows that it's been sent.
+                        foreach (var connectedPeer in connectedPeers)
                         {
-                            Debug.Log($"Routing global message to peer {peer.m_uid} \"({peer.m_playerName})\" with message \"{text}\".");
-                            SendGlobalMessageToPeer(peer.m_uid, type, sender?.m_refPos ?? pos, sender?.m_playerName ?? callerName, text);
+                            if (peer != null && !peer.m_server && peer.IsReady() && peer.m_socket?.IsConnected() == true)
+                            {
+                                Debug.Log($"Routing global message to peer {peer.m_uid} \"({peer.m_playerName})\" with message \"{text}\".");
+                                SendGlobalMessageToPeer(peer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                            }
                         }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Recieved a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
                     }
                 }
                 catch (Exception ex)
@@ -63,7 +70,7 @@ namespace VChat.Messages
             }
             else
             {
-                Debug.LogWarning($"Received a global chat message from self...");
+                Debug.LogWarning($"Received a greeting from a peer with the server id...");
             }
         }
 
