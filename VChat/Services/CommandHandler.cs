@@ -79,39 +79,17 @@ namespace VChat.Services
         /// </summary>
         /// <param name="input">The string that comtains the prefix, command name and any arguments that are required</param>
         /// <param name="pluginCommand">The found command, if any.</param>
-        /// <param name="remainder">The remaining text (arguments) for the string, or input if pluginCommand is null.</param>
+        /// <param name="remainder">The remainder message of the input, these are the arguments that can be used when executing the action of the command.</param>
         /// <returns>True if successful.</returns>
         public bool TryFindCommand(string input, out PluginCommand pluginCommand, out string remainder)
         {
-            // Parse function used in the loop.
-            string remainderString = null;
-            PluginCommand foundCommand = null;
-            var parseFunc = new Func<PluginCommand, bool>((PluginCommand cmd) =>
-            {
-                foreach (var commandName in cmd.CommandNames)
-                {
-                    if (!string.IsNullOrEmpty(commandName)
-                        && (input.TrimEnd().Equals($"{Prefix}{commandName}")
-                        || input.TrimEnd().StartsWith($"{Prefix}{commandName} ")))
-                    {
-                        remainderString = input.Remove(0, Prefix.Length + commandName.Length).TrimStart();
-                        foundCommand = cmd;
-                        return true;
-                    }
-                }
-
-                return false;
-            });
-
-            // Loop through every command and attempt to parse the input string.
             lock (_lock)
             {
                 foreach (var command in Commands)
                 {
-                    if (parseFunc(command))
+                    if(IsValidCommandString(input, command, out remainder))
                     {
-                        remainder = remainderString;
-                        pluginCommand = foundCommand;
+                        pluginCommand = command;
                         return true;
                     }
                 }
@@ -120,6 +98,69 @@ namespace VChat.Services
             pluginCommand = null;
             remainder = input;
             return false;
+        }
+
+        /// <summary>
+        /// Compares the input string with the accepted command names for the provided command.
+        /// Case insensitive check.
+        /// </summary>
+        /// <param name="input">The complete string that includes the prefix for the command and any optional arguments</param>
+        /// <param name="command">The command that we're comparing for</param>
+        /// <param name="remainder">The remainder message of the input</param>
+        /// <returns>True if successful</returns>
+        public bool IsValidCommandString(string input, PluginCommand command, out string remainder)
+        {
+            foreach (var commandName in command.CommandNames)
+            {
+                if (!string.IsNullOrEmpty(commandName)
+                    && (input.TrimEnd().Equals($"{Prefix}{commandName}", StringComparison.CurrentCultureIgnoreCase)
+                    || input.TrimEnd().StartsWith($"{Prefix}{commandName} ", StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    remainder = input.Remove(0, Prefix.Length + commandName.Length).TrimStart();
+                    return true;
+                }
+            }
+
+            remainder = input;
+            return false;
+        }
+
+        public bool IsValidCommandString(string input, PluginCommand command)
+            => IsValidCommandString(input, command, out string _);
+
+        public bool IsValidCommandString(string input, PluginCommandType commandType, out string remainder)
+        {
+            var command = FindCommand(commandType);
+            if (command != null)
+            {
+                return IsValidCommandString(input, command, out remainder);
+            }
+
+            remainder = input;
+            return false;
+        }
+
+        public bool IsValidCommandString(string input, PluginCommandType commandType)
+            => IsValidCommandString(input, commandType, out string _);
+
+        /// <summary>
+        /// Attempt to find the command based on the type, this should technically never fail.
+        /// </summary>
+        public PluginCommand FindCommand(PluginCommandType type)
+        {
+            lock (_lock)
+            {
+                foreach (var command in Commands)
+                {
+                    if(command.Type == type)
+                    {
+                        return command;
+                    }
+                }
+            }
+
+            Debug.LogError($"Could not find the command for {type}, is this a new unhandled command?");
+            return null;
         }
 
         /// <summary>
