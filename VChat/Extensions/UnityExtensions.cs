@@ -7,7 +7,7 @@ namespace VChat.Extensions
     {
         public static Color? ToColor(this string nameOrHtmlString)
         {
-            if (ColorUtility.TryParseHtmlString(nameOrHtmlString.Replace("#", ""), out Color color))
+            if (ColorUtility.TryParseHtmlString(nameOrHtmlString, out Color color))
             {
                 return color;
             }
