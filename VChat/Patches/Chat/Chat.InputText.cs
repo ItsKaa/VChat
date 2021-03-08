@@ -31,21 +31,27 @@ namespace VChat.Patches
             }
 
             // Otherwise send the message to the last used channel.
-            if (VChatPlugin.LastChatType.IsDefaultType())
+            // Only when not starting with a slash, because that's the default for commands. We still want /sit and such to work :)
+            if (!text.StartsWith("/"))
             {
-                __instance.SendText(VChatPlugin.LastChatType.DefaultTypeValue.Value, text);
-                return false;
-            }
-            else
-            {
-                switch(VChatPlugin.LastChatType.CustomTypeValue)
+                if (VChatPlugin.LastChatType.IsDefaultType())
                 {
-                    case CustomMessageType.GlobalChat:
-                        GlobalMessages.SendGlobalMessageToServer(text);
-                        break;
+                    __instance.SendText(VChatPlugin.LastChatType.DefaultTypeValue.Value, text);
+                    return false;
                 }
-                return false;
+                else
+                {
+                    switch (VChatPlugin.LastChatType.CustomTypeValue)
+                    {
+                        case CustomMessageType.GlobalChat:
+                            GlobalMessages.SendGlobalMessageToServer(text);
+                            break;
+                    }
+                    return false;
+                }
             }
+
+            return true;
         }
     }
 }
