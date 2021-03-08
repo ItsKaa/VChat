@@ -41,20 +41,18 @@ namespace VChat.Messages
             {
                 try
                 {
+                    // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
+                    // We simply apply the position and player name the server knows rather than the reported values first.
                     var peer = ZRoutedRpc.instance?.GetPeer(senderId);
                     if (peer?.m_server == false)
                     {
-                        // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
-                        // We simply apply the position and player name the server knows rather than the reported values first.
-                        var connectedPeers = ZRoutedRpc.instance.m_peers.Where(x => x != null && x.IsReady() && x.m_socket?.IsConnected() == true);
-
                         // Loop through every connected peer and redirect the received message, including the original sender because the code is currently set so that the client knows that it's been sent.
-                        foreach (var connectedPeer in connectedPeers)
+                        foreach (var connectedPeer in ZNet.instance.GetConnectedPeers())
                         {
-                            if (peer != null && !peer.m_server && peer.IsReady() && peer.m_socket?.IsConnected() == true)
+                            if (connectedPeer != null && !connectedPeer.m_server && connectedPeer.IsReady() && connectedPeer.m_socket?.IsConnected() == true)
                             {
-                                Debug.Log($"Routing global message to peer {peer.m_uid} \"({peer.m_playerName})\" with message \"{text}\".");
-                                SendGlobalMessageToPeer(peer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                                Debug.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
+                                SendGlobalMessageToPeer(connectedPeer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
                             }
                         }
                     }
