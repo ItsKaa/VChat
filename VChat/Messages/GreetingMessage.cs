@@ -25,7 +25,7 @@ namespace VChat.Messages
         /// </summary>
         public static void Register()
         {
-            Debug.Log($"Registering custom routed messages for global chat.");
+            Debug.Log($"Registering custom routed messages for greetings.");
             if (ZNet.m_isServer)
             {
                 ZRoutedRpc.instance.Register(GreetingHashName, new RoutedMethod<string>(OnServerMessage).m_action);
@@ -54,7 +54,7 @@ namespace VChat.Messages
                 var peer = ZRoutedRpc.instance?.GetPeer(senderId);
                 if (peer != null)
                 {
-                    Debug.Log($"Greeting received from client {senderId} \"{peer?.m_playerName}\" with version {version}.");
+                    Debug.Log($"Greeting received from client \"{peer?.m_playerName}\" ({senderId}) with version {version}.");
                     GreetingMessagePeerInfo peerInfo;
                     if (PeerInfo.TryGetValue(senderId, out GreetingMessagePeerInfo previousGreeting))
                     {
@@ -94,7 +94,7 @@ namespace VChat.Messages
         {
             if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
             {
-                Debug.LogWarning($"Received a greeting from the server {senderId} which is running on {VChatPlugin.Name} {version}.");
+                Debug.Log($"Received a greeting from the server ({senderId}) that's running on {VChatPlugin.Name} {version}.");
 
                 // Property to determine if both sides have VChat installed.
                 if(!HasLocalPlayerReceivedGreetingFromServer)
@@ -112,7 +112,7 @@ namespace VChat.Messages
             }
             else
             {
-                Debug.LogWarning($"Ignoring a greeting received from a client with id {senderId} and version {version}.");
+                Debug.Log($"Ignoring a greeting received from a client with id {senderId} and version {version}.");
             }
         }
 
@@ -130,7 +130,11 @@ namespace VChat.Messages
                 GreetingMessagePeerInfo peerInfo;
                 if (PeerInfo.TryGetValue(peerId, out GreetingMessagePeerInfo previousGreeting))
                 {
-                    Debug.Log($"Peer has already been greeted but sending anyway.");
+                    if(previousGreeting.HasSentGreeting)
+                    {
+                        Debug.LogWarning($"Player \"{ZNet.instance.GetPeer(peerId)?.m_playerName}\" ({peerId}) has already been greeted, but sending anyway.");
+                    }
+
                     peerInfo = previousGreeting;
                     peerInfo.HasSentGreeting = true;
                 }
@@ -149,7 +153,7 @@ namespace VChat.Messages
             }
             else
             {
-                Debug.LogWarning($"Could not send the greeing to a client.");
+                Debug.LogWarning($"Cannot send the greeing to a client.");
             }
         }
 
@@ -166,7 +170,7 @@ namespace VChat.Messages
             }
             else
             {
-                Debug.LogWarning($"Could not send the greeing to ourself.");
+                Debug.LogError($"Cannot send the greeing to ourself, are we missing a server check?");
             }
         }
     }

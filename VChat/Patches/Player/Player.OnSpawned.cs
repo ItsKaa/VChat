@@ -11,11 +11,10 @@ namespace VChat.Patches
 
         public static void Prefix(ref Player __instance)
         {
-            // This is only for clients. Add a chat message to the chat box displaying the status of VChat.
+            // This is only for clients. Add a welcome message to the chat box displaying the status of VChat.
             if (!HasSentPluginMessage)
             {
                 var chat = Chat.instance;
-                Debug.LogError($"attempting to send VChat greeting message ({GreetingMessage.HasLocalPlayerGreetedToServer}, {GreetingMessage.HasLocalPlayerReceivedGreetingFromServer})");
                 if (chat != null)
                 {
                     if (GreetingMessage.HasLocalPlayerGreetedToServer && GreetingMessage.HasLocalPlayerReceivedGreetingFromServer)
@@ -30,6 +29,10 @@ namespace VChat.Patches
                     {
                         chat.AddString($"<color=red>[{VChatPlugin.Name}] Has encountered an issue greeting the server.</color>");
                     }
+                }
+                else
+                {
+                    Debug.LogError($"Could not write the VChat welcome message because Chat is not yet initialised.");
                 }
 
                 HasSentPluginMessage = true;
