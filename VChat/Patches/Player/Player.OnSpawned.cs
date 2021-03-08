@@ -7,7 +7,7 @@ namespace VChat.Patches
     [HarmonyPatch(typeof(Player), nameof(Player.OnSpawned))]
     public static class PlayerPatchOnSpawned
     {
-        private static bool HasSentPluginMessage { get; set; } = false;
+        public static bool HasSentPluginMessage { get; set; } = false;
 
         public static void Prefix(ref Player __instance)
         {
