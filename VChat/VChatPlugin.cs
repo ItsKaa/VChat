@@ -26,7 +26,8 @@ namespace VChat
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
         public static List<string> MessageSendHistory { get; private set; }
         public static int MessageSendHistoryIndex { get; set; } = 0;
-        public static CombinedMessageType CurrentChatType { get; set; }
+        public static CombinedMessageType CurrentInputChatType { get; set; }
+        public static CombinedMessageType LastChatType { get; set; }
         public static CommandHandler CommandHandler { get; set; }
 
         static VChatPlugin()
@@ -34,7 +35,8 @@ namespace VChat
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
             MessageSendHistory = new List<string>();
             CommandHandler = new CommandHandler();
-            CurrentChatType = new CombinedMessageType(Talker.Type.Normal);
+            LastChatType = new CombinedMessageType(Talker.Type.Normal);
+            CurrentInputChatType = new CombinedMessageType(LastChatType.Value);
         }
 
         public void Awake()
@@ -92,19 +94,47 @@ namespace VChat
             CommandHandler.AddCommands(
                 new PluginCommand(PluginCommandType.SendLocalMessage, Settings.LocalChatCommandName, (text, instance) =>
                 {
-                    ((Chat)instance).SendText(Talker.Type.Normal, text);
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        LastChatType.Set(Talker.Type.Normal);
+                    }
+                    else
+                    {
+                        ((Chat)instance).SendText(Talker.Type.Normal, text);
+                    }
                 }),
                 new PluginCommand(PluginCommandType.SendShoutMessage, Settings.ShoutChatCommandName, (text, instance) =>
                 {
-                    ((Chat)instance).SendText(Talker.Type.Shout, text);
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        LastChatType.Set(Talker.Type.Shout);
+                    }
+                    else
+                    {
+                        ((Chat)instance).SendText(Talker.Type.Shout, text);
+                    }
                 }),
                 new PluginCommand(PluginCommandType.SendWhisperMessage, Settings.WhisperChatCommandName, (text, instance) =>
                 {
-                    ((Chat)instance).SendText(Talker.Type.Whisper, text);
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        LastChatType.Set(Talker.Type.Whisper);
+                    }
+                    else
+                    {
+                        ((Chat)instance).SendText(Talker.Type.Whisper, text);
+                    }
                 }),
                 new PluginCommand(PluginCommandType.SendGlobalMessage, Settings.GlobalChatCommandName, (text, instance) =>
                 {
-                    GlobalMessages.SendGlobalMessageToServer(text);
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        LastChatType.Set(CustomMessageType.GlobalChat);
+                    }
+                    else
+                    {
+                        GlobalMessages.SendGlobalMessageToServer(text);
+                    }
                 }),
                 new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
@@ -137,11 +167,6 @@ namespace VChat
                     {
                         Settings.GlobalChatColor = color;
                     }
-                }),
-                new PluginCommand(PluginCommandType.ToggleAutoShout, Settings.AutoShoutCommandName, (text, instance) =>
-                {
-                    Settings.AutoShout = !Settings.AutoShout;
-                    writeSuccessMessage($"{(Settings.AutoShout ? "Enabled" : "Disabled")} auto shout.");
                 }),
                 new PluginCommand(PluginCommandType.ToggleShowChatWindow, "showchat", (text, instance) =>
                 {
@@ -237,7 +262,8 @@ namespace VChat
             if (inputField != null && text != null)
             {
                 bool foundCommand = false;
-                var messageType = new CombinedMessageType(Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal);
+                //var messageType = new CombinedMessageType(Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal);
+                var messageType = new CombinedMessageType(LastChatType.Value);
 
                 // Attempt to look for the used chat channel if we're starting with the command prefix.
                 if (text.StartsWith(CommandHandler.Prefix, StringComparison.CurrentCultureIgnoreCase))
@@ -272,12 +298,12 @@ namespace VChat
                 }
 
                 // Update the text to the used channel in the input box.
-                if (!CurrentChatType.Equals(messageType))
+                if (!CurrentInputChatType.Equals(messageType))
                 {
-                    CurrentChatType = messageType;
-                    UpdateChatInputColor(inputField, CurrentChatType);
-                    return true;
+                    CurrentInputChatType = messageType;
+                    UpdateChatInputColor(inputField, CurrentInputChatType);
                 }
+                return true;
             }
 
             return false;

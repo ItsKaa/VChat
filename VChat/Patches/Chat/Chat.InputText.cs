@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
+using UnityEngine;
 using VChat.Data;
+using VChat.Messages;
 
 namespace VChat.Patches
 {
@@ -28,15 +30,22 @@ namespace VChat.Patches
                 return false;
             }
 
-            // Send a shout message if enabled by default
-            if (VChatPlugin.Settings.AutoShout)
+            // Otherwise send the message to the last used channel.
+            if (VChatPlugin.LastChatType.IsDefaultType())
             {
-                __instance.SendText(Talker.Type.Shout, text);
+                __instance.SendText(VChatPlugin.LastChatType.DefaultTypeValue.Value, text);
                 return false;
             }
-
-            // Resume normal procedure.
-            return true;
+            else
+            {
+                switch(VChatPlugin.LastChatType.CustomTypeValue)
+                {
+                    case CustomMessageType.GlobalChat:
+                        GlobalMessages.SendGlobalMessageToServer(text);
+                        break;
+                }
+                return false;
+            }
         }
     }
 }

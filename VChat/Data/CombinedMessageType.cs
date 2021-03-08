@@ -2,7 +2,7 @@
 
 namespace VChat.Data
 {
-    public struct CombinedMessageType
+    public class CombinedMessageType
         : IComparable<int>, IEquatable<int>,
           IComparable<Talker.Type>, IEquatable<Talker.Type>,
           IComparable<CustomMessageType>, IEquatable<CustomMessageType>,

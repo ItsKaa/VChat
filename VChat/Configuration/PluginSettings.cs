@@ -74,13 +74,6 @@ namespace VChat.Configuration
             set => EnableClickThroughChatWindowEntry.Value = value;
         }
 
-        private ConfigEntry<bool> AutoShoutEntry { get; set; }
-        public bool AutoShout
-        {
-            get => AutoShoutEntry.Value;
-            set => AutoShoutEntry.Value = value;
-        }
-        
         private ConfigEntry<ushort> MaxPlayerMessageHistoryCountEntry { get; set; }
         public ushort MaxPlayerMessageHistoryCount
         {
@@ -267,7 +260,6 @@ namespace VChat.Configuration
             AlwaysShowChatWindowEntry = ConfigFile.Bind(ChatWindowSection, nameof(AlwaysShowChatWindow), false, ChatWindowDescription);
             ShowChatWindowOnMessageReceivedEntry = ConfigFile.Bind(ChatWindowSection, nameof(ShowChatWindowOnMessageReceived), true, string.Empty);
             EnableClickThroughChatWindowEntry = ConfigFile.Bind(ChatWindowSection, nameof(EnableClickThroughChatWindow), true, string.Empty);
-            AutoShoutEntry = ConfigFile.Bind(ChatWindowSection, nameof(AutoShout), true, string.Empty);
             MaxPlayerMessageHistoryCountEntry = ConfigFile.Bind(ChatWindowSection, nameof(MaxPlayerMessageHistoryCount), (ushort)25u, string.Empty);
 
             // Command Names
