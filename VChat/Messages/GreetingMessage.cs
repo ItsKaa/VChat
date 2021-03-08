@@ -49,7 +49,7 @@ namespace VChat.Messages
         /// </summary>
         private static void OnServerMessage(long senderId, string version)
         {
-            if (senderId != ZRoutedRpc.instance.GetServerPeerID())
+            if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
             {
                 var peer = ZRoutedRpc.instance?.GetPeer(senderId);
                 if (peer != null)
@@ -92,7 +92,7 @@ namespace VChat.Messages
         /// </summary>
         private static void OnClientMessage(long senderId, string version)
         {
-            if (senderId == ZRoutedRpc.instance.GetServerPeerID())
+            if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
             {
                 Debug.LogWarning($"Received a greeting from the server {senderId} which is running on {VChatPlugin.Name} {version}.");
 
@@ -161,7 +161,7 @@ namespace VChat.Messages
             if (!ZNet.m_isServer)
             {
                 var parameters = new object[] { VChatPlugin.Version };
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), GreetingHashName, parameters);
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZNet.instance.GetServerPeer().m_uid, GreetingHashName, parameters);
                 HasLocalPlayerGreetedToServer = true;
             }
             else

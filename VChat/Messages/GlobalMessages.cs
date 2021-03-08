@@ -37,7 +37,7 @@ namespace VChat.Messages
         /// <param name="text">the message, without a playername or formatting.</param>
         private static void OnGlobalMessage_Server(long senderId, Vector3 pos, int type, string callerName, string text)
         {
-            if (senderId != ZRoutedRpc.instance.GetServerPeerID())
+            if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
             {
                 try
                 {
@@ -86,7 +86,7 @@ namespace VChat.Messages
         private static void OnGlobalMessage_Client(long senderId, Vector3 pos, int type, string playerName, string text)
         {
             // Client messages should only come from the server.
-            if (senderId == ZRoutedRpc.instance.GetServerPeerID())
+            if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
             {
                 Debug.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
                 if (Chat.instance != null)
@@ -123,7 +123,7 @@ namespace VChat.Messages
             if (localPlayer != null)
             {
                 var parameters = new object[] { localPlayer.GetHeadPoint(), (int)type, localPlayer.m_name, text };
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), GlobalChatHashName, parameters);
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZNet.instance.GetServerPeer().m_uid, GlobalChatHashName, parameters);
             }
             else
             {
