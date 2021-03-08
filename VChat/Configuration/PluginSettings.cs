@@ -96,13 +96,6 @@ namespace VChat.Configuration
 
         #region Command Names
         #region Command Names: Chat Window
-        private ConfigEntry<string> AutoShoutCommandNameEntry { get; set; }
-        public IEnumerable<string> AutoShoutCommandName
-        {
-            get => GetConfigEntryAsCollection(AutoShoutCommandNameEntry);
-            set => SetConfigEntryValue(AutoShoutCommandNameEntry, value);
-        }
-
         private ConfigEntry<string> ShowChatCommandNameEntry { get; set; }
         public IEnumerable<string> ShowChatCommandName
         {
@@ -275,7 +268,6 @@ namespace VChat.Configuration
             GlobalWhisperChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(GlobalWhisperChatColorCommandName), "setglobalcolor", string.Empty);
 
             // Chat Window
-            AutoShoutCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(AutoShoutCommandName), "autoshout", string.Empty);
             ShowChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShowChatCommandName), "showchat", string.Empty);
             ShowChatOnMessageCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShowChatOnMessageCommandName), "showchatonmessage", string.Empty);
             ChatClickThroughCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ChatClickThroughCommandName), "chatclickthrough", string.Empty);
