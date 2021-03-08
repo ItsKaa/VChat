@@ -15,7 +15,7 @@ namespace VChat.Messages
         /// </summary>
         public static void Register()
         {
-            Debug.Log($"Registering custom routed messages for global chat.");
+            VChatPlugin.Log($"Registering custom routed messages for global chat.");
             if (ZNet.m_isServer)
             {
                 ZRoutedRpc.instance.Register(GlobalChatHashName, new RoutedMethod<Vector3, int, string, string>(OnGlobalMessage_Server).m_action);
@@ -51,24 +51,24 @@ namespace VChat.Messages
                         {
                             if (connectedPeer != null && !connectedPeer.m_server && connectedPeer.IsReady() && connectedPeer.m_socket?.IsConnected() == true)
                             {
-                                Debug.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
+                                VChatPlugin.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
                                 SendGlobalMessageToPeer(connectedPeer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
                             }
                         }
                     }
                     else
                     {
-                        Debug.LogWarning($"Recieved a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
+                        VChatPlugin.LogWarning($"Recieved a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Failed to InvokeRoutedRPC for global message ({senderId}|{text}): {ex}");
+                    VChatPlugin.LogError($"Failed to InvokeRoutedRPC for global message ({senderId}|{text}): {ex}");
                 }
             }
             else
             {
-                Debug.LogWarning($"Received a greeting from a peer with the server id...");
+                VChatPlugin.LogWarning($"Received a greeting from a peer with the server id...");
             }
         }
 
@@ -86,7 +86,7 @@ namespace VChat.Messages
             // Client messages should only come from the server.
             if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
             {
-                Debug.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
+                VChatPlugin.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
                 if (Chat.instance != null)
                 {
                     var formattedMessage = VChatPlugin.GetFormattedMessage(new CombinedMessageType(CustomMessageType.GlobalChat), playerName, text);
@@ -94,12 +94,12 @@ namespace VChat.Messages
                 }
                 else
                 {
-                    Debug.LogWarning($"Received a message but Chat instance is undefined.");
+                    VChatPlugin.LogWarning($"Received a message but Chat instance is undefined.");
                 }
             }
             else
             {
-                Debug.LogWarning($"Ignoring a global message received from a client, reported values: {senderId} \"{playerName}\" on location {pos} with message \"{text}\".");
+                VChatPlugin.LogWarning($"Ignoring a global message received from a client, reported values: {senderId} \"{playerName}\" on location {pos} with message \"{text}\".");
             }
         }
 
@@ -125,7 +125,7 @@ namespace VChat.Messages
             }
             else
             {
-                Debug.LogError($"Could not send global message because the player is undefined (text: \"{text}\").");
+                VChatPlugin.LogError($"Could not send global message because the player is undefined (text: \"{text}\").");
             }
         }
     }

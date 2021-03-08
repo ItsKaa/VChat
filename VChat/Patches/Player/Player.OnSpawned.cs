@@ -32,7 +32,7 @@ namespace VChat.Patches
                 }
                 else
                 {
-                    Debug.LogError($"Could not write the VChat welcome message because Chat is not yet initialised.");
+                    VChatPlugin.LogError($"Could not write the VChat welcome message because Chat is not yet initialised.");
                 }
 
                 HasSentPluginMessage = true;

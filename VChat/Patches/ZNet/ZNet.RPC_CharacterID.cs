@@ -34,7 +34,7 @@ namespace VChat.Patches
                         // Send a local chat message to the player if it does not have VChat installed.
                         if (!isPlayerConnectedWithVChat)
                         {
-                            Debug.Log($"Player \"{peer.m_playerName}\" ({peer.m_uid}) spawned that does not have VChat installed, sending mod information...");
+                            VChatPlugin.Log($"Player \"{peer.m_playerName}\" ({peer.m_uid}) spawned that does not have VChat installed, sending mod information...");
 
                             var messages = new[]
                             {

@@ -46,7 +46,7 @@ namespace VChat
             Settings = new PluginSettings(Config);
             InitialiseCommands();
 
-            Debug.Log($"{Name} initialised, version {Version}.");
+            Log($"Initialised, version {Version}.");
         }
 
         private void InitialiseCommands()
@@ -317,5 +317,24 @@ namespace VChat
             }
         }
 
+        public static string FormatLogMessage(object message)
+        {
+            return $"[{Name}] {message}";
+        }
+
+        public static void LogError(object message)
+        {
+            Debug.LogError(FormatLogMessage(message));
+        }
+
+        public static void LogWarning(object message)
+        {
+            Debug.LogWarning(FormatLogMessage(message));
+        }
+
+        public static void Log(object message)
+        {
+            Debug.Log(FormatLogMessage(message));
+        }
     }
 }

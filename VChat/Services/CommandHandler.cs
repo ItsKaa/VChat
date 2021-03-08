@@ -35,7 +35,7 @@ namespace VChat.Services
                         {
                             if (string.Equals(commandName1, commandName2, StringComparison.CurrentCultureIgnoreCase))
                             {
-                                Debug.LogError($"Command with the name \"{Prefix}{duplicateCommandName}\" already exists, types {command.Type} and {pluginCommand.Type}.");
+                                VChatPlugin.LogError($"Command with the name \"{Prefix}{duplicateCommandName}\" already exists, types {command.Type} and {pluginCommand.Type}.");
                                 duplicateCommandName = commandName1;
                                 break;
                             }
@@ -155,7 +155,7 @@ namespace VChat.Services
                 }
             }
 
-            Debug.LogError($"Could not find the command for {type}, is this a new unhandled command?");
+            VChatPlugin.LogError($"Could not find the command for {type}, is this a new unhandled command?");
             return null;
         }
 

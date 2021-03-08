@@ -229,7 +229,7 @@ namespace VChat.Configuration
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error in Settings.Tick: {ex}");
+                    VChatPlugin.LogError($"Error in Settings.Tick: {ex}");
                 }
 
                 LastTickDate = DateTime.UtcNow;
@@ -238,7 +238,7 @@ namespace VChat.Configuration
 
         private void ConfigFile_ConfigReloaded(object sender, EventArgs e)
         {
-            Debug.Log($"Reloaded settings.");
+            VChatPlugin.Log($"Reloaded settings.");
         }
 
 

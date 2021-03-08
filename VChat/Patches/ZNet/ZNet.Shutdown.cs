@@ -13,7 +13,7 @@ namespace VChat.Patches
             // These will be set once the client connects to a server.
             if (!ZNet.m_isServer)
             {
-                Debug.Log("Resetting variables for local player");
+                VChatPlugin.Log("Resetting variables for local player");
                 GreetingMessage.ResetClientVariables();
             }
         }
