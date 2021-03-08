@@ -94,44 +94,32 @@ namespace VChat
             CommandHandler.AddCommands(
                 new PluginCommand(PluginCommandType.SendLocalMessage, Settings.LocalChatCommandName, (text, instance) =>
                 {
-                    if (string.IsNullOrEmpty(text))
-                    {
-                        LastChatType.Set(Talker.Type.Normal);
-                    }
-                    else
+                    LastChatType.Set(Talker.Type.Normal);
+                    if (!string.IsNullOrEmpty(text))
                     {
                         ((Chat)instance).SendText(Talker.Type.Normal, text);
                     }
                 }),
                 new PluginCommand(PluginCommandType.SendShoutMessage, Settings.ShoutChatCommandName, (text, instance) =>
                 {
-                    if (string.IsNullOrEmpty(text))
-                    {
-                        LastChatType.Set(Talker.Type.Shout);
-                    }
-                    else
+                    LastChatType.Set(Talker.Type.Shout);
+                    if (!string.IsNullOrEmpty(text))
                     {
                         ((Chat)instance).SendText(Talker.Type.Shout, text);
                     }
                 }),
                 new PluginCommand(PluginCommandType.SendWhisperMessage, Settings.WhisperChatCommandName, (text, instance) =>
                 {
-                    if (string.IsNullOrEmpty(text))
-                    {
-                        LastChatType.Set(Talker.Type.Whisper);
-                    }
-                    else
+                    LastChatType.Set(Talker.Type.Whisper);
+                    if (!string.IsNullOrEmpty(text))
                     {
                         ((Chat)instance).SendText(Talker.Type.Whisper, text);
                     }
                 }),
                 new PluginCommand(PluginCommandType.SendGlobalMessage, Settings.GlobalChatCommandName, (text, instance) =>
                 {
-                    if (string.IsNullOrEmpty(text))
-                    {
-                        LastChatType.Set(CustomMessageType.GlobalChat);
-                    }
-                    else
+                    LastChatType.Set(CustomMessageType.GlobalChat);
+                    if (!string.IsNullOrEmpty(text))
                     {
                         GlobalMessages.SendGlobalMessageToServer(text);
                     }
