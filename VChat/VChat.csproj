@@ -254,12 +254,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <Content Include="manifest.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="icon.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /F "$(TargetDir)$(TargetName).dll" "$(GameDir)BepInEx\plugins\"
 xcopy /Y /F "$(TargetDir)$(TargetName).pdb" "$(GameDir)BepInEx\plugins\"
 xcopy /Y /F "$(TargetDir)$(TargetName).dll" "$(ServerDir)BepInEx\plugins\"
-xcopy /Y /F "$(TargetDir)$(TargetName).pdb" "$(ServerDir)BepInEx\plugins\"</PostBuildEvent>
+xcopy /Y /F "$(TargetDir)$(TargetName).pdb" "$(ServerDir)BepInEx\plugins\"
+copy /Y "$(SolutionDir)README.md" "$(TargetDir)README.md"</PostBuildEvent>
   </PropertyGroup>
 </Project>

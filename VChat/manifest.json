@@ -1,0 +1,9 @@
+{
+    "name": "VChat",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/ItsKaa/VChat",
+    "description": "Adds a global chat channel, configurable colours per channel, chat history, removes auto character casing, and various other changes to improve the usage of the chat.",
+    "dependencies": [
+        "denikson-BepInExPack_Valheim-5.4.800"
+    ]
+}
