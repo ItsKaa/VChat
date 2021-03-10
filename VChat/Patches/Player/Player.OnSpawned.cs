@@ -23,7 +23,7 @@ namespace VChat.Patches
                     }
                     else if (GreetingMessage.HasLocalPlayerGreetedToServer && !GreetingMessage.HasLocalPlayerReceivedGreetingFromServer)
                     {
-                        chat.AddString($"<color=white>[{VChatPlugin.Name}] was not found on the server, custom channels like global chat will not work.</color>");
+                        chat.AddString($"<color=white>[{VChatPlugin.Name}] was not found on the server, messages sent to the global chat can only be seen by players with {VChatPlugin.Name} installed.</color>");
                     }
                     else
                     {

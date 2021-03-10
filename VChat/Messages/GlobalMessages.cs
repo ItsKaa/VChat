@@ -58,7 +58,7 @@ namespace VChat.Messages
                     }
                     else
                     {
-                        VChatPlugin.LogWarning($"Recieved a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
+                        VChatPlugin.LogWarning($"Received a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
                     }
                 }
                 catch (Exception ex)
@@ -83,8 +83,8 @@ namespace VChat.Messages
         /// <param name="text">the message, without a playername or formatting.</param>
         private static void OnGlobalMessage_Client(long senderId, Vector3 pos, int type, string playerName, string text)
         {
-            // Client messages should only come from the server.
-            if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
+            // If the client is connected to a server-sided instance of VChat then only accept messages from the server.
+            if (!GreetingMessage.HasLocalPlayerReceivedGreetingFromServer || senderId == ZNet.instance.GetServerPeer()?.m_uid)
             {
                 VChatPlugin.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
                 if (Chat.instance != null)
@@ -120,8 +120,17 @@ namespace VChat.Messages
             var localPlayer = Player.m_localPlayer;
             if (localPlayer != null)
             {
-                var parameters = new object[] { localPlayer.GetHeadPoint(), (int)type, localPlayer.m_name, text };
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZNet.instance.GetServerPeer().m_uid, GlobalChatHashName, parameters);
+                long peerId = ZRoutedRpc.Everybody;
+
+                // If server-sided VChat is found, send the message directly to the server.
+                var serverPeer = ZNet.instance?.GetServerPeer();
+                if (GreetingMessage.HasLocalPlayerReceivedGreetingFromServer && serverPeer != null)
+                {
+                    peerId = ZNet.instance.GetServerPeer().m_uid;
+                }
+
+                var parameters = new object[] { localPlayer.GetHeadPoint(), (int)type, localPlayer.GetPlayerName(), text };
+                ZRoutedRpc.instance.InvokeRoutedRPC(peerId, GlobalChatHashName, parameters);
             }
             else
             {
