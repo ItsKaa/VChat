@@ -5,10 +5,9 @@ using VChat.Data;
 
 namespace VChat.Messages
 {
-    public class GreetingMessage
+    public static class GreetingMessage
     {
         public const string GreetingHashName = VChatPlugin.GUID + ".greet";
-        public static readonly int GreetingHashCode = GreetingHashName.GetHashCode();
         public static ConcurrentDictionary<long, GreetingMessagePeerInfo> PeerInfo { get; private set; }
         public static bool HasLocalPlayerGreetedToServer { get; private set; }
         public static bool HasLocalPlayerReceivedGreetingFromServer { get; private set; }

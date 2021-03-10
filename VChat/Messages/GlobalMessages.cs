@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
 using VChat.Data;
 
@@ -8,7 +7,8 @@ namespace VChat.Messages
     public static class GlobalMessages
     {
         public const string GlobalChatHashName = VChatPlugin.GUID + ".globalchat";
-        public static readonly int GlobalChatHashCode = GlobalChatHashName.GetHashCode();
+        public static readonly int TalkerSayHashCode = "Say".GetStableHashCode();
+        public static readonly int InterceptedSayHashCode = $"{VChatPlugin.GUID}.interceptedsay".GetStableHashCode();
 
         /// <summary>
         /// Register the global message commands, this should be called when ZNet initialises.
@@ -108,8 +108,29 @@ namespace VChat.Messages
         /// </summary>
         public static void SendGlobalMessageToPeer(long peerId, int type, Vector3 pos, string playerName, string text)
         {
-            var parameters = new object[] { pos, type, playerName, text };
-            ZRoutedRpc.instance.InvokeRoutedRPC(peerId, GlobalChatHashName, parameters);
+            // True by default as a precaution.
+            bool shouldSendGlobalMessage = true;
+            if (GreetingMessage.PeerInfo.TryGetValue(peerId, out GreetingMessagePeerInfo peerInfo))
+            {
+                shouldSendGlobalMessage = peerInfo.HasReceivedGreeting;
+            }
+
+            if (shouldSendGlobalMessage)
+            {
+                var parameters = new object[] { pos, type, playerName, text };
+                ZRoutedRpc.instance.InvokeRoutedRPC(peerId, GlobalChatHashName, parameters);
+            }
+            else
+            {
+                // VChat wasn't found on this client instance so we'll send it as a local chat message to that client.
+                // Local chat has a limited range so we'll send it at the position of that user.
+                var peer = ZNet.instance.GetPeer(peerId);
+                if (peer != null)
+                {
+                    var parameters = new object[] { peer.m_refPos, (int)Talker.Type.Normal, "[Global]", $"{playerName}: {text}"};
+                    ZRoutedRpc.instance.InvokeRoutedRPC(peerId, "ChatMessage", parameters);
+                }
+            }
         }
 
         /// <summary>

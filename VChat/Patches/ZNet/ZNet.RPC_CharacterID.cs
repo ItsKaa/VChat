@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
 using VChat.Data;
 using VChat.Messages;
 
@@ -38,8 +38,10 @@ namespace VChat.Patches
 
                             var messages = new[]
                             {
-                                $"This server runs {VChatPlugin.Name} {VChatPlugin.Version}, We detected that you do not have this mod installed, be aware that you will not be able to see the global chat channel.",
-                                $"You can find the latest version on {VChatPlugin.Repository}"
+                                $"This server runs {VChatPlugin.Name} {VChatPlugin.Version}, We detected that you do not have this mod installed.",
+                                $"You can find the latest version on {VChatPlugin.Repository}",
+                                "Global chat messages will be sent in your local chat channel.",
+                                $"Type {VChatPlugin.Settings.CommandPrefix}{VChatPlugin.Settings.GlobalChatCommandName.FirstOrDefault()} [text] to send a message to the global chat.",
                             };
 
                             foreach (var message in messages)
