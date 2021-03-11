@@ -29,6 +29,7 @@ namespace VChat
         public static CombinedMessageType CurrentInputChatType { get; set; }
         public static CombinedMessageType LastChatType { get; set; }
         public static CommandHandler CommandHandler { get; set; }
+        public static float ChatHideTimer { get; set; }
 
         static VChatPlugin()
         {
@@ -55,6 +56,7 @@ namespace VChat
 
             const string changedColorMessageSuccess = "Changed the {0} color to <color={1}>{2}</color>.";
             const string errorParseColorMessage = "Could not parse the color \"{0}\".";
+            const string errorParseNumber = "Could not convert \"{0}\" to a valid number.";
 
             var writeErrorMessage = new Action<string>((string message) =>
             {
@@ -201,8 +203,47 @@ namespace VChat
                         }
                         else
                         {
-                            writeErrorMessage($"Could not convert the value \"{text}\" to a number.");
+                            writeErrorMessage(string.Format(errorParseNumber, text));
                         }
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetFadeTime, Settings.SetChatFadeTimeCommandName, (text, instance) =>
+                {
+                    if (float.TryParse(text, out float time) && !float.IsNaN(time))
+                    {
+                        time = Math.Max(0f, time);
+                        writeSuccessMessage($"Updated the chat fade timer to {time} seconds.");
+                        Settings.ChatFadeTimer = time;
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetActiveOpacity, Settings.SetOpacityCommandName, (text, instance) =>
+                {
+                    if (uint.TryParse(text, out uint opacity))
+                    {
+                        opacity = Math.Min(100, Math.Max(0, opacity));
+                        writeSuccessMessage($"Updated the chat opacity to {opacity}.");
+                        Settings.ChatOpacity = opacity;
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetInactiveOpacity, Settings.SetInactiveOpacityCommandName, (text, instance) =>
+                {
+                    if (uint.TryParse(text, out uint opacity))
+                    {
+                        opacity = Math.Min(100, Math.Max(0, opacity));
+                        writeSuccessMessage($"Updated the chat inactive opacity to {opacity}.");
+                        Settings.InactiveChatOpacity = opacity;
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 })
             );

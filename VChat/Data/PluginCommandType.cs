@@ -15,5 +15,8 @@
         ToggleShowChatWindowOnMessage,
         ToggleChatWindowClickThrough,
         SetMaxPlayerHistory,
+        SetFadeTime,
+        SetActiveOpacity,
+        SetInactiveOpacity,
     }
 }

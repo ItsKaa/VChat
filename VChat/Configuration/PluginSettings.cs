@@ -66,7 +66,41 @@ namespace VChat.Configuration
             get => ShowChatWindowOnMessageReceivedEntry.Value;
             set => ShowChatWindowOnMessageReceivedEntry.Value = value;
         }
+        private ConfigEntry<bool> UseChatOpacityEntry { get; set; }
+        public bool UseChatOpacity
+        {
+            get => UseChatOpacityEntry.Value;
+            set => UseChatOpacityEntry.Value = value;
+        }
         
+        private ConfigEntry<uint> ChatOpacityEntry { get; set; }
+        public uint ChatOpacity
+        {
+            get => ChatOpacityEntry.Value;
+            set => ChatOpacityEntry.Value = value;
+        }
+
+        private ConfigEntry<uint> InactiveChatOpacityEntry { get; set; }
+        public uint InactiveChatOpacity
+        {
+            get => InactiveChatOpacityEntry.Value;
+            set => InactiveChatOpacityEntry.Value = value;
+        }
+
+        private ConfigEntry<float> ChatHideDelayEntry { get; set; }
+        public float ChatHideDelay
+        {
+            get => ChatHideDelayEntry.Value;
+            set => ChatHideDelayEntry.Value = value;
+        }
+
+        private ConfigEntry<float> ChatFadeTimerEntry { get; set; }
+        public float ChatFadeTimer
+        {
+            get => ChatFadeTimerEntry.Value;
+            set => ChatFadeTimerEntry.Value = value;
+        }
+
         private ConfigEntry<bool> EnableClickThroughChatWindowEntry { get; set; }
         public bool EnableClickThroughChatWindow
         {
@@ -124,6 +158,33 @@ namespace VChat.Configuration
             set => SetConfigEntryValue(MaxPlayerChatHistoryCommandNameEntry, value);
         }
 
+        private ConfigEntry<string> SetChatHideDelayCommandNameEntry { get; set; }
+        public IEnumerable<string> SetChatHideDelayCommandName
+        {
+            get => GetConfigEntryAsCollection(SetChatHideDelayCommandNameEntry);
+            set => SetConfigEntryValue(SetChatHideDelayCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetChatFadeTimeCommandNameEntry { get; set; }
+        public IEnumerable<string> SetChatFadeTimeCommandName
+        {
+            get => GetConfigEntryAsCollection(SetChatFadeTimeCommandNameEntry);
+            set => SetConfigEntryValue(SetChatFadeTimeCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetOpacityCommandNameEntry { get; set; }
+        public IEnumerable<string> SetOpacityCommandName
+        {
+            get => GetConfigEntryAsCollection(SetOpacityCommandNameEntry);
+            set => SetConfigEntryValue(SetOpacityCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetInactiveOpacityCommandNameEntry { get; set; }
+        public IEnumerable<string> SetInactiveOpacityCommandName
+        {
+            get => GetConfigEntryAsCollection(SetInactiveOpacityCommandNameEntry);
+            set => SetConfigEntryValue(SetInactiveOpacityCommandNameEntry, value);
+        }
 
         #endregion Command Names: Chat Window
         #region Command Names: Channels
@@ -252,6 +313,11 @@ namespace VChat.Configuration
             // Chat window
             AlwaysShowChatWindowEntry = ConfigFile.Bind(ChatWindowSection, nameof(AlwaysShowChatWindow), false, ChatWindowDescription);
             ShowChatWindowOnMessageReceivedEntry = ConfigFile.Bind(ChatWindowSection, nameof(ShowChatWindowOnMessageReceived), true, string.Empty);
+            UseChatOpacityEntry = ConfigFile.Bind(ChatWindowSection, nameof(UseChatOpacity), true, "Whether the chat opacity is used, when set to true, both the opacity and chat fading options become available.");
+            ChatOpacityEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatOpacity), 100u, "The opactiy value for when the chat is active.\nAccepted value range is between 0 and 100, where 0 means completely transparent and 100 is opaque.");
+            InactiveChatOpacityEntry = ConfigFile.Bind(ChatWindowSection, nameof(InactiveChatOpacity), 25u, "The opacity value for when the chat is inactive.\nAccepted value range is between 0 and 100, where 0 means completely transparent and 100 is opaque.");
+            ChatHideDelayEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatHideDelay), 10.0f, "The amount of seconds it should take for the chat to go inactive.");
+            ChatFadeTimerEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatFadeTimer), 3.0f, "The time in seconds it should take to transition the chat window's opactiy from active to inactive (or hidden).");
             EnableClickThroughChatWindowEntry = ConfigFile.Bind(ChatWindowSection, nameof(EnableClickThroughChatWindow), true, string.Empty);
             MaxPlayerMessageHistoryCountEntry = ConfigFile.Bind(ChatWindowSection, nameof(MaxPlayerMessageHistoryCount), (ushort)25u, string.Empty);
 
@@ -272,6 +338,10 @@ namespace VChat.Configuration
             ShowChatOnMessageCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShowChatOnMessageCommandName), "showchatonmessage", string.Empty);
             ChatClickThroughCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ChatClickThroughCommandName), "chatclickthrough", string.Empty);
             MaxPlayerChatHistoryCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(MaxPlayerChatHistoryCommandName), "maxplayerchathistory", string.Empty);
+            SetChatHideDelayCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetChatHideDelayCommandName), "sethidetime|sethidedelay|setht", string.Empty);
+            SetChatFadeTimeCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetChatFadeTimeCommandName), "setfadetime|setft", string.Empty);
+            SetOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetOpacityCommandName), "setopacity|set%", string.Empty);
+            SetInactiveOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetInactiveOpacityCommandName), "setinactiveopacity|setiopacity|seti%", string.Empty);
 
             // Create the config file
             ConfigFile.Save();

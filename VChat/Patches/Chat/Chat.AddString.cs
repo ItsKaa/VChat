@@ -28,6 +28,7 @@ namespace VChat.Patches
             if (VChatPlugin.Settings.ShowChatWindowOnMessageReceived)
             {
                 __instance.m_hideTimer = 0;
+                VChatPlugin.ChatHideTimer = 0;
             }
         } 
     }
