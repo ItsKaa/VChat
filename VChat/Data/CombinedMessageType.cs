@@ -55,6 +55,10 @@ namespace VChat.Data
         {
             CustomTypeValue = value;
         }
+        public void Set(CombinedMessageType value)
+        {
+            Value = value?.Value ?? (int)Talker.Type.Normal;
+        }
 
         public override int GetHashCode()
         {

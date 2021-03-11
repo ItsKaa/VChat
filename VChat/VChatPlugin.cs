@@ -36,7 +36,7 @@ namespace VChat
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
             MessageSendHistory = new List<string>();
             CommandHandler = new CommandHandler();
-            LastChatType = new CombinedMessageType(Talker.Type.Normal);
+            LastChatType = new CombinedMessageType(CustomMessageType.Global);
             CurrentInputChatType = new CombinedMessageType(LastChatType.Value);
         }
 
@@ -46,6 +46,9 @@ namespace VChat
             harmony.PatchAll();
             Settings = new PluginSettings(Config);
             InitialiseCommands();
+
+            LastChatType.Set(Settings.DefaultChatChannel);
+            CurrentInputChatType.Set(LastChatType);
 
             Log($"Initialised, version {Version}.");
         }
@@ -120,7 +123,7 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SendGlobalMessage, Settings.GlobalChatCommandName, (text, instance) =>
                 {
-                    LastChatType.Set(CustomMessageType.GlobalChat);
+                    LastChatType.Set(CustomMessageType.Global);
                     if (!string.IsNullOrEmpty(text))
                     {
                         GlobalMessages.SendGlobalMessageToServer(text);
@@ -152,7 +155,7 @@ namespace VChat
                 }),
                 new PluginCommand(PluginCommandType.SetGlobalColor, Settings.GlobalWhisperChatColorCommandName, (text, instance) =>
                 {
-                    var color = applyChannelColorCommand(text, new CombinedMessageType(CustomMessageType.GlobalChat));
+                    var color = applyChannelColorCommand(text, new CombinedMessageType(CustomMessageType.Global));
                     if (color != null)
                     {
                         Settings.GlobalChatColor = color;
@@ -291,7 +294,7 @@ namespace VChat
             {
                 switch(type.CustomTypeValue.Value)
                 {
-                    case CustomMessageType.GlobalChat:
+                    case CustomMessageType.Global:
                         color = (getDefault ? null : Settings.GlobalChatColor) ?? new Color(0.890f, 0.376f, 0.050f);
                         break;
                 }
@@ -311,7 +314,6 @@ namespace VChat
             if (inputField != null && text != null)
             {
                 bool foundCommand = false;
-                //var messageType = new CombinedMessageType(Settings.AutoShout ? Talker.Type.Shout : Talker.Type.Normal);
                 var messageType = new CombinedMessageType(LastChatType.Value);
 
                 // Attempt to look for the used chat channel if we're starting with the command prefix.
@@ -334,7 +336,7 @@ namespace VChat
                     }
                     else if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendGlobalMessage))
                     {
-                        messageType.Set(CustomMessageType.GlobalChat);
+                        messageType.Set(CustomMessageType.Global);
                         foundCommand = true;
                     }
                 }

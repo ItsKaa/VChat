@@ -2,6 +2,6 @@
 {
     public enum CustomMessageType
     {
-        GlobalChat = 100,
+        Global = 100,
     }
 }

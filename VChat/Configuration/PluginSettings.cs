@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
+using VChat.Data;
 using VChat.Extensions;
 
 namespace VChat.Configuration
@@ -57,6 +59,33 @@ namespace VChat.Configuration
         {
             get => AlwaysShowChatWindowEntry.Value;
             set => AlwaysShowChatWindowEntry.Value = value;
+        }
+
+        private ConfigEntry<string> DefaultChatChannelEntry { get; set; }
+        public CombinedMessageType DefaultChatChannel
+        {
+            get
+            {
+                var type = new CombinedMessageType(CustomMessageType.Global);
+                if (Enum.TryParse(DefaultChatChannelEntry.Value, true, out Talker.Type talkerType)
+                    && talkerType != Talker.Type.Ping)
+                {
+                    type.Set(talkerType);
+                }
+                else
+                {
+                    if (Enum.TryParse(DefaultChatChannelEntry.Value, true, out CustomMessageType customType))
+                    {
+                        type.Set(customType);
+                    }
+                    else
+                    {
+                        VChatPlugin.LogWarning($"Failed to convert {DefaultChatChannelEntry.Value} to an enum.");
+                    }
+                }
+                return type;
+            }
+            set => DefaultChatChannelEntry.Value = value.ToString();
         }
 
         private ConfigEntry<bool> ShowChatWindowOnMessageReceivedEntry { get; set; }
@@ -319,6 +348,10 @@ namespace VChat.Configuration
             ChatFadeTimerEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatFadeTimer), 3.0f, "The time in seconds it should take to transition the chat window's opactiy from active to inactive (or hidden).");
             EnableClickThroughChatWindowEntry = ConfigFile.Bind(ChatWindowSection, nameof(EnableClickThroughChatWindow), true, string.Empty);
             MaxPlayerMessageHistoryCountEntry = ConfigFile.Bind(ChatWindowSection, nameof(MaxPlayerMessageHistoryCount), (ushort)25u, string.Empty);
+            DefaultChatChannelEntry = ConfigFile.Bind(ChatWindowSection, nameof(DefaultChatChannel), CustomMessageType.Global.ToString().ToLower(),
+                $"The default chat channel that's set when your character spawns in," +
+                $"accepted values: {string.Join(", ", Enum.GetNames(typeof(Talker.Type)).Except(new[] { nameof(Talker.Type.Ping) }).Concat(Enum.GetNames(typeof(CustomMessageType))).Distinct().Select(x => x.ToLower()))}."
+            );
 
             // Command Names
             CommandPrefixEntry = ConfigFile.Bind(CommandsSection, nameof(CommandPrefix), DefaultCommandPrefix, CommandDescription);

@@ -89,7 +89,7 @@ namespace VChat.Messages
                 VChatPlugin.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
                 if (Chat.instance != null)
                 {
-                    var formattedMessage = VChatPlugin.GetFormattedMessage(new CombinedMessageType(CustomMessageType.GlobalChat), playerName, text);
+                    var formattedMessage = VChatPlugin.GetFormattedMessage(new CombinedMessageType(CustomMessageType.Global), playerName, text);
                     Chat.instance?.AddString(formattedMessage);
                 }
                 else

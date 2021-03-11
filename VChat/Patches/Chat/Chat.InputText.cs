@@ -42,7 +42,7 @@ namespace VChat.Patches
                 {
                     switch (VChatPlugin.LastChatType.CustomTypeValue)
                     {
-                        case CustomMessageType.GlobalChat:
+                        case CustomMessageType.Global:
                             GlobalMessages.SendGlobalMessageToServer(text);
                             break;
                     }
