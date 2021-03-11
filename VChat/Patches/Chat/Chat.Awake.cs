@@ -50,6 +50,9 @@ namespace VChat.Patches
             
             // Set the hide delay.
             __instance.m_hideDelay = VChatPlugin.Settings.ChatHideDelay;
+
+            // Update the input colour since we may not be on local.
+            VChatPlugin.UpdateChatInputColor(__instance.m_input, VChatPlugin.LastChatType);
         }
     }
 }
