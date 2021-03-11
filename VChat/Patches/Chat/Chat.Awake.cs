@@ -48,6 +48,9 @@ namespace VChat.Patches
             {
                 __instance.m_chatWindow.ChangeClickThroughInChildren(VChatPlugin.Settings.EnableClickThroughChatWindow);
             }
+            
+            // Set the hide delay.
+            __instance.m_hideDelay = VChatPlugin.Settings.ChatHideDelay;
         }
     }
 }

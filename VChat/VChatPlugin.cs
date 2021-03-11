@@ -207,6 +207,26 @@ namespace VChat
                         }
                     }
                 }),
+                new PluginCommand(PluginCommandType.SetHideDelay, Settings.SetChatHideDelayCommandName, (text, instance) =>
+                {
+                    if (float.TryParse(text, out float delay) && !float.IsNaN(delay))
+                    {
+                        if (delay > 0)
+                        {
+                            Settings.ChatHideDelay = delay;
+                            ((Chat)instance).m_hideDelay = delay;
+                            writeSuccessMessage($"Updated the chat hide delay to {delay} seconds.");
+                        }
+                        else
+                        {
+                            writeErrorMessage($"Hide delay must be greater than 0.");
+                        }
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
+                }),
                 new PluginCommand(PluginCommandType.SetFadeTime, Settings.SetChatFadeTimeCommandName, (text, instance) =>
                 {
                     if (float.TryParse(text, out float time) && !float.IsNaN(time))
