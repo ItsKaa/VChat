@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using UnityEngine;
-using VChat.Configuration;
 using VChat.Extensions;
 
 namespace VChat.Patches

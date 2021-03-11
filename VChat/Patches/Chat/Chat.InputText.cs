@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using VChat.Data;
 using VChat.Messages;
 

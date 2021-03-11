@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using UnityEngine;
+﻿using System.Collections.Concurrent;
 using VChat.Data;
 
 namespace VChat.Messages
