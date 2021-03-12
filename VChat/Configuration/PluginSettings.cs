@@ -214,6 +214,13 @@ namespace VChat.Configuration
             set => SetConfigEntryValue(SetInactiveOpacityCommandNameEntry, value);
         }
 
+        private ConfigEntry<string> SetDefaultChatChannelCommandNameEntry { get; set; }
+        public IEnumerable<string> SetDefaultChatChannelCommandName
+        {
+            get => GetConfigEntryAsCollection(SetDefaultChatChannelCommandNameEntry);
+            set => SetConfigEntryValue(SetDefaultChatChannelCommandNameEntry, value);
+        }
+
         #endregion Command Names: Chat Window
         #region Command Names: Channels
         private ConfigEntry<string> LocalChatCommandNameEntry { get; set; }
@@ -374,6 +381,7 @@ namespace VChat.Configuration
             SetChatFadeTimeCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetChatFadeTimeCommandName), "setfadetime|setft", string.Empty);
             SetOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetOpacityCommandName), "setopacity|set%", string.Empty);
             SetInactiveOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetInactiveOpacityCommandName), "setinactiveopacity|setiopacity|seti%", string.Empty);
+            SetDefaultChatChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetDefaultChatChannelCommandName), "setdefaultchannel", string.Empty);
 
             // Create the config file
             ConfigFile.Save();

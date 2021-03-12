@@ -19,5 +19,6 @@
         SetFadeTime,
         SetActiveOpacity,
         SetInactiveOpacity,
+        SetDefaultChatChannel,
     }
 }

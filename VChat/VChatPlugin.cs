@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using VChat.Configuration;
@@ -283,6 +284,36 @@ namespace VChat
                     else
                     {
                         writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetDefaultChatChannel, Settings.SetDefaultChatChannelCommandName, (text, instance) =>
+                {
+                    var type = new CombinedMessageType(CustomMessageType.Global);
+                    bool success = false;
+
+                    if (Enum.TryParse(text, true, out Talker.Type talkerType)
+                        && talkerType != Talker.Type.Ping)
+                    {
+                        type.Set(talkerType);
+                        success = true;
+                    }
+                    else
+                    {
+                        if (Enum.TryParse(text, true, out CustomMessageType customType))
+                        {
+                            type.Set(customType);
+                            success = true;
+                        }
+                    }
+
+                    if (success)
+                    {
+                        writeSuccessMessage($"Updated the default chat channel to {text}.");
+                        Settings.DefaultChatChannel = type;
+                    }
+                    else
+                    {
+                        writeErrorMessage($"Failed to convert \"{text}\" into a chat channel name. Accepted values: {string.Join(", ", Enum.GetNames(typeof(Talker.Type)).Except(new[] { nameof(Talker.Type.Ping) }).Concat(Enum.GetNames(typeof(CustomMessageType))).Distinct().Select(x => x.ToLower()))}.");
                     }
                 })
             );

@@ -1,7 +1,4 @@
 ﻿using HarmonyLib;
-using System.Collections.Generic;
-using UnityEngine;
-using VChat.Helpers;
 using VChat.Messages;
 
 namespace VChat.Patches
