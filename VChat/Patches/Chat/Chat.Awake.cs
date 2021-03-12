@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 using VChat.Extensions;
+using VChat.Helpers;
 
 namespace VChat.Patches
 {
@@ -76,6 +78,9 @@ namespace VChat.Patches
                     __instance.AddString($"[{VChatPlugin.Name}] {msg}");
                 }
             }
+
+            // Reset the server plugin status as we may have changed server from a single player world to a dedicated server.
+            PlayerPatchOnSpawned.HasSentServerPluginStatusMessage = false;
         }
     }
 }
