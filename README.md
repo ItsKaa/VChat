@@ -42,11 +42,39 @@ Toggles the chat to show when a message is sent, this has no effect if /showchat
 Toggles if the chat should be click-through, for example when the map is in front of the chat window.
 
 ```
-/maxplayerchathistory
+/maxplayerchathistory [number]
 ```
 Sets the amount of messages that should be recorded so that the history can be called up with the up and down arrow.
 This is disabled if it's set to 0.
-Note that these are not saved to a file, restarting valeim will clear this list.
+Note that these are not saved to a file, restarting Valheim will clear this list.
+
+```
+/setdefaultchannel [name]
+```
+Changes the default channel that's set when logging in, accepted values are: whisper, normal, shout and global.
+
+```
+/sethidetime /sethidedelay /setht [seconds]
+```
+Changes the amount of time in seconds that the chat window will stay active.
+
+```
+/setfadetime /setft [seconds]
+```
+Changes the amount of time in seconds it should take to transition the chat window's opactiy from active to inactive (or hidden), this occurs after the hide timer.
+
+```
+/setopacity /set% [0-100]
+```
+Changes the opacity of the active chat, when pressing enter the opactiy will always be 100.
+This value ranges from 0 to 100, where 0 means completely transparent and 100 is fully opaque.
+
+```
+/setinactiveopacity /setiopacity /seti% [0-100]
+```
+Changes the opacity of the inactive chat, this is only relevant when always displaying the chat window.
+This value ranges from 0 to 100, where 0 means completely transparent and 100 is fully opaque.
+
 
 ## Installation (manual)
 - Download [BepInEx Package](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/) and follow it's installation procedure.
@@ -63,3 +91,15 @@ Or you can use the mod manager [r2modman](https://thunderstore.io/package/ebkr/r
 ## Changelog
 1.0.0
 - Initial release
+
+1.1.0
+- Clients no longer need to install VChat to access the global chat when running on a server-wide instance
+- VChat clients can now communicate over the global chat channel even if the server is not running it
+- Added an opacity setting for the chat window, added an active and inactive opacity
+- Added an option to change the hide timer of the chat window
+- Added a fancy fade out effect to the chat window
+- Added option to change the default chat channel
+- Added a GitHub version checker
+- Pings no longer send a blank message to the chat
+- Fixed chat input color when spawning
+- Fixed pings activating the chat window
