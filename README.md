@@ -2,7 +2,7 @@
 A simple chat improvement mod for Valheim, a single dll that works for both servers and clients.
 
 ## Features
-- Adds a global chat channel, currently only accessible if the dedicated server is hosting it and only visible for users that have the plugin installed.
+- Adds a global chat channel, this can be a server-wide instance and users without VChat will be able to access it, however, if the server isn't hosting it then only clients with VChat installed can see the global chat.
 - Colours! colours for every chat channel (whisper, local, shout, global) and also colours the input field, even when typing channel commands like `/shout [text]`.
 - Sent message history that can be called using arrow up and down when the chat is focused.
 - Easily configurable using ingame commands that can be also be adjusted in the configuration file.
