@@ -39,31 +39,39 @@ namespace VChat.Messages
         {
             if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
             {
-                try
+                var globalMessageType = (GlobalMessageType)type;
+                if (globalMessageType == GlobalMessageType.StandardMessage || globalMessageType == GlobalMessageType.RedirectedGlobalMessage)
                 {
-                    // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
-                    // We simply apply the position and player name the server knows rather than the reported values first.
-                    var peer = ZRoutedRpc.instance?.GetPeer(senderId);
-                    if (peer?.m_server == false)
+                    try
                     {
-                        // Loop through every connected peer and redirect the received message, including the original sender because the code is currently set so that the client knows that it's been sent.
-                        foreach (var connectedPeer in ZNet.instance.GetConnectedPeers())
+                        // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
+                        // We simply apply the position and player name the server knows rather than the reported values first.
+                        var peer = ZRoutedRpc.instance?.GetPeer(senderId);
+                        if (peer?.m_server == false)
                         {
-                            if (connectedPeer != null && !connectedPeer.m_server && connectedPeer.IsReady() && connectedPeer.m_socket?.IsConnected() == true)
+                            // Loop through every connected peer and redirect the received message, including the original sender because the code is currently set so that the client knows that it's been sent.
+                            foreach (var connectedPeer in ZNet.instance.GetConnectedPeers())
                             {
-                                VChatPlugin.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
-                                SendGlobalMessageToPeer(connectedPeer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                                if (connectedPeer != null && !connectedPeer.m_server && connectedPeer.IsReady() && connectedPeer.m_socket?.IsConnected() == true)
+                                {
+                                    VChatPlugin.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
+                                    SendGlobalMessageToPeer(connectedPeer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                                }
                             }
                         }
+                        else
+                        {
+                            VChatPlugin.LogWarning($"Received a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        VChatPlugin.LogWarning($"Received a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
+                        VChatPlugin.LogError($"Failed to InvokeRoutedRPC for global message ({senderId}|{text}): {ex}");
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    VChatPlugin.LogError($"Failed to InvokeRoutedRPC for global message ({senderId}|{text}): {ex}");
+                    VChatPlugin.LogWarning($"A global message type with value of {type} could not be parsed. Please check if there are any updates available.");
                 }
             }
             else
