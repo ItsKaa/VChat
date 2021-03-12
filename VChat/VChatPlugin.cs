@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using VChat.Configuration;
 using VChat.Data;
 using VChat.Extensions;
+using VChat.Helpers;
 using VChat.Messages;
 using VChat.Services;
 
@@ -20,7 +21,9 @@ namespace VChat
         public const string GUID = "org.itskaa.vchat";
         public const string Name = "VChat";
         public const string Version = "1.0.0";
-        public const string Repository = "https://github.com/ItsKaa/VChat";
+        public const string RepositoryAuthor = "ItsKaa";
+        public const string RepositoryName = "VChat";
+        public const string RepositoryUrl = "https://github.com/" + RepositoryAuthor + "/" + RepositoryName;
 
         internal static PluginSettings Settings { get; private set; }
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
@@ -49,8 +52,21 @@ namespace VChat
 
             LastChatType.Set(Settings.DefaultChatChannel);
             CurrentInputChatType.Set(LastChatType);
+            Log($"Initialised {Name} ({Version})");
 
-            Log($"Initialised, version {Version}.");
+            // Get the latest release from github and notify if there is a newer version.
+            var latestReleaseVersion = GithubHelper.GetLatestGithubRelease(RepositoryAuthor, RepositoryName);
+            if (!string.IsNullOrEmpty(latestReleaseVersion))
+            {
+                if (VersionHelper.IsNewerVersion(Version, latestReleaseVersion))
+                {
+                    LogWarning($"Version {latestReleaseVersion} of VChat has been released, please see {RepositoryUrl}");
+                }
+                else
+                {
+                    Log($"{Name} ({Version}) is up to date.");
+                }
+            }
         }
 
         private void InitialiseCommands()

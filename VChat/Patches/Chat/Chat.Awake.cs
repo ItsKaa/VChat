@@ -53,6 +53,29 @@ namespace VChat.Patches
 
             // Update the input colour since we may not be on local.
             VChatPlugin.UpdateChatInputColor(__instance.m_input, VChatPlugin.LastChatType);
+
+            // Get the latest release of VChat and notify the user when the chat is starting up for the first time.
+            var latestReleaseVersion = GithubHelper.GetLatestGithubRelease(VChatPlugin.RepositoryAuthor, VChatPlugin.RepositoryName);
+            if (!string.IsNullOrEmpty(latestReleaseVersion))
+            {
+                List<string> messages = new();
+                if (VersionHelper.IsNewerVersion(VChatPlugin.Version, latestReleaseVersion))
+                {
+                    messages.AddRange(new[] {
+                        $"You are running on an older version of {VChatPlugin.Name} ({VChatPlugin.Version}).",
+                        $"version {latestReleaseVersion} has been released, see {VChatPlugin.RepositoryUrl}",
+                    });
+                }
+                else
+                {
+                    messages.Add($"{VChatPlugin.Name} {VChatPlugin.Version} is loaded and up to date.");
+                }
+
+                foreach (var msg in messages)
+                {
+                    __instance.AddString($"[{VChatPlugin.Name}] {msg}");
+                }
+            }
         }
     }
 }

@@ -48,7 +48,10 @@
     <Compile Include="Data\PluginCommandType.cs" />
     <Compile Include="Data\CustomMessageType.cs" />
     <Compile Include="Data\UserMessageInfo.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UnityExtensions.cs" />
+    <Compile Include="Helpers\GithubHelper.cs" />
+    <Compile Include="Helpers\VersionHelper.cs" />
     <Compile Include="Messages\GlobalMessages.cs" />
     <Compile Include="Messages\GreetingMessage.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
