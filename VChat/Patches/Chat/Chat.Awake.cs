@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VChat.Extensions;
@@ -20,6 +21,8 @@ namespace VChat.Patches
                     canvasGroup.blocksRaycasts = false;
                 }
             }
+
+            __instance.m_chatWindow.sizeDelta = new Vector2(Math.Max(200, Math.Min(1920, VChatPlugin.Settings.ChatWidth)), Math.Max(200, Math.Min(1080, VChatPlugin.Settings.ChatHeight)));
         }
 
         private static void Postfix(ref Chat __instance)

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using VChat.Data;
 
 namespace VChat.Patches
@@ -22,7 +23,7 @@ namespace VChat.Patches
     [HarmonyPatch(typeof(Chat), nameof(Chat.AddString), typeof(string))]
     public static class ChatPatchAddStringToBuffer
     {
-        private static void Prefix(ref Chat __instance, ref string text)
+        private static bool Prefix(ref Chat __instance, ref string text)
         {
             // Display chat window when a new message is received.
             if (VChatPlugin.Settings.ShowChatWindowOnMessageReceived)
@@ -30,6 +31,21 @@ namespace VChat.Patches
                 __instance.m_hideTimer = 0;
                 VChatPlugin.ChatHideTimer = 0;
             }
-        } 
+
+            // Update the buffer manually
+            var chatBufferSize = Math.Max(15, Math.Min(1000, VChatPlugin.Settings.ChatBufferSize));
+            if (VChatPlugin.Settings.ChatBufferSize > chatBufferSize)
+            {
+                __instance.m_chatBuffer.Add(text);
+                while (__instance.m_chatBuffer.Count > chatBufferSize)
+                {
+                    __instance.m_chatBuffer.RemoveAt(0);
+                }
+                __instance.UpdateChat();
+                return false;
+            }
+
+            return true;
+        }
     }
 }

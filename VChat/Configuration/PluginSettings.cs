@@ -145,6 +145,27 @@ namespace VChat.Configuration
             set => MaxPlayerMessageHistoryCountEntry.Value = value;
         }
 
+        private ConfigEntry<uint> ChatWidthEntry { get; set; }
+        public uint ChatWidth
+        {
+            get => ChatWidthEntry.Value;
+            set => ChatWidthEntry.Value = value;
+        }
+
+        private ConfigEntry<uint> ChatHeightEntry { get; set; }
+        public uint ChatHeight
+        {
+            get => ChatHeightEntry.Value;
+            set => ChatHeightEntry.Value = value;
+        }
+
+        private ConfigEntry<uint> ChatBufferSizeEntry { get; set; }
+        public uint ChatBufferSize
+        {
+            get => ChatBufferSizeEntry.Value;
+            set => ChatBufferSizeEntry.Value = value;
+        }
+
         #endregion Chat Window
         #region Commands
         private ConfigEntry<string> CommandPrefixEntry { get; set; }
@@ -221,6 +242,27 @@ namespace VChat.Configuration
         {
             get => GetConfigEntryAsCollection(SetDefaultChatChannelCommandNameEntry);
             set => SetConfigEntryValue(SetDefaultChatChannelCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetWidthCommandNameEntry { get; set; }
+        public IEnumerable<string> SetWidthCommandName
+        {
+            get => GetConfigEntryAsCollection(SetWidthCommandNameEntry);
+            set => SetConfigEntryValue(SetWidthCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetBufferSizeCommandNameEntry { get; set; }
+        public IEnumerable<string> SetBufferSizeCommandName
+        {
+            get => GetConfigEntryAsCollection(SetBufferSizeCommandNameEntry);
+            set => SetConfigEntryValue(SetBufferSizeCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetHeightCommandNameEntry { get; set; }
+        public IEnumerable<string> SetHeightCommandName
+        {
+            get => GetConfigEntryAsCollection(SetHeightCommandNameEntry);
+            set => SetConfigEntryValue(SetHeightCommandNameEntry, value);
         }
 
         #endregion Command Names: Chat Window
@@ -376,6 +418,9 @@ namespace VChat.Configuration
                 $"The default chat channel that's set when your character spawns in," +
                 $"accepted values: {string.Join(", ", Enum.GetNames(typeof(Talker.Type)).Except(new[] { nameof(Talker.Type.Ping) }).Concat(Enum.GetNames(typeof(CustomMessageType))).Distinct().Select(x => x.ToLower()))}."
             );
+            ChatWidthEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatWidth), 400u, "Sets the width of the chat window, the maximum value is 1920.");
+            ChatHeightEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatHeight), 400u, "Sets the height of the chat window, the maximum value is 1080.");
+            ChatBufferSizeEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatBufferSize), 50u, "Changes the maximum amount of messages visible in the chat window. Setting this to 15 (game default) will remove the hook.");
 
             // Command Names
             CommandPrefixEntry = ConfigFile.Bind(CommandsSection, nameof(CommandPrefix), DefaultCommandPrefix, CommandDescription);
@@ -399,6 +444,9 @@ namespace VChat.Configuration
             SetOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetOpacityCommandName), "setopacity|set%", string.Empty);
             SetInactiveOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetInactiveOpacityCommandName), "setinactiveopacity|setiopacity|seti%", string.Empty);
             SetDefaultChatChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetDefaultChatChannelCommandName), "setdefaultchannel", string.Empty);
+            SetWidthCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetWidthCommandName), "setwidth", string.Empty);
+            SetHeightCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetHeightCommandName), "setheight", string.Empty);
+            SetBufferSizeCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetBufferSizeCommandName), "setbuffersize", string.Empty);
 
             // Server
             EnableModCompatibilityEntry = ConfigFile.Bind(ServerSection, nameof(EnableModCompatibility), true, $"{ServerDescription}\n\nEnabling this setting will redirect global messages as a local chat message if hosted as a dedicated server. This should allow other server mods to read these messages.\nThis will allow other server mods to read the global chat messages (if they capture the Chat.OnNewChatMessage method).");

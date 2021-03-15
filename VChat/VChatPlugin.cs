@@ -316,6 +316,77 @@ namespace VChat
                     {
                         writeErrorMessage($"Failed to convert \"{text}\" into a chat channel name. Accepted values: {string.Join(", ", Enum.GetNames(typeof(Talker.Type)).Except(new[] { nameof(Talker.Type.Ping) }).Concat(Enum.GetNames(typeof(CustomMessageType))).Distinct().Select(x => x.ToLower()))}.");
                     }
+                }),
+                new PluginCommand(PluginCommandType.SetChatWidth, Settings.SetWidthCommandName, (text, instance) =>
+                {
+                    // Set to default if no argument is provided
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        text = "400";
+                    }
+
+                    if (uint.TryParse(text, out uint value))
+                    {
+                        value = Math.Max(200, Math.Min(1920, value));
+                        writeSuccessMessage($"Updated the chat width to {value}.");
+
+                        var chatWindow = ((Chat)instance)?.m_chatWindow;
+                        if (chatWindow != null)
+                        {
+                            chatWindow.sizeDelta = new Vector2(value, chatWindow.sizeDelta.y);
+                        }
+                        Settings.ChatWidth = value;
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetChatHeight, Settings.SetHeightCommandName, (text, instance) =>
+                {
+                    // Set to default if no argument is provided
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        text = "400";
+                    }
+
+                    if (uint.TryParse(text, out uint value))
+                    {
+                        value = Math.Max(200, Math.Min(1080, value));
+                        writeSuccessMessage($"Updated the chat height to {value}.");
+
+                        var chatWindow = ((Chat)instance)?.m_chatWindow;
+                        if (chatWindow != null)
+                        {
+                            chatWindow.sizeDelta = new Vector2(chatWindow.sizeDelta.x, value);
+                        }
+                        Settings.ChatHeight = value;
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
+                }),
+                new PluginCommand(PluginCommandType.SetChatBufferSize, Settings.SetBufferSizeCommandName, (text, instance) =>
+                {
+                    // Set to default if no argument is provided
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        text = "15";
+                    }
+
+                    if (uint.TryParse(text, out uint value))
+                    {
+                        value = Math.Max(15, Math.Min(1000, value));
+                        writeSuccessMessage($"Updated the chat buffer size to {value}.");
+
+                        var chatWindow = ((Chat)instance)?.m_chatWindow;
+                        Settings.ChatBufferSize = value;
+                    }
+                    else
+                    {
+                        writeErrorMessage(string.Format(errorParseNumber, text));
+                    }
                 })
             );
         }

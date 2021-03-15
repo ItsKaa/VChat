@@ -20,5 +20,8 @@
         SetActiveOpacity,
         SetInactiveOpacity,
         SetDefaultChatChannel,
+        SetChatWidth,
+        SetChatHeight,
+        SetChatBufferSize,
     }
 }
