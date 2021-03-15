@@ -53,6 +53,14 @@ namespace VChat.Patches
                                     Chat.instance?.AddString(formattedMessage);
                                 }
 
+                                // Send the global message to the chat instance to be compatibile with other server mods that read the chat.
+                                // We can't send this message to the chat instance if we're running a player-hosted server because then a duplicate message will pop up.
+                                if (VChatPlugin.Settings.EnableModCompatibility && Chat.instance != null && ZNet.instance.IsDedicated())
+                                {
+                                    VChatPlugin.Log($"Mod compatibility: sending global chat message as a local chat message.");
+                                    Chat.instance.OnNewChatMessage(null, data.m_senderPeerID, senderPeer?.m_refPos ?? new Vector3(), Talker.Type.Normal, senderPeer?.m_playerName ?? playerName, text);
+                                }
+
                                 // Intercept message so that other connected users won't receive the same message twice.
                                 data.m_methodHash = GlobalMessages.InterceptedSayHashCode;
                                 return false;

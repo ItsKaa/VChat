@@ -77,6 +77,14 @@ namespace VChat.Messages
                             VChatPlugin.Log($"Redirecting player-hosted server message to local player.");
                             OnGlobalMessage_Client(serverPeerId, pos, type, callerName, text);
                         }
+
+                        // Send the global message to the chat instance to be compatibile with other server mods that read the chat.
+                        // We can't send this message to the chat instance if we're running a player-hosted server because then a duplicate message will pop up.
+                        if (VChatPlugin.Settings.EnableModCompatibility && Chat.instance != null && ZNet.instance.IsDedicated())
+                        {
+                            VChatPlugin.Log($"Mod compatibility: sending global chat message as a local chat message.");
+                            Chat.instance.OnNewChatMessage(null, senderId, pos, Talker.Type.Normal, callerName, text);
+                        }
                     }
                     catch (Exception ex)
                     {

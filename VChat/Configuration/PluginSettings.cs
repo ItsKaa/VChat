@@ -16,9 +16,11 @@ namespace VChat.Configuration
         private const string ColorSection = "Colors";
         private const string ChatWindowSection = "ChatWindow";
         private const string CommandsSection = "Commands";
+        private const string ServerSection = "Server";
         private const string ColorDescription = "Sets the chat colors, colors can either be a html string, such as \"#e01414\"\nor use of the following color names: white, black, grey, gray, red, green, blue, yellow, cyan, magenta.";
         private const string ChatWindowDescription = "Change options for the chat window, should be self explanatory.";
         private const string CommandDescription = "The command prefix determines what string is used to start commands, this can be anything you like.\nTo set aliases for command names, use the separator '|', e.g.: \"one|two|three\", meaning /three will execute the same command as /one, assuming the command prefix is set to the default.\nPlease do not enter the prefix in the command names.";
+        private const string ServerDescription = "Settings for when hosting a server, should be self explanatory. Please note that some settings may be limited to dedicated servers.";
 
         public ConfigFile ConfigFile { get; private set; }
         private DateTime LastTickDate { get; set; }
@@ -282,6 +284,14 @@ namespace VChat.Configuration
         #endregion Command Names: Colors
         #endregion Command Names
         #endregion Commands
+        #region Server
+        private ConfigEntry<bool> EnableModCompatibilityEntry { get; set; }
+        public bool EnableModCompatibility
+        {
+            get => EnableModCompatibilityEntry.Value;
+            set => EnableModCompatibilityEntry.Value = value;
+        }
+        #endregion Server
 
         public PluginSettings(ConfigFile configFile)
         {
@@ -382,6 +392,9 @@ namespace VChat.Configuration
             SetOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetOpacityCommandName), "setopacity|set%", string.Empty);
             SetInactiveOpacityCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetInactiveOpacityCommandName), "setinactiveopacity|setiopacity|seti%", string.Empty);
             SetDefaultChatChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetDefaultChatChannelCommandName), "setdefaultchannel", string.Empty);
+
+            // Server
+            EnableModCompatibilityEntry = ConfigFile.Bind(ServerSection, nameof(EnableModCompatibility), true, $"{ServerDescription}\n\nEnabling this setting will redirect global messages as a local chat message if hosted as a dedicated server. This should allow other server mods to read these messages.\nThis will allow other server mods to read the global chat messages (if they capture the Chat.OnNewChatMessage method).");
 
             // Create the config file
             ConfigFile.Save();
