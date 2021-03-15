@@ -26,6 +26,7 @@ namespace VChat
         public const string RepositoryName = "VChat";
         public const string RepositoryUrl = "https://github.com/" + RepositoryAuthor + "/" + RepositoryName;
 
+        internal static bool IsPlayerHostedServer { get; set; }
         internal static PluginSettings Settings { get; private set; }
         public static ConcurrentDictionary<long, UserMessageInfo> ReceivedMessageInfo { get; set; }
         public static List<string> MessageSendHistory { get; private set; }
@@ -433,6 +434,18 @@ namespace VChat
         public static void Log(object message)
         {
             Debug.Log(FormatLogMessage(message));
+        }
+
+        public static long GetServerPeerId()
+        {
+            if (IsPlayerHostedServer)
+            {
+                return ZRoutedRpc.instance.GetServerPeerID();
+            }
+            else
+            {
+                return ZNet.instance.GetServerPeer()?.m_uid ?? long.MaxValue;
+            }
         }
     }
 }

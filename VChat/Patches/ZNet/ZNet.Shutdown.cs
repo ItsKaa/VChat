@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using UnityEngine;
 using VChat.Messages;
 
 namespace VChat.Patches
@@ -15,7 +14,7 @@ namespace VChat.Patches
             {
                 VChatPlugin.Log("Resetting variables for local player");
                 PlayerPatchOnSpawned.HasSentServerPluginStatusMessage = false;
-                GreetingMessage.ResetClientVariables();
+                GreetingMessage.Reset();
             }
         }
     }

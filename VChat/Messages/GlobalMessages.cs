@@ -37,7 +37,9 @@ namespace VChat.Messages
         /// <param name="text">the message, without a playername or formatting.</param>
         private static void OnGlobalMessage_Server(long senderId, Vector3 pos, int type, string callerName, string text)
         {
-            if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
+            // Accept messages from the server when it's a player-hosted instance (non-dedicated), otherwise ignore.
+            var serverPeerId = VChatPlugin.GetServerPeerId();
+            if (senderId != serverPeerId || (VChatPlugin.IsPlayerHostedServer && senderId == serverPeerId))
             {
                 var globalMessageType = (GlobalMessageType)type;
                 if (globalMessageType == GlobalMessageType.StandardMessage || globalMessageType == GlobalMessageType.RedirectedGlobalMessage)
@@ -47,21 +49,33 @@ namespace VChat.Messages
                         // Sender should always be found but who knows what can happen within a few milliseconds, though I bet its still cached should that player disconnect.. safety first.
                         // We simply apply the position and player name the server knows rather than the reported values first.
                         var peer = ZRoutedRpc.instance?.GetPeer(senderId);
-                        if (peer?.m_server == false)
+                        if (peer?.m_server == false || (VChatPlugin.IsPlayerHostedServer && senderId == serverPeerId))
                         {
                             // Loop through every connected peer and redirect the received message, including the original sender because the code is currently set so that the client knows that it's been sent.
-                            foreach (var connectedPeer in ZNet.instance.GetConnectedPeers())
+                            var peers = ZNet.instance?.GetConnectedPeers();
+                            if (peers != null)
                             {
-                                if (connectedPeer != null && !connectedPeer.m_server && connectedPeer.IsReady() && connectedPeer.m_socket?.IsConnected() == true)
+                                foreach (var connectedPeer in peers)
                                 {
-                                    VChatPlugin.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
-                                    SendGlobalMessageToPeer(connectedPeer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                                    if (connectedPeer != null && !connectedPeer.m_server && connectedPeer.IsReady() && connectedPeer.m_socket?.IsConnected() == true)
+                                    {
+                                        VChatPlugin.Log($"Routing global message to peer {connectedPeer.m_uid} \"({connectedPeer.m_playerName})\" with message \"{text}\".");
+                                        SendGlobalMessageToPeer(connectedPeer.m_uid, type, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                                    }
                                 }
                             }
                         }
                         else
                         {
                             VChatPlugin.LogWarning($"Received a global chat message from a peer identified as a server, id {senderId} \"{peer.m_playerName}\"");
+                        }
+
+                        // If this is a player-hosted server, the local client will not be in the peer collection, but will be defined as the local player.
+                        if (VChatPlugin.IsPlayerHostedServer && !ZNet.instance.IsDedicated())
+                        {
+                            // Be sure to send it as the server, otherwise it may be ignored.
+                            VChatPlugin.Log($"Redirecting player-hosted server message to local player.");
+                            OnGlobalMessage_Client(serverPeerId, pos, type, callerName, text);
                         }
                     }
                     catch (Exception ex)
@@ -76,7 +90,7 @@ namespace VChat.Messages
             }
             else
             {
-                VChatPlugin.LogWarning($"Received a greeting from a peer with the server id...");
+                VChatPlugin.LogWarning($"Received a global message from a peer with the server id...");
             }
         }
 
@@ -92,7 +106,7 @@ namespace VChat.Messages
         private static void OnGlobalMessage_Client(long senderId, Vector3 pos, int type, string playerName, string text)
         {
             // If the client is connected to a server-sided instance of VChat then only accept messages from the server.
-            if (!GreetingMessage.HasLocalPlayerReceivedGreetingFromServer || senderId == ZNet.instance.GetServerPeer()?.m_uid)
+            if (!GreetingMessage.HasLocalPlayerReceivedGreetingFromServer || senderId == VChatPlugin.GetServerPeerId())
             {
                 VChatPlugin.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
                 if (Chat.instance != null)
@@ -151,11 +165,18 @@ namespace VChat.Messages
             {
                 long peerId = ZRoutedRpc.Everybody;
 
-                // If server-sided VChat is found, send the message directly to the server.
-                var serverPeer = ZNet.instance?.GetServerPeer();
-                if (GreetingMessage.HasLocalPlayerReceivedGreetingFromServer && serverPeer != null)
+                if (VChatPlugin.IsPlayerHostedServer)
                 {
-                    peerId = ZNet.instance.GetServerPeer().m_uid;
+                    peerId = VChatPlugin.GetServerPeerId();
+                }
+                else
+                {
+                    // If server-sided VChat is found, send the message directly to the server.
+                    var serverPeer = ZNet.instance?.GetServerPeer();
+                    if (GreetingMessage.HasLocalPlayerReceivedGreetingFromServer && serverPeer != null)
+                    {
+                        peerId = serverPeer.m_uid;
+                    }
                 }
 
                 var parameters = new object[] { localPlayer.GetHeadPoint(), (int)type, localPlayer.GetPlayerName(), text };

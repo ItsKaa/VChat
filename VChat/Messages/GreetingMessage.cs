@@ -7,14 +7,30 @@ namespace VChat.Messages
     {
         public const string GreetingHashName = VChatPlugin.GUID + ".greet";
         public static ConcurrentDictionary<long, GreetingMessagePeerInfo> PeerInfo { get; private set; }
-        public static bool HasLocalPlayerGreetedToServer { get; private set; }
-        public static bool HasLocalPlayerReceivedGreetingFromServer { get; private set; }
-        public static string ServerVersion { get; private set; }
+
+        private static bool _hasLocalPlayerGreetedToServer = false;
+        public static bool HasLocalPlayerGreetedToServer {
+            get => VChatPlugin.IsPlayerHostedServer || _hasLocalPlayerGreetedToServer;
+            private set => _hasLocalPlayerGreetedToServer = value;
+        }
+
+        private static bool _hasLocalPlayerReceivedGreetingFromServer = false;
+        public static bool HasLocalPlayerReceivedGreetingFromServer {
+            get => VChatPlugin.IsPlayerHostedServer || _hasLocalPlayerReceivedGreetingFromServer;
+            private set => _hasLocalPlayerReceivedGreetingFromServer = value;
+        }
+
+        private static string _serverVersion = "0.0.0";
+        public static string ServerVersion
+        {
+            get => VChatPlugin.IsPlayerHostedServer ? VChatPlugin.Version : _serverVersion;
+            private set => _serverVersion = value;
+        }
 
         static GreetingMessage()
         {
             PeerInfo = new ConcurrentDictionary<long, GreetingMessagePeerInfo>();
-            ResetClientVariables();
+            Reset();
         }
 
         /// <summary>
@@ -33,7 +49,7 @@ namespace VChat.Messages
             }
         }
 
-        public static void ResetClientVariables()
+        public static void Reset()
         {
             HasLocalPlayerGreetedToServer = false;
             HasLocalPlayerReceivedGreetingFromServer = false;

@@ -33,7 +33,7 @@ namespace VChat.Patches
                             var globalChatCommand = VChatPlugin.CommandHandler.FindCommand(PluginCommandType.SendGlobalMessage);
                             if (VChatPlugin.CommandHandler.IsValidCommandString(text, globalChatCommand, out text))
                             {
-                                VChatPlugin.Log($"Redirecting local message to global chat from peer {data.m_senderPeerID} \"({senderPeer?.m_playerName})\" with message \"{text}\".");
+                                VChatPlugin.Log($"Redirecting local message to global chat from peer {data.m_senderPeerID} \"({senderPeer?.m_playerName ?? playerName})\" with message \"{text}\".");
 
                                 // Redirect this message to the global chat channel.
                                 foreach (var peer in ZNet.instance.GetConnectedPeers())
@@ -43,6 +43,14 @@ namespace VChat.Patches
                                     {
                                         GlobalMessages.SendGlobalMessageToPeer(peer.m_uid, (int)GlobalMessageType.RedirectedGlobalMessage, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? playerName, text);
                                     }
+                                }
+
+                                // If this is a player-hosted server, the local client will not be in the peer collection, so add that message directly to the chat.
+                                if (VChatPlugin.IsPlayerHostedServer && !ZNet.instance.IsDedicated() && Chat.instance != null)
+                                {
+                                    VChatPlugin.Log($"(Player-hosted server) Adding message to local player chat.");
+                                    var formattedMessage = VChatPlugin.GetFormattedMessage(new CombinedMessageType(CustomMessageType.Global), senderPeer?.m_playerName ?? playerName, text);
+                                    Chat.instance?.AddString(formattedMessage);
                                 }
 
                                 // Intercept message so that other connected users won't receive the same message twice.
