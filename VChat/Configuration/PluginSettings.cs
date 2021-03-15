@@ -291,6 +291,13 @@ namespace VChat.Configuration
             get => EnableModCompatibilityEntry.Value;
             set => EnableModCompatibilityEntry.Value = value;
         }
+
+        private ConfigEntry<bool> SendGlobalMessageConfirmationToNonVChatUsersEntry { get; set; }
+        public bool SendGlobalMessageConfirmationToNonVChatUsers
+        {
+            get => SendGlobalMessageConfirmationToNonVChatUsersEntry.Value;
+            set => SendGlobalMessageConfirmationToNonVChatUsersEntry.Value = value;
+        }
         #endregion Server
 
         public PluginSettings(ConfigFile configFile)
@@ -395,6 +402,7 @@ namespace VChat.Configuration
 
             // Server
             EnableModCompatibilityEntry = ConfigFile.Bind(ServerSection, nameof(EnableModCompatibility), true, $"{ServerDescription}\n\nEnabling this setting will redirect global messages as a local chat message if hosted as a dedicated server. This should allow other server mods to read these messages.\nThis will allow other server mods to read the global chat messages (if they capture the Chat.OnNewChatMessage method).");
+            SendGlobalMessageConfirmationToNonVChatUsersEntry = ConfigFile.Bind(ServerSection, nameof(SendGlobalMessageConfirmationToNonVChatUsers), true, "Enable this option if you wish to send a confirmation global chat message to players without VChat installed, meaning if they type \"/g [text]\" they will also see a \"[Global] [text]\" message.");
 
             // Create the config file
             ConfigFile.Save();

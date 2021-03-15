@@ -38,8 +38,8 @@ namespace VChat.Patches
                                 // Redirect this message to the global chat channel.
                                 foreach (var peer in ZNet.instance.GetConnectedPeers())
                                 {
-                                    // Exclude the sender, otherwise it'd probably just be annoying.
-                                    if (peer.m_uid != data.m_senderPeerID)
+                                    // Exclude the sender if the setting is disabled.
+                                    if (VChatPlugin.Settings.SendGlobalMessageConfirmationToNonVChatUsers || peer.m_uid != data.m_senderPeerID)
                                     {
                                         GlobalMessages.SendGlobalMessageToPeer(peer.m_uid, (int)GlobalMessageType.RedirectedGlobalMessage, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? playerName, text);
                                     }
