@@ -21,7 +21,7 @@ namespace VChat
     {
         public const string GUID = "org.itskaa.vchat";
         public const string Name = "VChat";
-        public const string Version = "1.1.0";
+        public const string Version = "1.2.0";
         public const string RepositoryAuthor = "ItsKaa";
         public const string RepositoryName = "VChat";
         public const string RepositoryUrl = "https://github.com/" + RepositoryAuthor + "/" + RepositoryName;
