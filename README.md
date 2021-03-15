@@ -7,6 +7,7 @@ A simple chat improvement mod for Valheim, a single dll that works for both serv
 - Sent message history that can be called using arrow up and down when the chat is focused.
 - Easily configurable using ingame commands that can be also be adjusted in the configuration file.
 - Removes the annoying auto caps and lowercases for the shout and whisper channels.
+- Able to modify the opacity, width and height of the chat window.
 - Various other settings to improve the ingame chat.
 
 ## Commands:
@@ -75,6 +76,23 @@ This value ranges from 0 to 100, where 0 means completely transparent and 100 is
 Changes the opacity of the inactive chat, this is only relevant when always displaying the chat window.
 This value ranges from 0 to 100, where 0 means completely transparent and 100 is fully opaque.
 
+```
+/setwidth [value]
+```
+Changes the width of the chat window, this is based of 1920x1080 values regardless of the screen resolution.
+The default width is 400.
+
+```
+/setheight [value]
+```
+Changes the height of the chat window, this is based of 1920x1080 values regardless of the screen resolution.
+The default height is 400.
+
+```
+/setbuffersize [value]
+```
+Changes the maximum amount of visible messages in the chat window, if this is set to 15 the function will resume as normal.
+
 
 ## Installation (manual)
 - Download [BepInEx Package](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/) and follow it's installation procedure.
@@ -103,3 +121,9 @@ Or you can use the mod manager [r2modman](https://thunderstore.io/package/ebkr/r
 - Pings no longer send a blank message to the chat
 - Fixed chat input color when spawning
 - Fixed pings activating the chat window
+
+1.2.0
+- Global chat now works on non-dedicated servers
+- Added setting to change the width and height of the chat window
+- Added setting to change the maximum amount of visible messages
+- Added support for other server-sided mods to read global messages (dedicated-servers only)
