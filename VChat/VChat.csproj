@@ -48,6 +48,7 @@
     <Compile Include="Data\PluginCommandType.cs" />
     <Compile Include="Data\CustomMessageType.cs" />
     <Compile Include="Data\UserMessageInfo.cs" />
+    <Compile Include="Extensions\ChatExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Helpers\GithubHelper.cs" />
