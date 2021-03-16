@@ -22,7 +22,7 @@ namespace VChat.Patches
                 }
             }
 
-            __instance.m_chatWindow.sizeDelta = new Vector2(Math.Max(200, Math.Min(1920, VChatPlugin.Settings.ChatWidth)), Math.Max(200, Math.Min(1080, VChatPlugin.Settings.ChatHeight)));
+            __instance.UpdateChatSize(new Vector2(VChatPlugin.Settings.ChatWidth, VChatPlugin.Settings.ChatHeight));
         }
 
         private static void Postfix(ref Chat __instance)

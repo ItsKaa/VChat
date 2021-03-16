@@ -148,22 +148,22 @@ namespace VChat.Configuration
         private ConfigEntry<uint> ChatWidthEntry { get; set; }
         public uint ChatWidth
         {
-            get => ChatWidthEntry.Value;
-            set => ChatWidthEntry.Value = value;
+            get => Math.Max(200, Math.Min(1920, ChatWidthEntry.Value));
+            set => ChatWidthEntry.Value = Math.Max(200, Math.Min(1920, value));
         }
 
         private ConfigEntry<uint> ChatHeightEntry { get; set; }
         public uint ChatHeight
         {
-            get => ChatHeightEntry.Value;
-            set => ChatHeightEntry.Value = value;
+            get => Math.Max(200, Math.Min(1080, ChatHeightEntry.Value));
+            set => ChatHeightEntry.Value = Math.Max(200, Math.Min(1080, value));
         }
 
         private ConfigEntry<uint> ChatBufferSizeEntry { get; set; }
         public uint ChatBufferSize
         {
-            get => ChatBufferSizeEntry.Value;
-            set => ChatBufferSizeEntry.Value = value;
+            get => Math.Max(15, Math.Min(1000, VChatPlugin.Settings.ChatBufferSizeEntry.Value));
+            set => ChatBufferSizeEntry.Value = Math.Max(15, Math.Min(1000, value));
         }
 
         #endregion Chat Window

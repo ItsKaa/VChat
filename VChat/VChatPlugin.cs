@@ -327,15 +327,10 @@ namespace VChat
 
                     if (uint.TryParse(text, out uint value))
                     {
-                        value = Math.Max(200, Math.Min(1920, value));
-                        writeSuccessMessage($"Updated the chat width to {value}.");
-
-                        var chatWindow = ((Chat)instance)?.m_chatWindow;
-                        if (chatWindow != null)
-                        {
-                            chatWindow.sizeDelta = new Vector2(value, chatWindow.sizeDelta.y);
-                        }
                         Settings.ChatWidth = value;
+                        ((Chat)instance)?.UpdateChatSize(new Vector2(Settings.ChatWidth, Settings.ChatHeight));
+
+                        writeSuccessMessage($"Updated the chat width to {value}.");
                     }
                     else
                     {
@@ -352,15 +347,10 @@ namespace VChat
 
                     if (uint.TryParse(text, out uint value))
                     {
-                        value = Math.Max(200, Math.Min(1080, value));
-                        writeSuccessMessage($"Updated the chat height to {value}.");
-
-                        var chatWindow = ((Chat)instance)?.m_chatWindow;
-                        if (chatWindow != null)
-                        {
-                            chatWindow.sizeDelta = new Vector2(chatWindow.sizeDelta.x, value);
-                        }
                         Settings.ChatHeight = value;
+                        ((Chat)instance)?.UpdateChatSize(new Vector2(Settings.ChatWidth, Settings.ChatHeight));
+
+                        writeSuccessMessage($"Updated the chat height to {Settings.ChatHeight}.");
                     }
                     else
                     {
@@ -377,11 +367,10 @@ namespace VChat
 
                     if (uint.TryParse(text, out uint value))
                     {
-                        value = Math.Max(15, Math.Min(1000, value));
-                        writeSuccessMessage($"Updated the chat buffer size to {value}.");
-
-                        var chatWindow = ((Chat)instance)?.m_chatWindow;
                         Settings.ChatBufferSize = value;
+                        var chatWindow = ((Chat)instance)?.m_chatWindow;
+
+                        writeSuccessMessage($"Updated the chat buffer size to {value}.");
                     }
                     else
                     {
