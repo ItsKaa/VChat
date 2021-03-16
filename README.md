@@ -127,3 +127,6 @@ Or you can use the mod manager [r2modman](https://thunderstore.io/package/ebkr/r
 - Added setting to change the width and height of the chat window
 - Added setting to change the maximum amount of visible messages
 - Added support for other server-sided mods to read global messages (dedicated-servers only)
+
+1.2.1
+- Fixed the input size when changing the width of the chat-box.
