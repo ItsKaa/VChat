@@ -418,7 +418,7 @@ namespace VChat.Configuration
                 $"The default chat channel that's set when your character spawns in," +
                 $"accepted values: {string.Join(", ", Enum.GetNames(typeof(Talker.Type)).Except(new[] { nameof(Talker.Type.Ping) }).Concat(Enum.GetNames(typeof(CustomMessageType))).Distinct().Select(x => x.ToLower()))}."
             );
-            ChatWidthEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatWidth), 400u, "Sets the width of the chat window, the maximum value is 1920.");
+            ChatWidthEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatWidth), 500u, "Sets the width of the chat window, the maximum value is 1920.");
             ChatHeightEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatHeight), 400u, "Sets the height of the chat window, the maximum value is 1080.");
             ChatBufferSizeEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatBufferSize), 50u, "Changes the maximum amount of messages visible in the chat window. Setting this to 15 (game default) will remove the hook.");
 

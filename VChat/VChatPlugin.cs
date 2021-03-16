@@ -322,7 +322,7 @@ namespace VChat
                     // Set to default if no argument is provided
                     if (string.IsNullOrEmpty(text))
                     {
-                        text = "400";
+                        text = "500";
                     }
 
                     if (uint.TryParse(text, out uint value))
