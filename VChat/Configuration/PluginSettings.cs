@@ -13,6 +13,7 @@ namespace VChat.Configuration
     {
         private const string ListSeparator = "|";
         private const string DefaultCommandPrefix = "/";
+        private const string GeneralSection = "General";
         private const string ColorSection = "Colors";
         private const string ChatWindowSection = "ChatWindow";
         private const string CommandsSection = "Commands";
@@ -26,6 +27,15 @@ namespace VChat.Configuration
         private DateTime LastTickDate { get; set; }
         private DateTime LastFileModifiedDate { get; set; }
 
+        #region General
+        private ConfigEntry<string> VersionEntry { get; set; }
+        public string Version
+        {
+            get => VersionEntry.Value;
+            set => VersionEntry.Value = value;
+        }
+
+        #endregion General
         #region Colors
         private ConfigEntry<string> LocalChatColorEntry { get; set; }
         public Color? LocalChatColor
@@ -398,6 +408,9 @@ namespace VChat.Configuration
         {
             ConfigFile.SaveOnConfigSet = true;
 
+            // General
+            VersionEntry = ConfigFile.Bind<string>(GeneralSection, nameof(Version), null, "The settings file version, this will update automatically.");
+
             // Colors
             LocalChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(LocalChatColor), null, ColorDescription);
             ShoutChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(ShoutChatColor), null, string.Empty);
@@ -453,6 +466,15 @@ namespace VChat.Configuration
             SendGlobalMessageConfirmationToNonVChatUsersEntry = ConfigFile.Bind(ServerSection, nameof(SendGlobalMessageConfirmationToNonVChatUsers), true, "Enable this option if you wish to send a confirmation global chat message to players without VChat installed, meaning if they type \"/g [text]\" they will also see a \"[Global] [text]\" message.");
 
             // Create the config file
+            // Version was added in 1.2.1
+            // 1.2.1: Update chat width to 500 if default is set to 400, which is incorrect
+            if (string.IsNullOrEmpty(Version) && ChatWidth == 400u)
+            {
+                ChatWidth = 500u;
+            }
+
+            // Update settings to current version and save.
+            Version = VChatPlugin.Version;
             ConfigFile.Save();
         }
 
