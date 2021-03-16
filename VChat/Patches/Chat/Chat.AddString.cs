@@ -33,11 +33,10 @@ namespace VChat.Patches
             }
 
             // Update the buffer manually
-            var chatBufferSize = Math.Max(15, Math.Min(1000, VChatPlugin.Settings.ChatBufferSize));
-            if (VChatPlugin.Settings.ChatBufferSize > chatBufferSize)
+            if (VChatPlugin.Settings.ChatBufferSize > 15)
             {
                 __instance.m_chatBuffer.Add(text);
-                while (__instance.m_chatBuffer.Count > chatBufferSize)
+                while (__instance.m_chatBuffer.Count > VChatPlugin.Settings.ChatBufferSize)
                 {
                     __instance.m_chatBuffer.RemoveAt(0);
                 }
