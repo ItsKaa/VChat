@@ -35,6 +35,13 @@ namespace VChat.Configuration
             set => VersionEntry.Value = value;
         }
 
+        private ConfigEntry<int> NexusIDEntry { get; set; }
+        public int NexusID
+        {
+            get => NexusIDEntry.Value;
+            set => NexusIDEntry.Value = value;
+        }
+
         #endregion General
         #region Colors
         private ConfigEntry<string> LocalChatColorEntry { get; set; }
@@ -410,6 +417,7 @@ namespace VChat.Configuration
 
             // General
             VersionEntry = ConfigFile.Bind<string>(GeneralSection, nameof(Version), null, "The settings file version, this will update automatically.");
+            NexusIDEntry = ConfigFile.Bind(GeneralSection, nameof(NexusID), VChatPlugin.NexusID, "Nexus mod ID for updates");
 
             // Colors
             LocalChatColorEntry = ConfigFile.Bind<string>(ColorSection, nameof(LocalChatColor), null, ColorDescription);
@@ -475,6 +483,7 @@ namespace VChat.Configuration
 
             // Update settings to current version and save.
             Version = VChatPlugin.Version;
+            NexusID = VChatPlugin.NexusID;
             ConfigFile.Save();
         }
 
