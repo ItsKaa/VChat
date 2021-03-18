@@ -28,6 +28,8 @@ namespace VChat.Patches
 
                     VChatPlugin.Log($"Got message from  by user {playerName}: \"{text}\"");
 
+                    bool intercept = false;
+
                     // Read local say chat messages for users not connected to VChat.
                     // Messages that fit the global chat command name will be redirected as global chat messages.
                     if (GreetingMessage.PeerInfo.TryGetValue(data.m_senderPeerID, out GreetingMessagePeerInfo peerInfo)
@@ -67,8 +69,7 @@ namespace VChat.Patches
                                 }
 
                                 // Intercept message so that other connected users won't receive the same message twice.
-                                data.m_methodHash = GlobalMessages.InterceptedSayHashCode;
-                                return false;
+                                intercept = true;
                             }
                         }
                     }
@@ -80,6 +81,7 @@ namespace VChat.Patches
                         text = text.Remove(0, "/addchannel".Length);
                         var channelName = text.Trim();
                         ServerChannelManager.ClientSendAddChannelToServer(senderPeer.m_uid, senderSteamId, channelName);
+                        intercept = true;
                     }
                     else if (text.Trim().StartsWith("/invite", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -96,15 +98,18 @@ namespace VChat.Patches
                             var foundPeer = false;
                             foreach(var targetPeer in ZNet.instance.GetConnectedPeers())
                             {
-                                if (targetPeer.m_socket is ZSteamSocket targetSteamSocket)
+                                if (string.Equals(targetPeer.m_playerName, inviteePlayerName, StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    ServerChannelManager.InvitePlayerToChannel(channelName,
-                                        data.m_senderPeerID,
-                                        senderSteamId,
-                                        targetSteamSocket.GetPeerID().m_SteamID
-                                    );
-                                    foundPeer = true;
-                                    break;
+                                    if (targetPeer.m_socket is ZSteamSocket targetSteamSocket)
+                                    {
+                                        ServerChannelManager.InvitePlayerToChannel(channelName,
+                                            data.m_senderPeerID,
+                                            senderSteamId,
+                                            targetSteamSocket.GetPeerID().m_SteamID
+                                        );
+                                        foundPeer = true;
+                                        break;
+                                    }
                                 }
                             }
 
@@ -117,6 +122,7 @@ namespace VChat.Patches
                         {
                             VChatPlugin.LogWarning($"Invite from local chat wrong command: \"{text}\" | \"{remainder}\" | \"{string.Join(",", remainderData)}\"");
                         }
+                        intercept = true;
                     }
                     else if (text.Trim().StartsWith("/accept", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -139,6 +145,7 @@ namespace VChat.Patches
                         {
                             ServerChannelManager.AcceptChannelInvite(data.m_senderPeerID, channelName);
                         }
+                        intercept = true;
                     }
                     else if (text.Trim().StartsWith("/decline", StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -161,6 +168,8 @@ namespace VChat.Patches
                         {
                             ServerChannelManager.DeclineChannelInvite(data.m_senderPeerID, channelName);
                         }
+                        intercept = true;
+                    }
                     else if(text.Trim().StartsWith("/"))
                     {
                         text = text.Remove(0, 1);
@@ -175,11 +184,18 @@ namespace VChat.Patches
                                     VChatPlugin.LogWarning($"User {senderPeer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
                                     text = text.Remove(0, channel.ServerCommandName.Length).TrimStart();
                                     ServerChannelManager.SendMessageToChannel(data.m_senderPeerID, channel.Name, text);
+                                    intercept = true;
                                     break;
                                 }
                             }
                         }
                     }
+
+
+                    if(intercept)
+                    {
+                        data.m_methodHash = GlobalMessages.InterceptedSayHashCode;
+                        return false;
                     }
                 }
                 catch (Exception ex)
