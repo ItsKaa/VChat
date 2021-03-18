@@ -353,6 +353,43 @@ namespace VChat.Services
             return false;
         }
 
+        public static bool DeclineChannelInvite(long peerId, string channelName)
+        {
+            if (ZNet.m_isServer)
+            {
+                if (GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
+                {
+                    // Find the invite and remove it if present
+                    var foundInvite = false;
+                    lock (_lockChannelInviteInfo)
+                    {
+                        var inviteInfo = ChannelInviteInfo.FirstOrDefault(x =>
+                               x.InviteeId == steamId
+                            && string.Equals(x.ChannelName, channelName, StringComparison.CurrentCultureIgnoreCase)
+                        );
+                        if (inviteInfo != null)
+                        {
+                            ChannelInviteInfo.Remove(inviteInfo);
+                            foundInvite = true;
+                        }
+                    }
+
+                    // Handle the invite
+                    if (foundInvite)
+                    {
+                        VChatPlugin.LogWarning($"User '{peer.m_playerName}' declined channel invite '{channelName}'.");
+                        return true;
+                    }
+                    else
+                    {
+                        ChannelInviteMessage.SendFailedResponseToPeer(peerId, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Sends a message to the client that it's connected to a channel.
         /// </summary>
