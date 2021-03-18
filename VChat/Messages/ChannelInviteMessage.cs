@@ -7,12 +7,14 @@ namespace VChat.Messages
         public enum ChannelInviteType
         {
             Invite,
+            Accept,
         }
 
         public enum ChannelInviteResponseType
         {
             UserNotFound,
             NoPermission,
+            NoInviteFound,
         }
 
         public const string ChannelInviteMessageHashName = VChatPlugin.Name + ".ChannelInvite";
@@ -58,7 +60,12 @@ namespace VChat.Messages
                                 }
                             }
                         }
-                        }
+                    }
+                    else if(requestType == (int)ChannelInviteType.Accept)
+                    {
+                        //ulong steamIdInvitee = package.ReadULong();
+                        var channelName = package.ReadString();
+                        ServerChannelManager.AcceptChannelInvite(senderId, channelName);
                     }
                 }
             }
@@ -70,6 +77,7 @@ namespace VChat.Messages
 
         public static void SendFailedResponseToPeer(long peerId, ChannelInviteResponseType responseType, string channelName)
         {
+            // TODO: Handle if user doesn't have VChat
             if (ZNet.m_isServer)
             {
                 var package = new ZPackage();
