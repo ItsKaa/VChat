@@ -121,5 +121,34 @@ namespace VChat.Services
 
             return false;
         }
+
+        /// <summary>
+        /// Sends a message to the client that it's connected to a channel.
+        /// </summary>
+        public static void SendMessageToClient_ChannelConnected(long peerId, ServerChannelInfo channelInfo)
+        {
+            if (ZNet.m_isServer)
+            {
+                var peer = ZNet.instance.GetPeer(peerId);
+                if (peer != null)
+                {
+                    var message = $"Successfully connected to the {channelInfo.Name} channel.";
+                    object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
+                    ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+
+                    if (GreetingMessage.PeerInfo.TryGetValue(peerId, out Data.GreetingMessagePeerInfo peerInfo)
+                        && !peerInfo.HasReceivedGreeting)
+                    {
+                        // Only send if command name is set, otherwise it's considered a read-only channel.
+                        if (!string.IsNullOrEmpty(channelInfo.ServerCommandName))
+                        {
+                            message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
+                            parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
+                            ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

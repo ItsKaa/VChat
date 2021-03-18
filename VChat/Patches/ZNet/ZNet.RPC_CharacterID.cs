@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VChat.Data;
 using VChat.Messages;
+using VChat.Services;
 
 namespace VChat.Patches
 {
@@ -40,7 +41,7 @@ namespace VChat.Patches
                             {
                                 $"This server runs {VChatPlugin.Name} {VChatPlugin.Version}, We detected that you do not have this mod installed.",
                                 $"You can find the latest version on {VChatPlugin.RepositoryUrl}",
-                                "Global chat messages will be sent in your local chat channel.",
+                                $"{VChatPlugin.Name} channel messages will be sent in your local chat channel.",
                                 $"Type {VChatPlugin.Settings.CommandPrefix}{VChatPlugin.Settings.GlobalChatCommandName.FirstOrDefault()} [text] to send a message to the global chat.",
                             };
 
@@ -48,6 +49,16 @@ namespace VChat.Patches
                             {
                                 object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
                                 ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                            }
+                        }
+
+                        // Send channel information
+                        if (peer.m_socket is ZSteamSocket steamSocket)
+                        {
+                            var steamId = steamSocket.GetPeerID().m_SteamID;
+                            foreach (var channelInfo in ServerChannelManager.GetChannelsForUser(steamId))
+                            {
+                                ServerChannelManager.SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);
                             }
                         }
 
