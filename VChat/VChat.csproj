@@ -55,6 +55,8 @@
     <Compile Include="Helpers\VersionHelper.cs" />
     <Compile Include="Messages\GlobalMessages.cs" />
     <Compile Include="Messages\GreetingMessage.cs" />
+    <Compile Include="Data\Messages\ServerChannelInfo.cs" />
+    <Compile Include="Services\ServerChannelManager.cs" />
     <Compile Include="Patches\Chat\Chat.AddString.cs" />
     <Compile Include="Patches\Chat\Chat.Awake.cs" />
     <Compile Include="Patches\Chat\Chat.InputText.cs" />
