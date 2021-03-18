@@ -44,7 +44,7 @@ namespace VChat.Messages
                         ulong steamIdInvitee = package.ReadULong();
                         var channelName = package.ReadString();
 
-                        bool foundInvitee = false;
+                        // TODO: Refactor this
                         foreach (var connectedPeer in ZNet.instance.GetConnectedPeers())
                         {
                             if (connectedPeer.m_socket is ZSteamSocket connectedPeerSteamSocket)
@@ -52,18 +52,12 @@ namespace VChat.Messages
                                 var connectedPeerSteamId = connectedPeerSteamSocket.GetPeerID().m_SteamID;
                                 if (connectedPeerSteamId == steamIdInvitee)
                                 {
-                                    // TODO: Handle already invited players
                                     VChatPlugin.LogWarning($"Player \"{peer.m_playerName}\" ({senderId}) invited player \"{connectedPeer.m_playerName}\" ({connectedPeer.m_uid}) into {channelName}.");
                                     ServerChannelManager.InvitePlayerToChannel(channelName, senderId, steamIdInvitee, connectedPeerSteamId);
-                                    foundInvitee = true;
                                     break;
                                 }
                             }
                         }
-
-                        if (!foundInvitee)
-                        {
-                            SendFailedResponseToPeer(peer.m_uid, ChannelInviteResponseType.UserNotFound, channelName);
                         }
                     }
                 }
