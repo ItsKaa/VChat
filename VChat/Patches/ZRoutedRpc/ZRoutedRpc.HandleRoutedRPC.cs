@@ -80,6 +80,38 @@ namespace VChat.Patches
                         var channelName = text.Trim();
                         ServerChannelManager.ClientSendAddChannelToServer(senderPeer.m_uid, senderSteamId, channelName);
                     }
+                    else if (text.Trim().StartsWith("/invite", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        VChatPlugin.LogWarning($"Got invite from local chat");
+                        text = text.Remove(0, "/invite".Length);
+                        var remainder = text.Trim();
+                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.None);
+                        if(remainderData.Length >= 2)
+                        {
+                            var channelName = remainderData[0];
+                            var inviteePlayerName = remainderData[1];
+
+                            var foundPeer = false;
+                            foreach(var targetPeer in ZNet.instance.GetConnectedPeers())
+                            {
+                                if (targetPeer.m_socket is ZSteamSocket targetSteamSocket)
+                                {
+                                    ServerChannelManager.InvitePlayerToChannel(channelName,
+                                        data.m_senderPeerID,
+                                        senderSteamId,
+                                        targetSteamSocket.GetPeerID().m_SteamID
+                                    );
+                                    foundPeer = true;
+                                    break;
+                                }
+                            }
+
+                            if (!foundPeer)
+                            {
+                                ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
+                            }
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
