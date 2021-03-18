@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System;
+using System.Linq;
 using UnityEngine;
 using VChat.Data;
 using VChat.Messages;
@@ -82,12 +83,13 @@ namespace VChat.Patches
                     }
                     else if (text.Trim().StartsWith("/invite", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        VChatPlugin.LogWarning($"Got invite from local chat");
                         text = text.Remove(0, "/invite".Length);
                         var remainder = text.Trim();
-                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.None);
-                        if(remainderData.Length >= 2)
+                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (remainderData.Length >= 2)
                         {
+                            VChatPlugin.LogWarning($"Got invite from local chat");
                             var channelName = remainderData[0];
                             var inviteePlayerName = remainderData[1];
 
@@ -111,6 +113,11 @@ namespace VChat.Patches
                                 ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
                             }
                         }
+                        else
+                        {
+                            VChatPlugin.LogWarning($"Invite from local chat wrong command: \"{text}\" | \"{remainder}\" | \"{string.Join(",", remainderData)}\"");
+                        }
+                    }
                     else if (text.Trim().StartsWith("/accept", StringComparison.CurrentCultureIgnoreCase))
                     {
                         VChatPlugin.LogWarning($"Got accept from local chat");
