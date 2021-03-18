@@ -103,6 +103,45 @@ namespace VChat.Services
         }
 
         /// <summary>
+        /// Returns the peer with the provided steam id, or null.
+        /// </summary>
+        public static ZNetPeer FindPeerBySteamId(ulong steamId)
+        {
+            foreach (var peer in ZNet.instance.GetConnectedPeers())
+            {
+                if (peer.m_socket is ZSteamSocket steamSocket
+                    && steamSocket.GetPeerID().m_SteamID == steamId)
+                {
+                    return peer;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns true if the channel can be found and if the user has permission to invite.
+        /// </summary>
+        public static bool CanInvite(ulong steamId, string channelName)
+        {
+            lock (_lockChannelInfo)
+            {
+                var channel = ServerChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, StringComparison.CurrentCultureIgnoreCase));
+                return CanInvite(steamId, channel);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the channel can be found and if the user has permission to invite.
+        /// </summary>
+        public static bool CanInvite(ulong steamId, ServerChannelInfo channelInfo)
+        {
+            return channelInfo != null
+                && channelInfo.OwnerId == steamId
+                || channelInfo.Invitees.Contains(steamId)
+                || IsAdministrator(steamId);
+        }
+
+        /// <summary>
         /// Sends the accessible channel information to the peer.
         /// </summary>
         public static bool SendChannelInformationToClient(long peerId)
@@ -149,6 +188,43 @@ namespace VChat.Services
 
             return false;
         }
+
+        /// <summary>
+        /// Sends an invite to a peer, from a peer, if it has the permission to do so.
+        /// </summary>
+        public static bool InvitePlayerToChannel(string channelName, long inviterPeerId, ulong inviterSteamId, ulong inviteeId)
+        {
+            if (CanInvite(inviterSteamId, channelName))
+            {
+                var peer = FindPeerBySteamId(inviteeId);
+                if(peer != null)
+                {
+                    var inviteInfo = new ServerChannelInviteInfo()
+                    {
+                        InviteeId = inviteeId,
+                        InviterId = inviterSteamId,
+                        ChannelName = channelName,
+                    };
+                    lock (_lockChannelInviteInfo)
+                    {
+                        ChannelInviteInfo.Add(inviteInfo);
+                    }
+                    SendInviteRequestToPeer(peer.m_uid, inviteInfo);
+                }
+                else
+                {
+                    ChannelInviteMessage.SendFailedResponseToPeer(inviterPeerId, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                ChannelInviteMessage.SendFailedResponseToPeer(inviterPeerId, ChannelInviteMessage.ChannelInviteResponseType.NoPermission, channelName);
+            }
+            return false;
+        }
+
         /// <summary>
         /// Sends a message to the client that it's connected to a channel.
         /// </summary>
@@ -174,6 +250,25 @@ namespace VChat.Services
                             ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends an invite request to a client, this comes from another client but the server redirects it.
+        /// </summary>
+        public static void SendInviteRequestToPeer(long peerId, ServerChannelInviteInfo channelInviteInfo)
+        {
+            if (ZNet.m_isServer)
+            {
+                var peer = ZNet.instance.GetPeer(peerId);
+                if (peer != null)
+                {
+                    VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{peer.m_playerName}\" ({peerId}).");
+
+                    string message = $"{peer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
+                    var parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
+                    ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
                 }
             }
         }

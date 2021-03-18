@@ -44,6 +44,7 @@
     <Compile Include="Data\CombinedMessageType.cs" />
     <Compile Include="Data\GreetingMessagePeerInfo.cs" />
     <Compile Include="Data\GlobalMessageType.cs" />
+    <Compile Include="Data\Messages\ServerChannelInviteInfo.cs" />
     <Compile Include="Data\PluginCommand.cs" />
     <Compile Include="Data\PluginCommandType.cs" />
     <Compile Include="Data\CustomMessageType.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="Helpers\VersionHelper.cs" />
     <Compile Include="Messages\ChannelCreateMessage.cs" />
     <Compile Include="Messages\ChannelInfoMessage.cs" />
+    <Compile Include="Messages\ChannelInviteMessage.cs" />
     <Compile Include="Messages\GlobalMessages.cs" />
     <Compile Include="Messages\GreetingMessage.cs" />
     <Compile Include="Data\Messages\ServerChannelInfo.cs" />
