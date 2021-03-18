@@ -161,6 +161,47 @@ namespace VChat.Services
         }
 
         /// <summary>
+        /// Get the peer from a steam id, or null.
+        /// </summary>
+        public static ZNetPeer GetPeerFromSteamId(ulong steamId)
+        {
+            var peers = ZNet.instance.GetConnectedPeers();
+            foreach(var peer in peers)
+            {
+                if(GetSteamIdFromPeer(peer, out ulong peerSteamId))
+                {
+                    if(peerSteamId == steamId)
+                    {
+                        return peer;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get the peer id from a steam id
+        /// </summary>
+        public static bool GetPeerIdFromSteamId(ulong steamId, out long peerId)
+        {
+            var peers = ZNet.instance.GetConnectedPeers();
+            foreach (var peer in peers)
+            {
+                if (GetSteamIdFromPeer(peer, out ulong peerSteamId))
+                {
+                    if (peerSteamId == steamId)
+                    {
+                        peerId = peer.m_uid;
+                        return true;
+                    }
+                }
+            }
+
+            peerId = long.MaxValue;
+            return false;
+        }
+
+        /// <summary>
         /// Get the steam id from a peer.
         /// </summary>
         public static bool GetSteamIdFromPeer(ZNetPeer peer, out ulong steamId)
@@ -404,12 +445,14 @@ namespace VChat.Services
                     object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
                     ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
 
-                    if (GreetingMessage.PeerInfo.TryGetValue(peerId, out Data.GreetingMessagePeerInfo peerInfo)
-                        && !peerInfo.HasReceivedGreeting)
+                    //if (GreetingMessage.PeerInfo.TryGetValue(peerId, out Data.GreetingMessagePeerInfo peerInfo)
+                    //    && !peerInfo.HasReceivedGreeting)
                     {
                         // Only send if command name is set, otherwise it's considered a read-only channel.
+                        VChatPlugin.LogWarning($"{peerId} connected to the channel {channelInfo.Name}, commandName: /{channelInfo.ServerCommandName}");
                         if (!string.IsNullOrEmpty(channelInfo.ServerCommandName))
                         {
+                            VChatPlugin.LogWarning($"Sending command info");
                             message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
                             parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
                             ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
@@ -431,9 +474,16 @@ namespace VChat.Services
                 {
                     VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{peer.m_playerName}\" ({peerId}).");
 
-                    string message = $"{peer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
-                    var parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
-                    ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                    if (GetPeerIdFromSteamId(channelInviteInfo.InviteeId, out long inviteePeerId))
+                    {
+                        string message = $"{peer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
+                        var parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
+                        ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                    }
+                    else
+                    {
+                        VChatPlugin.LogWarning($"Peer id could not be found for steam id {channelInviteInfo.InviteeId} from invite request");
+                    }
                 }
             }
         }
