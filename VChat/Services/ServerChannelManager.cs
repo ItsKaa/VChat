@@ -394,6 +394,36 @@ namespace VChat.Services
             return false;
         }
 
+        public static bool SendMessageToChannel(long peerId, string channelName, string text)
+        {
+            if (GetSteamIdFromPeer(peerId, out ulong steamId))
+            {
+                var knownChannels = ServerChannelManager.GetChannelsForUser(steamId);
+                foreach(var channel in knownChannels)
+                {
+                    if(string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var steamIds = new List<ulong>();
+                        steamIds.Add(channel.OwnerId);
+                        steamIds.AddRange(channel.Invitees);
+                        foreach(var channelUserSteamId in steamIds)
+                        {
+                            var peer = GetPeerFromSteamId(channelUserSteamId);
+                            if (peer != null)
+                            {
+                                object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}] {peer.m_playerName}", text };
+                                ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+
+                            }
+                        }
+
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public static bool DeclineChannelInvite(long peerId, string channelName)
         {
             if (ZNet.m_isServer)

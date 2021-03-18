@@ -161,6 +161,25 @@ namespace VChat.Patches
                         {
                             ServerChannelManager.DeclineChannelInvite(data.m_senderPeerID, channelName);
                         }
+                    else if(text.Trim().StartsWith("/"))
+                    {
+                        text = text.Remove(0, 1);
+                        var knownChannels = ServerChannelManager.GetChannelsForUser(senderSteamId);
+                        foreach(var channel in knownChannels)
+                        {
+                            if (!string.IsNullOrWhiteSpace(channel.ServerCommandName))
+                            {
+                                if (text.StartsWith(channel.ServerCommandName, StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    // found command
+                                    VChatPlugin.LogWarning($"User {senderPeer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
+                                    text = text.Remove(0, channel.ServerCommandName.Length).TrimStart();
+                                    ServerChannelManager.SendMessageToChannel(data.m_senderPeerID, channel.Name, text);
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     }
                 }
                 catch (Exception ex)
