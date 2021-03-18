@@ -133,6 +133,27 @@ namespace VChat.Patches
                             ServerChannelManager.AcceptChannelInvite(data.m_senderPeerID, channelName);
                         }
                     }
+                    else if (text.Trim().StartsWith("/decline", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        VChatPlugin.LogWarning($"Got decline from local chat");
+                        text = text.Remove(0, "/decline".Length);
+                        var channelName = text.Trim();
+                        if (string.IsNullOrEmpty(channelName))
+                        {
+                            var invites = ServerChannelManager.GetChannelInvitesForUser(senderSteamId);
+                            if (invites?.Count() > 0)
+                            {
+                                ServerChannelManager.DeclineChannelInvite(data.m_senderPeerID, invites.FirstOrDefault().ChannelName);
+                            }
+                            else
+                            {
+                                ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
+                            }
+                        }
+                        else
+                        {
+                            ServerChannelManager.DeclineChannelInvite(data.m_senderPeerID, channelName);
+                        }
                     }
                 }
                 catch (Exception ex)
