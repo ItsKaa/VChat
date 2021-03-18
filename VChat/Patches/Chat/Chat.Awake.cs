@@ -83,7 +83,7 @@ namespace VChat.Patches
             }
 
             // Reset the server plugin status as we may have changed server from a single player world to a dedicated server.
-            PlayerPatchOnSpawned.HasSentServerPluginStatusMessage = false;
+            PlayerPatchOnSpawned.HasPlayerSpawnedOnce = false;
         }
     }
 }
