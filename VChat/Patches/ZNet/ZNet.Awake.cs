@@ -11,6 +11,7 @@ namespace VChat.Patches
             // Register our custom defined messages.
             GlobalMessages.Register();
             GreetingMessage.Register();
+            ChannelInfoMessage.Register();
         }
     }
 }

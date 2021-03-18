@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using VChat.Data.Messages;
+using VChat.Messages;
 
 namespace VChat.Services
 {
@@ -76,6 +77,17 @@ namespace VChat.Services
             {
                 ServerChannelInfo.Add(channelInfo);
             }
+
+            // Send update message to relevant players
+            foreach (var peer in ZNet.instance.GetConnectedPeers())
+            {
+                if (peer.m_socket is ZSteamSocket steamSocket
+                    && steamSocket.GetPeerID().m_SteamID == ownerSteamId)
+                {
+                    SendChannelInformationToClient(peer.m_uid);
+                    SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);
+                }
+            }
             return false;
         }
 
@@ -85,6 +97,29 @@ namespace VChat.Services
         public static bool IsAdministrator(ulong steamId)
         {
             return ZNet.instance.m_adminList.Contains($"{steamId}");
+        }
+
+        /// <summary>
+        /// Sends the accessible channel information to the peer.
+        /// </summary>
+        public static bool SendChannelInformationToClient(long peerId)
+        {
+            if (ZNet.m_isServer)
+            {
+                var peer = ZNet.instance.GetPeer(peerId);
+                var steamId = (peer.m_socket as ZSteamSocket)?.GetPeerID().m_SteamID;
+                if (steamId != null)
+                {
+                    VChatPlugin.LogError($"Sending channel info to {steamId}");
+                    var channels = GetChannelsForUser(steamId.Value);
+                    ChannelInfoMessage.SendToPeer(peerId, channels);
+                    return true;
+                }
+
+                VChatPlugin.LogError($"Steam ID is undefined for {peerId}");
+            }
+
+            return false;
         }
     }
 }

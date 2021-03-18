@@ -53,6 +53,7 @@
     <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Helpers\GithubHelper.cs" />
     <Compile Include="Helpers\VersionHelper.cs" />
+    <Compile Include="Messages\ChannelInfoMessage.cs" />
     <Compile Include="Messages\GlobalMessages.cs" />
     <Compile Include="Messages\GreetingMessage.cs" />
     <Compile Include="Data\Messages\ServerChannelInfo.cs" />

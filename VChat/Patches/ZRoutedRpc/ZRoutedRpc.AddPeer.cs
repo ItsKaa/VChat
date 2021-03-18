@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using VChat.Messages;
+using VChat.Services;
 
 namespace VChat.Patches
 {
@@ -12,6 +13,7 @@ namespace VChat.Patches
             if (ZNet.m_isServer)
             {
                 GreetingMessage.SendToClient(peer.m_uid);
+                ServerChannelManager.SendChannelInformationToClient(peer.m_uid);
             }
             else
             {
