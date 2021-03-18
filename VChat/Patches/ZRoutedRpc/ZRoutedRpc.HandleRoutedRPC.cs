@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using VChat.Data;
 using VChat.Messages;
+using VChat.Services;
 using static ZRoutedRpc;
 
 namespace VChat.Patches
@@ -10,24 +11,27 @@ namespace VChat.Patches
     [HarmonyPatch(typeof(ZRoutedRpc), nameof(ZRoutedRpc.HandleRoutedRPC))]
     public static class ZRoutedRpcHandleRoutedRPC
     {
-
         public static bool Prefix(ref ZRoutedRpc __instance, ref RoutedRPCData data)
         {
             if (ZNet.m_isServer && data?.m_methodHash == GlobalMessages.TalkerSayHashCode)
             {
-                // Read local say chat messages for users not connected to VChat.
-                // Messages that fit the global chat command name will be redirected as global chat messages.
-                if (GreetingMessage.PeerInfo.TryGetValue(data.m_senderPeerID, out GreetingMessagePeerInfo peerInfo)
-                    && !peerInfo.HasReceivedGreeting)
+                try
                 {
-                    try
-                    {
-                        var senderPeer = ZNet.instance.GetPeer(data.m_senderPeerID);
-                        var package = new ZPackage(data.m_parameters.GetArray());
-                        var ctype = package.ReadInt();
-                        var playerName = package.ReadString();
-                        var text = package.ReadString();
+                    var senderPeer = ZNet.instance.GetPeer(data.m_senderPeerID);
+                    var package = new ZPackage(data.m_parameters.GetArray());
+                    var ctype = package.ReadInt();
+                    var playerName = package.ReadString();
+                    var text = package.ReadString();
+                    var senderSteamSocket = senderPeer.m_socket as ZSteamSocket;
+                    var senderSteamId = senderSteamSocket?.GetPeerID().m_SteamID ?? ulong.MaxValue;
 
+                    VChatPlugin.Log($"Got message from  by user {playerName}: \"{text}\"");
+
+                    // Read local say chat messages for users not connected to VChat.
+                    // Messages that fit the global chat command name will be redirected as global chat messages.
+                    if (GreetingMessage.PeerInfo.TryGetValue(data.m_senderPeerID, out GreetingMessagePeerInfo peerInfo)
+                        && !peerInfo.HasReceivedGreeting)
+                    {
                         if (ctype == (int)Talker.Type.Normal)
                         {
                             var globalChatCommand = VChatPlugin.CommandHandler.FindCommand(PluginCommandType.SendGlobalMessage);
@@ -67,10 +71,19 @@ namespace VChat.Patches
                             }
                         }
                     }
-                    catch (Exception ex)
+
+                    // Server-sided messages for all parties
+                    if (text.Trim().StartsWith("/addchannel", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        VChatPlugin.LogError($"Error reading Talker.Say message for unconnected VChat user ({data.m_senderPeerID}): {ex}");
+                        VChatPlugin.LogWarning($"Got addchannel from local chat");
+                        text = text.Remove(0, "/addchannel".Length);
+                        var channelName = text.Trim();
+                        ServerChannelManager.ClientSendAddChannelToServer(senderPeer.m_uid, senderSteamId, channelName);
                     }
+                }
+                catch (Exception ex)
+                {
+                    VChatPlugin.LogError($"Error reading Talker.Say message for unconnected VChat user ({data.m_senderPeerID}): {ex}");
                 }
             }
 
