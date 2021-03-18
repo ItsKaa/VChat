@@ -111,6 +111,28 @@ namespace VChat.Patches
                                 ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
                             }
                         }
+                    else if (text.Trim().StartsWith("/accept", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        VChatPlugin.LogWarning($"Got accept from local chat");
+                        text = text.Remove(0, "/accept".Length);
+                        var channelName = text.Trim();
+                        if (string.IsNullOrEmpty(channelName))
+                        {
+                            var invites = ServerChannelManager.GetChannelInvitesForUser(senderSteamId);
+                            if (invites?.Count() > 0)
+                            {
+                                ServerChannelManager.AcceptChannelInvite(data.m_senderPeerID, invites.FirstOrDefault().ChannelName);
+                            }
+                            else
+                            {
+                                ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
+                            }
+                        }
+                        else
+                        {
+                            ServerChannelManager.AcceptChannelInvite(data.m_senderPeerID, channelName);
+                        }
+                    }
                     }
                 }
                 catch (Exception ex)
