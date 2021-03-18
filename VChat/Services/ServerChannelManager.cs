@@ -69,7 +69,6 @@ namespace VChat.Services
             {
                 Name = name,
                 OwnerId = ownerSteamId,
-                IsAdminConsideredAnOwner = isAdminConsideredAnOwner,
                 IsPublic = isPublic
             };
 
