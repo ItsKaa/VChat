@@ -12,6 +12,9 @@ namespace VChat.Services
         private static List<ServerChannelInviteInfo> ChannelInviteInfo { get; set; }
         private static readonly object _lockChannelInfo = new();
         private static readonly object _lockChannelInviteInfo = new();
+        
+        // TODO: Setting
+        public const bool CanUsersCreateChannels = true;
 
         static ServerChannelManager()
         {
@@ -122,6 +125,30 @@ namespace VChat.Services
             return false;
         }
 
+        /// <summary>
+        /// Sends a request to the server to create a channel.
+        /// </summary>
+        public static bool ClientSendAddChannelToServer(long peerId, ulong steamId, string channelName)
+        {
+            if (DoesChannelExist(channelName))
+            {
+                ChannelCreateMessage.SendFailedResponseToPeer(peerId, ChannelCreateMessage.ChannelCreateResponseType.ChannelAlreadyExists, channelName);
+            }
+            else
+            {
+                if (!CanUsersCreateChannels && !IsAdministrator(steamId))
+                {
+                    ChannelCreateMessage.SendFailedResponseToPeer(peerId, ChannelCreateMessage.ChannelCreateResponseType.NoPermission, channelName);
+                }
+                else
+                {
+                    VChatPlugin.LogWarning($"Creating channel named {channelName}.");
+                    return AddChannel(channelName, steamId, false, true);
+                }
+            }
+
+            return false;
+        }
         /// <summary>
         /// Sends a message to the client that it's connected to a channel.
         /// </summary>
