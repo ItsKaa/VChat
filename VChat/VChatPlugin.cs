@@ -35,7 +35,6 @@ namespace VChat
         public static CombinedMessageType CurrentInputChatType { get; set; }
         public static CombinedMessageType LastChatType { get; set; }
         public static CommandHandler CommandHandler { get; set; }
-        public static CommandHandler CommandHandlerServer { get; set; }
         public static float ChatHideTimer { get; set; }
 
         static VChatPlugin()
@@ -380,21 +379,6 @@ namespace VChat
                     }
                 })
             );
-        }
-
-        internal static void InitialiseServerCommands()
-        {
-            if(CommandHandlerServer == null)
-            {
-                CommandHandlerServer = new CommandHandler();
-            }
-
-            CommandHandlerServer?.ClearCommands();
-
-            CommandHandlerServer.AddCommand(new PluginCommand(new[] { "" }, (text, instance) =>
-            {
-
-            }));
         }
 
         public static Color GetTextColor(CombinedMessageType type, bool getDefault = false)
