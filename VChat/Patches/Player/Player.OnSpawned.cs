@@ -6,12 +6,12 @@ namespace VChat.Patches
     [HarmonyPatch(typeof(Player), nameof(Player.OnSpawned))]
     public static class PlayerPatchOnSpawned
     {
-        public static bool HasSentServerPluginStatusMessage { get; set; } = false;
+        public static bool HasPlayerSpawnedOnce { get; set; }
 
         public static void Prefix(ref Player __instance)
         {
             // This is only for clients. Add a welcome message to the chat box displaying the status of VChat.
-            if (!HasSentServerPluginStatusMessage)
+            if (!HasPlayerSpawnedOnce)
             {
                 var chat = Chat.instance;
                 if (chat != null)
@@ -35,7 +35,7 @@ namespace VChat.Patches
                     VChatPlugin.LogError($"Could not write the VChat welcome message because Chat is not yet initialised.");
                 }
 
-                HasSentServerPluginStatusMessage = true;
+                HasPlayerSpawnedOnce = true;
             }
         }
     }

@@ -10,7 +10,7 @@ namespace VChat.Patches
         {
             VChatPlugin.Log($"Unregistered server, resetting variables.");
             GreetingMessage.Reset();
-            PlayerPatchOnSpawned.HasSentServerPluginStatusMessage = false;
+            PlayerPatchOnSpawned.HasPlayerSpawnedOnce = false;
             VChatPlugin.IsPlayerHostedServer = false;
         }
     }

@@ -35,6 +35,7 @@ namespace VChat
         public static CombinedMessageType CurrentInputChatType { get; set; }
         public static CombinedMessageType LastChatType { get; set; }
         public static CommandHandler CommandHandler { get; set; }
+        public static CommandHandler CommandHandlerServer { get; set; }
         public static float ChatHideTimer { get; set; }
 
         static VChatPlugin()
@@ -72,7 +73,7 @@ namespace VChat
             }
         }
 
-        private void InitialiseCommands()
+        private static void InitialiseCommands()
         {
             CommandHandler.ClearCommands();
 
@@ -148,7 +149,7 @@ namespace VChat
                         GlobalMessages.SendGlobalMessageToServer(text);
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetLocalColor, Settings.SetLocalChatColorCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetLocalChatColorCommandName, (text, instance) =>
                 {
                     var color = applyChannelColorCommand(text, new CombinedMessageType(Talker.Type.Normal));
                     if (color != null)
@@ -156,7 +157,7 @@ namespace VChat
                         Settings.LocalChatColor = color;
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetShoutColor, Settings.SetShoutChatColorCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetShoutChatColorCommandName, (text, instance) =>
                 {
                     var color = applyChannelColorCommand(text, new CombinedMessageType(Talker.Type.Shout));
                     if (color != null)
@@ -164,7 +165,7 @@ namespace VChat
                         Settings.ShoutChatColor = color;
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetWhisperColor, Settings.SetWhisperChatColorCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetWhisperChatColorCommandName, (text, instance) =>
                 {
                     var color = applyChannelColorCommand(text, new CombinedMessageType(Talker.Type.Whisper));
                     if (color != null)
@@ -172,7 +173,7 @@ namespace VChat
                         Settings.WhisperChatColor = color;
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetGlobalColor, Settings.GlobalWhisperChatColorCommandName, (text, instance) =>
+                new PluginCommand(Settings.GlobalWhisperChatColorCommandName, (text, instance) =>
                 {
                     var color = applyChannelColorCommand(text, new CombinedMessageType(CustomMessageType.Global));
                     if (color != null)
@@ -180,23 +181,23 @@ namespace VChat
                         Settings.GlobalChatColor = color;
                     }
                 }),
-                new PluginCommand(PluginCommandType.ToggleShowChatWindow, "showchat", (text, instance) =>
+                new PluginCommand(Settings.ShowChatCommandName, (text, instance) =>
                 {
                     Settings.AlwaysShowChatWindow = !Settings.AlwaysShowChatWindow;
                     writeSuccessMessage($"{(Settings.AlwaysShowChatWindow ? "Always displaying" : "Auto hiding")} chat window.");
                 }),
-                new PluginCommand(PluginCommandType.ToggleShowChatWindowOnMessage, Settings.ShowChatOnMessageCommandName, (text, instance) =>
+                new PluginCommand(Settings.ShowChatOnMessageCommandName, (text, instance) =>
                 {
                     Settings.ShowChatWindowOnMessageReceived = !Settings.ShowChatWindowOnMessageReceived;
                     writeSuccessMessage($"{(Settings.ShowChatWindowOnMessageReceived ? "Displaying" : "Not displaying")} chat window when receiving a message.");
                 }),
-                new PluginCommand(PluginCommandType.ToggleChatWindowClickThrough, Settings.ChatClickThroughCommandName, (text, instance) =>
+                new PluginCommand(Settings.ChatClickThroughCommandName, (text, instance) =>
                 {
                     Settings.EnableClickThroughChatWindow = !Settings.EnableClickThroughChatWindow;
                     writeSuccessMessage($"{(Settings.EnableClickThroughChatWindow ? "Enabled" : "Disabled")} clicking through the chat window.");
                     ((Chat)instance).m_chatWindow?.ChangeClickThroughInChildren(!Settings.EnableClickThroughChatWindow);
                 }),
-                new PluginCommand(PluginCommandType.SetMaxPlayerHistory, Settings.MaxPlayerChatHistoryCommandName, (text, instance) =>
+                new PluginCommand(Settings.MaxPlayerChatHistoryCommandName, (text, instance) =>
                 {
                     if (string.IsNullOrEmpty(text))
                     {
@@ -229,7 +230,7 @@ namespace VChat
                         }
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetHideDelay, Settings.SetChatHideDelayCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetChatHideDelayCommandName, (text, instance) =>
                 {
                     if (float.TryParse(text, out float delay) && !float.IsNaN(delay))
                     {
@@ -249,7 +250,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetFadeTime, Settings.SetChatFadeTimeCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetChatFadeTimeCommandName, (text, instance) =>
                 {
                     if (float.TryParse(text, out float time) && !float.IsNaN(time))
                     {
@@ -262,7 +263,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetActiveOpacity, Settings.SetOpacityCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetOpacityCommandName, (text, instance) =>
                 {
                     if (uint.TryParse(text, out uint opacity))
                     {
@@ -275,7 +276,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetInactiveOpacity, Settings.SetInactiveOpacityCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetInactiveOpacityCommandName, (text, instance) =>
                 {
                     if (uint.TryParse(text, out uint opacity))
                     {
@@ -288,7 +289,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetDefaultChatChannel, Settings.SetDefaultChatChannelCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetDefaultChatChannelCommandName, (text, instance) =>
                 {
                     var type = new CombinedMessageType(CustomMessageType.Global);
                     bool success = false;
@@ -318,7 +319,7 @@ namespace VChat
                         writeErrorMessage($"Failed to convert \"{text}\" into a chat channel name. Accepted values: {string.Join(", ", Enum.GetNames(typeof(Talker.Type)).Except(new[] { nameof(Talker.Type.Ping) }).Concat(Enum.GetNames(typeof(CustomMessageType))).Distinct().Select(x => x.ToLower()))}.");
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetChatWidth, Settings.SetWidthCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetWidthCommandName, (text, instance) =>
                 {
                     // Set to default if no argument is provided
                     if (string.IsNullOrEmpty(text))
@@ -338,7 +339,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetChatHeight, Settings.SetHeightCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetHeightCommandName, (text, instance) =>
                 {
                     // Set to default if no argument is provided
                     if (string.IsNullOrEmpty(text))
@@ -358,7 +359,7 @@ namespace VChat
                         writeErrorMessage(string.Format(errorParseNumber, text));
                     }
                 }),
-                new PluginCommand(PluginCommandType.SetChatBufferSize, Settings.SetBufferSizeCommandName, (text, instance) =>
+                new PluginCommand(Settings.SetBufferSizeCommandName, (text, instance) =>
                 {
                     // Set to default if no argument is provided
                     if (string.IsNullOrEmpty(text))
@@ -379,6 +380,21 @@ namespace VChat
                     }
                 })
             );
+        }
+
+        internal static void InitialiseServerCommands()
+        {
+            if(CommandHandlerServer == null)
+            {
+                CommandHandlerServer = new CommandHandler();
+            }
+
+            CommandHandlerServer?.ClearCommands();
+
+            CommandHandlerServer.AddCommand(new PluginCommand(new[] { "" }, (text, instance) =>
+            {
+
+            }));
         }
 
         public static Color GetTextColor(CombinedMessageType type, bool getDefault = false)

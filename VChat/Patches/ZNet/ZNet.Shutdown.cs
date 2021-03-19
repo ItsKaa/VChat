@@ -13,7 +13,7 @@ namespace VChat.Patches
             if (!ZNet.m_isServer)
             {
                 VChatPlugin.Log("Resetting variables for local player");
-                PlayerPatchOnSpawned.HasSentServerPluginStatusMessage = false;
+                PlayerPatchOnSpawned.HasPlayerSpawnedOnce = false;
                 GreetingMessage.Reset();
             }
         }
