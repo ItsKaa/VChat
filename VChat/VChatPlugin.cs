@@ -35,7 +35,7 @@ namespace VChat
         public static CombinedMessageType CurrentInputChatType { get; set; }
         public static CombinedMessageType LastChatType { get; set; }
         public static float ChatHideTimer { get; set; }
-        private static object _commandHandlerLock = new object();
+        private static readonly object _commandHandlerLock = new();
 
         static VChatPlugin()
         {

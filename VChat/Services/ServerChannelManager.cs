@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using VChat.Data.Messages;
 using VChat.Helpers;
 using VChat.Messages;
@@ -75,7 +74,7 @@ namespace VChat.Services
         /// <summary>
         /// Adds a channel to the server.
         /// </summary>
-        public static bool AddChannel(string name, ulong ownerSteamId, bool isPublic, bool isAdminConsideredAnOwner)
+        public static bool AddChannel(string name, ulong ownerSteamId, bool isPublic)
         {
             if(DoesChannelExist(name))
             {
@@ -196,7 +195,7 @@ namespace VChat.Services
                 else
                 {
                     VChatPlugin.LogWarning($"Creating channel named {channelName}.");
-                    return AddChannel(channelName, steamId, false, true);
+                    return AddChannel(channelName, steamId, false);
                 }
             }
 
@@ -304,8 +303,7 @@ namespace VChat.Services
                 {
                     if(string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var steamIds = new List<ulong>();
-                        steamIds.Add(channel.OwnerId);
+                        var steamIds = new List<ulong> { channel.OwnerId };
                         steamIds.AddRange(channel.Invitees);
                         foreach(var channelUserSteamId in steamIds)
                         {
