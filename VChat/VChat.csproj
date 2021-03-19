@@ -80,6 +80,7 @@
     <Compile Include="Patches\ZSteamMatchmaking\ZSteamMatchmakingPatchUnregisterServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\CommandHandler.cs" />
+    <Compile Include="VChatPlugin.Commands.cs" />
     <Compile Include="VChatPlugin.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
