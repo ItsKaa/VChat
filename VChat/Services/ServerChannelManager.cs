@@ -13,7 +13,7 @@ namespace VChat.Services
         private static List<ServerChannelInviteInfo> ChannelInviteInfo { get; set; }
         private static readonly object _lockChannelInfo = new();
         private static readonly object _lockChannelInviteInfo = new();
-        
+
         // TODO: Setting
         public const bool CanUsersCreateChannels = true;
 
@@ -25,11 +25,11 @@ namespace VChat.Services
 
         public static bool DoesChannelExist(string name)
         {
-            lock(_lockChannelInfo)
+            lock (_lockChannelInfo)
             {
-                foreach(var channel in ServerChannelInfo)
+                foreach (var channel in ServerChannelInfo)
                 {
-                    if(name.Equals(channel.Name, StringComparison.CurrentCultureIgnoreCase))
+                    if (name.Equals(channel.Name, StringComparison.CurrentCultureIgnoreCase))
                     {
                         return true;
                     }
@@ -43,7 +43,7 @@ namespace VChat.Services
         /// </summary>
         public static List<ServerChannelInfo> GetServerChannelInfoCopy()
         {
-            lock(_lockChannelInfo)
+            lock (_lockChannelInfo)
             {
                 return ServerChannelInfo.ToList();
             }
@@ -65,7 +65,7 @@ namespace VChat.Services
         /// </summary>
         public static IEnumerable<ServerChannelInviteInfo> GetChannelInvitesForUser(ulong steamId)
         {
-            lock(_lockChannelInviteInfo)
+            lock (_lockChannelInviteInfo)
             {
                 return ChannelInviteInfo.Where(x => x.InviteeId == steamId);
             }
@@ -76,7 +76,7 @@ namespace VChat.Services
         /// </summary>
         public static bool AddChannel(string name, ulong ownerSteamId, bool isPublic)
         {
-            if(DoesChannelExist(name))
+            if (DoesChannelExist(name))
             {
                 return false;
             }
@@ -210,7 +210,7 @@ namespace VChat.Services
             if (CanInvite(inviterSteamId, channelName))
             {
                 var peer = ValheimHelper.FindPeerBySteamId(inviteeId);
-                if(peer != null)
+                if (peer != null)
                 {
                     var inviteInfo = new ServerChannelInviteInfo()
                     {
@@ -296,22 +296,23 @@ namespace VChat.Services
 
         public static bool SendMessageToChannel(long peerId, string channelName, string text)
         {
-            if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId))
+            var peer = ValheimHelper.GetPeer(peerId);
+            if (peer != null && ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
             {
                 var knownChannels = ServerChannelManager.GetChannelsForUser(steamId);
-                foreach(var channel in knownChannels)
+                foreach (var channel in knownChannels)
                 {
-                    if(string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
                         var steamIds = new List<ulong> { channel.OwnerId };
                         steamIds.AddRange(channel.Invitees);
-                        foreach(var channelUserSteamId in steamIds)
+                        foreach (var channelUserSteamId in steamIds)
                         {
-                            var peer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
-                            if (peer != null)
+                            var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
+                            if (targetPeer != null)
                             {
-                                object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}] {peer.m_playerName}", text };
-                                ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                                object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}] {peer.m_playerName}", text };
+                                ZRoutedRpc.instance.InvokeRoutedRPC(targetPeer.m_uid, "ChatMessage", parameters);
 
                             }
                         }
@@ -398,21 +399,20 @@ namespace VChat.Services
         {
             if (ZNet.m_isServer)
             {
-                var peer = ZNet.instance.GetPeer(peerId);
-                if (peer != null)
+                var inviteePeer = ZNet.instance.GetPeer(peerId);
+                var inviterPeer = ValheimHelper.GetPeerFromSteamId(channelInviteInfo.InviterId);
+                if (inviteePeer != null && inviterPeer != null)
                 {
-                    VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{peer.m_playerName}\" ({peerId}).");
+                    VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{inviteePeer.m_playerName}\" ({peerId}).");
 
-                    if (ValheimHelper.GetPeerIdFromSteamId(channelInviteInfo.InviteeId, out long inviteePeerId))
-                    {
-                        string message = $"{peer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
-                        var parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
-                        ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
-                    }
-                    else
-                    {
-                        VChatPlugin.LogWarning($"Peer id could not be found for steam id {channelInviteInfo.InviteeId} from invite request");
-                    }
+                    string message = $"{inviterPeer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
+                    var parameters = new object[] { inviteePeer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
+                    ZRoutedRpc.instance.InvokeRoutedRPC(inviteePeer.m_uid, "ChatMessage", parameters);
+
+                }
+                else
+                {
+                    VChatPlugin.LogWarning($"Peer id could not be found for steam id {channelInviteInfo.InviteeId} or {channelInviteInfo.InviterId} from invite request");
                 }
             }
         }
