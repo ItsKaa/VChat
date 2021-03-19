@@ -311,7 +311,7 @@ namespace VChat.Services
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
                             {
-                                object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}] {peer.m_playerName}", text };
+                                object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}]", $"{peer.m_playerName}: {text}"};
                                 ZRoutedRpc.instance.InvokeRoutedRPC(targetPeer.m_uid, "ChatMessage", parameters);
 
                             }
