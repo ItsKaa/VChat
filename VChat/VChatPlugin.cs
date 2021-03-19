@@ -21,7 +21,7 @@ namespace VChat
     {
         public const string GUID = "org.itskaa.vchat";
         public const string Name = "VChat";
-        public const string Version = "1.2.1";
+        public const string Version = "2.0.0";
         public const int    NexusID = 362;
         public const string RepositoryAuthor = "ItsKaa";
         public const string RepositoryName = "VChat";
