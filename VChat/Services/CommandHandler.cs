@@ -163,13 +163,13 @@ namespace VChat.Services
         /// </summary>
         /// <param name="executedCommand">The executed command, if any.</param>
         /// <returns>True if successful</returns>
-        public bool TryFindAndExecuteCommand(string input, Chat chat, out PluginCommand executedCommand)
+        public bool TryFindAndExecuteCommand(string input, object instance, out PluginCommand executedCommand)
         {
             if (TryFindCommand(input, out PluginCommand command, out string remainder))
             {
                 if (command.Method != null)
                 {
-                    command.Method.Invoke(remainder, chat);
+                    command.Method.Invoke(remainder, instance);
                     executedCommand = command;
                     return true;
                 }
@@ -178,5 +178,13 @@ namespace VChat.Services
             executedCommand = null;
             return false;
         }
+
+        /// <summary>
+        /// Attempts to find the command and executes it if found. see <see cref="TryFindCommand(string, out PluginCommand, out string)"/>.
+        /// </summary>
+        /// <param name="executedCommand">The executed command, if any.</param>
+        /// <returns>True if successful</returns>
+        public bool TryFindAndExecuteCommand(string input, out PluginCommand executedCommand)
+            => TryFindAndExecuteCommand(input, null, out executedCommand);
     }
 }
