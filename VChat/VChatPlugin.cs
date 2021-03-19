@@ -187,17 +187,5 @@ namespace VChat
         {
             Debug.Log(FormatLogMessage(message));
         }
-
-        public static long GetServerPeerId()
-        {
-            if (IsPlayerHostedServer)
-            {
-                return ZRoutedRpc.instance.GetServerPeerID();
-            }
-            else
-            {
-                return ZNet.instance.GetServerPeer()?.m_uid ?? long.MaxValue;
-            }
-        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using VChat.Data;
+using VChat.Helpers;
 
 namespace VChat.Messages
 {
@@ -38,7 +39,7 @@ namespace VChat.Messages
         private static void OnGlobalMessage_Server(long senderId, Vector3 pos, int type, string callerName, string text)
         {
             // Accept messages from the server when it's a player-hosted instance (non-dedicated), otherwise ignore.
-            var serverPeerId = VChatPlugin.GetServerPeerId();
+            var serverPeerId = ValheimHelper.GetServerPeerId();
             if (senderId != serverPeerId || (VChatPlugin.IsPlayerHostedServer && senderId == serverPeerId))
             {
                 var globalMessageType = (GlobalMessageType)type;
@@ -114,7 +115,7 @@ namespace VChat.Messages
         private static void OnGlobalMessage_Client(long senderId, Vector3 pos, int type, string playerName, string text)
         {
             // If the client is connected to a server-sided instance of VChat then only accept messages from the server.
-            if (!GreetingMessage.HasLocalPlayerReceivedGreetingFromServer || senderId == VChatPlugin.GetServerPeerId())
+            if (!GreetingMessage.HasLocalPlayerReceivedGreetingFromServer || senderId == ValheimHelper.GetServerPeerId())
             {
                 VChatPlugin.Log($"Received a global message from {playerName} ({senderId}) on location {pos} with message \"{text}\".");
                 if (Chat.instance != null)
@@ -175,7 +176,7 @@ namespace VChat.Messages
 
                 if (VChatPlugin.IsPlayerHostedServer)
                 {
-                    peerId = VChatPlugin.GetServerPeerId();
+                    peerId = ValheimHelper.GetServerPeerId();
                 }
                 else
                 {

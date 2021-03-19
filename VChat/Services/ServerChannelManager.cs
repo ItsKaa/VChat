@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using VChat.Data.Messages;
+using VChat.Helpers;
 using VChat.Messages;
 
 namespace VChat.Services
@@ -132,109 +133,6 @@ namespace VChat.Services
         }
 
         /// <summary>
-        /// Determines if the user is an administrator on the server
-        /// </summary>
-        public static bool IsAdministrator(ulong steamId)
-        {
-            return ZNet.instance.m_adminList.Contains($"{steamId}");
-        }
-
-        /// <summary>
-        /// Returns the peer with the provided steam id, or null.
-        /// </summary>
-        public static ZNetPeer FindPeerBySteamId(ulong steamId)
-        {
-            foreach (var peer in ZNet.instance.GetConnectedPeers())
-            {
-                if (peer.m_socket is ZSteamSocket steamSocket
-                    && steamSocket.GetPeerID().m_SteamID == steamId)
-                {
-                    return peer;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Get the peer from a peer id
-        /// </summary>
-        public static ZNetPeer GetPeer(long peerId)
-        {
-            return ZNet.instance.GetPeer(peerId);
-        }
-
-        /// <summary>
-        /// Get the peer from a steam id, or null.
-        /// </summary>
-        public static ZNetPeer GetPeerFromSteamId(ulong steamId)
-        {
-            var peers = ZNet.instance.GetConnectedPeers();
-            foreach(var peer in peers)
-            {
-                if(GetSteamIdFromPeer(peer, out ulong peerSteamId))
-                {
-                    if(peerSteamId == steamId)
-                    {
-                        return peer;
-                    }
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Get the peer id from a steam id
-        /// </summary>
-        public static bool GetPeerIdFromSteamId(ulong steamId, out long peerId)
-        {
-            var peers = ZNet.instance.GetConnectedPeers();
-            foreach (var peer in peers)
-            {
-                if (GetSteamIdFromPeer(peer, out ulong peerSteamId))
-                {
-                    if (peerSteamId == steamId)
-                    {
-                        peerId = peer.m_uid;
-                        return true;
-                    }
-                }
-            }
-
-            peerId = long.MaxValue;
-            return false;
-        }
-
-        /// <summary>
-        /// Get the steam id from a peer.
-        /// </summary>
-        public static bool GetSteamIdFromPeer(ZNetPeer peer, out ulong steamId)
-        {
-            if (peer?.m_socket is ZSteamSocket steamSocket)
-            {
-                steamId = steamSocket.GetPeerID().m_SteamID;
-                return true;
-            }
-
-            steamId = ulong.MaxValue;
-            return false;
-        }
-
-        /// <summary>
-        /// Get the steam id from a peer.
-        /// </summary>
-        public static bool GetSteamIdFromPeer(long peerId, out ulong steamId, out ZNetPeer peer)
-        {
-            peer = GetPeer(peerId);
-            return GetSteamIdFromPeer(peer, out steamId);
-        }
-
-        /// <summary>
-        /// Get the steam id from a peer.
-        /// </summary>
-        public static bool GetSteamIdFromPeer(long peerId, out ulong steamId)
-            => GetSteamIdFromPeer(peerId, out steamId, out ZNetPeer _);
-
-        /// <summary>
         /// Returns true if the channel can be found and if the user has permission to invite.
         /// </summary>
         public static bool CanInvite(ulong steamId, string channelName)
@@ -254,7 +152,7 @@ namespace VChat.Services
             return channelInfo != null
                 && channelInfo.OwnerId == steamId
                 || channelInfo.Invitees.Contains(steamId)
-                || IsAdministrator(steamId);
+                || ValheimHelper.IsAdministrator(steamId);
         }
 
         /// <summary>
@@ -291,7 +189,7 @@ namespace VChat.Services
             }
             else
             {
-                if (!CanUsersCreateChannels && !IsAdministrator(steamId))
+                if (!CanUsersCreateChannels && !ValheimHelper.IsAdministrator(steamId))
                 {
                     ChannelCreateMessage.SendFailedResponseToPeer(peerId, ChannelCreateMessage.ChannelCreateResponseType.NoPermission, channelName);
                 }
@@ -312,7 +210,7 @@ namespace VChat.Services
         {
             if (CanInvite(inviterSteamId, channelName))
             {
-                var peer = FindPeerBySteamId(inviteeId);
+                var peer = ValheimHelper.FindPeerBySteamId(inviteeId);
                 if(peer != null)
                 {
                     var inviteInfo = new ServerChannelInviteInfo()
@@ -345,7 +243,7 @@ namespace VChat.Services
         {
             if (ZNet.m_isServer)
             {
-                if (GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
+                if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
                 {
                     // Find the invite and remove it if present
                     var foundInvite = false;
@@ -399,7 +297,7 @@ namespace VChat.Services
 
         public static bool SendMessageToChannel(long peerId, string channelName, string text)
         {
-            if (GetSteamIdFromPeer(peerId, out ulong steamId))
+            if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId))
             {
                 var knownChannels = ServerChannelManager.GetChannelsForUser(steamId);
                 foreach(var channel in knownChannels)
@@ -411,7 +309,7 @@ namespace VChat.Services
                         steamIds.AddRange(channel.Invitees);
                         foreach(var channelUserSteamId in steamIds)
                         {
-                            var peer = GetPeerFromSteamId(channelUserSteamId);
+                            var peer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (peer != null)
                             {
                                 object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}] {peer.m_playerName}", text };
@@ -431,7 +329,7 @@ namespace VChat.Services
         {
             if (ZNet.m_isServer)
             {
-                if (GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
+                if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
                 {
                     // Find the invite and remove it if present
                     var foundInvite = false;
@@ -507,7 +405,7 @@ namespace VChat.Services
                 {
                     VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{peer.m_playerName}\" ({peerId}).");
 
-                    if (GetPeerIdFromSteamId(channelInviteInfo.InviteeId, out long inviteePeerId))
+                    if (ValheimHelper.GetPeerIdFromSteamId(channelInviteInfo.InviteeId, out long inviteePeerId))
                     {
                         string message = $"{peer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
                         var parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
