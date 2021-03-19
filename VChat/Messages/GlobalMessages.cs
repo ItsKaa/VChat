@@ -139,29 +139,8 @@ namespace VChat.Messages
         /// </summary>
         public static void SendGlobalMessageToPeer(long peerId, int type, Vector3 pos, string playerName, string text)
         {
-            // True by default as a precaution.
-            bool shouldSendGlobalMessage = true;
-            if (GreetingMessage.PeerInfo.TryGetValue(peerId, out GreetingMessagePeerInfo peerInfo))
-            {
-                shouldSendGlobalMessage = peerInfo.HasReceivedGreeting;
-            }
-
-            if (shouldSendGlobalMessage)
-            {
-                var parameters = new object[] { pos, type, playerName, text };
-                ZRoutedRpc.instance.InvokeRoutedRPC(peerId, GlobalChatHashName, parameters);
-            }
-            else
-            {
-                // VChat wasn't found on this client instance so we'll send it as a local chat message to that client.
-                // Local chat has a limited range so we'll send it at the position of that user.
-                var peer = ZNet.instance.GetPeer(peerId);
-                if (peer != null)
-                {
-                    var parameters = new object[] { peer.m_refPos, (int)Talker.Type.Normal, "[Global]", $"{playerName}: {text}"};
-                    ZRoutedRpc.instance.InvokeRoutedRPC(peerId, "ChatMessage", parameters);
-                }
-            }
+            var parameters = new object[] { pos, type, playerName, text };
+            MessageHelper.SendMessageToPeer(peerId, playerName, text, GlobalChatHashName, parameters);
         }
 
         /// <summary>

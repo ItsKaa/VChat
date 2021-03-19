@@ -55,6 +55,7 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\UnityExtensions.cs" />
     <Compile Include="Helpers\GithubHelper.cs" />
+    <Compile Include="Helpers\MessageHelper.cs" />
     <Compile Include="Helpers\VersionHelper.cs" />
     <Compile Include="Helpers\ValheimHelper.cs" />
     <Compile Include="Messages\ChannelCreateMessage.cs" />
