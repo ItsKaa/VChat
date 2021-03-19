@@ -44,8 +44,10 @@
     <Compile Include="Data\CombinedMessageType.cs" />
     <Compile Include="Data\GreetingMessagePeerInfo.cs" />
     <Compile Include="Data\GlobalMessageType.cs" />
+    <Compile Include="Data\PluginCommandBase.cs" />
     <Compile Include="Data\Messages\ServerChannelInviteInfo.cs" />
-    <Compile Include="Data\PluginCommand.cs" />
+    <Compile Include="Data\PluginCommandClient.cs" />
+    <Compile Include="Data\PluginCommandServer.cs" />
     <Compile Include="Data\PluginCommandType.cs" />
     <Compile Include="Data\CustomMessageType.cs" />
     <Compile Include="Data\UserMessageInfo.cs" />

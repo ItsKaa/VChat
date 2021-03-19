@@ -6,26 +6,26 @@ namespace VChat.Services
 {
     public class CommandHandler
     {
-        private List<PluginCommand> _commands;
-        public IEnumerable<PluginCommand> Commands => _commands;
+        private List<PluginCommandBase> _commands;
+        public IEnumerable<PluginCommandBase> Commands => _commands;
         public object _lock = new object();
         public string Prefix { get; set; }
 
         public CommandHandler()
         {
             Prefix = "/";
-            _commands = new List<PluginCommand>();
+            _commands = new List<PluginCommandBase>();
         }
 
         /// <summary>
         /// Adds a command to the collection.
         /// </summary>
-        public void AddCommand(PluginCommand pluginCommand)
+        public void AddCommand(PluginCommandBase pluginCommand)
         {
             lock (_lock)
             {
                 // First check for duplicate command names.
-                foreach(var command in Commands)
+                foreach (var command in Commands)
                 {
                     string duplicateCommandName = null;
                     foreach (var commandName1 in pluginCommand.CommandNames)
@@ -48,11 +48,11 @@ namespace VChat.Services
         }
 
         /// <summary>
-        /// Add multiple commands to the collection, see <see cref="AddCommand(PluginCommand)"/>.
+        /// Add multiple commands to the collection, see <see cref="AddCommand(PluginCommandBase)"/>.
         /// </summary>
-        public void AddCommands(params PluginCommand[] pluginCommands)
+        public void AddCommands(params PluginCommandBase[] pluginCommands)
         {
-            foreach(var pluginCommand in pluginCommands)
+            foreach (var pluginCommand in pluginCommands)
             {
                 AddCommand(pluginCommand);
             }
@@ -69,6 +69,14 @@ namespace VChat.Services
             }
         }
 
+        public void RemoveCommand(PluginCommandBase command)
+        {
+            lock (_lock)
+            {
+                _commands.Remove(command);
+            }
+        }
+
         /// <summary>
         /// Attempt to find the command based on the input, this is case insensitive.
         /// </summary>
@@ -76,13 +84,13 @@ namespace VChat.Services
         /// <param name="pluginCommand">The found command, if any.</param>
         /// <param name="remainder">The remainder message of the input, these are the arguments that can be used when executing the action of the command.</param>
         /// <returns>True if successful.</returns>
-        public bool TryFindCommand(string input, out PluginCommand pluginCommand, out string remainder)
+        public bool TryFindCommand(string input, out PluginCommandBase pluginCommand, out string remainder)
         {
             lock (_lock)
             {
                 foreach (var command in Commands)
                 {
-                    if(IsValidCommandString(input, command, out remainder))
+                    if (IsValidCommandString(input, command, out remainder))
                     {
                         pluginCommand = command;
                         return true;
@@ -103,7 +111,7 @@ namespace VChat.Services
         /// <param name="command">The command that we're comparing for</param>
         /// <param name="remainder">The remainder message of the input</param>
         /// <returns>True if successful</returns>
-        public bool IsValidCommandString(string input, PluginCommand command, out string remainder)
+        public bool IsValidCommandString(string input, PluginCommandBase command, out string remainder)
         {
             foreach (var commandName in command.CommandNames)
             {
@@ -120,7 +128,7 @@ namespace VChat.Services
             return false;
         }
 
-        public bool IsValidCommandString(string input, PluginCommand command)
+        public bool IsValidCommandString(string input, PluginCommandBase command)
             => IsValidCommandString(input, command, out string _);
 
         public bool IsValidCommandString(string input, PluginCommandType commandType, out string remainder)
@@ -141,13 +149,13 @@ namespace VChat.Services
         /// <summary>
         /// Attempt to find the command based on the type, this should technically never fail.
         /// </summary>
-        public PluginCommand FindCommand(PluginCommandType type)
+        public PluginCommandBase FindCommand(PluginCommandType type)
         {
             lock (_lock)
             {
                 foreach (var command in Commands)
                 {
-                    if(command.Type == type)
+                    if (command.Type == type)
                     {
                         return command;
                     }
@@ -159,20 +167,19 @@ namespace VChat.Services
         }
 
         /// <summary>
-        /// Attempts to find the command and executes it if found. see <see cref="TryFindCommand(string, out PluginCommand, out string)"/>.
+        /// Attempts to find the client command and executes it if found. see <see cref="TryFindCommand(string, out PluginCommandBase, out string)"/>.
         /// </summary>
         /// <param name="executedCommand">The executed command, if any.</param>
         /// <returns>True if successful</returns>
-        public bool TryFindAndExecuteCommand(string input, object instance, out PluginCommand executedCommand)
+        public bool TryFindAndExecuteClientCommand(string input, object instance, out PluginCommandClient executedCommand)
         {
-            if (TryFindCommand(input, out PluginCommand command, out string remainder))
+            if (TryFindCommand(input, out PluginCommandBase command, out string remainder)
+                && command is PluginCommandClient clientCommand
+                && clientCommand.Method != null)
             {
-                if (command.Method != null)
-                {
-                    command.Method.Invoke(remainder, instance);
-                    executedCommand = command;
-                    return true;
-                }
+                clientCommand.Method.Invoke(remainder, instance);
+                executedCommand = clientCommand;
+                return true;
             }
 
             executedCommand = null;
@@ -180,11 +187,31 @@ namespace VChat.Services
         }
 
         /// <summary>
-        /// Attempts to find the command and executes it if found. see <see cref="TryFindCommand(string, out PluginCommand, out string)"/>.
+        /// Attempts to find the client command and executes it if found. see <see cref="TryFindCommand(string, out PluginCommandBase, out string)"/>.
         /// </summary>
         /// <param name="executedCommand">The executed command, if any.</param>
         /// <returns>True if successful</returns>
-        public bool TryFindAndExecuteCommand(string input, out PluginCommand executedCommand)
-            => TryFindAndExecuteCommand(input, null, out executedCommand);
+        public bool TryFindAndExecuteClientCommand(string input, out PluginCommandClient executedCommand)
+            => TryFindAndExecuteClientCommand(input, null, out executedCommand);
+
+        /// <summary>
+        /// Attempts to find the server command and executes it if found. see <see cref="TryFindCommand(string, out PluginCommandBase, out string)"/>.
+        /// </summary>
+        /// <param name="executedCommand">The executed command, if any.</param>
+        /// <returns>True if successful</returns>
+        public bool TryFindAndExecuteServerCommand(string input, ZNetPeer peer, ulong steamId, out PluginCommandServer executedCommand)
+        {
+            if (TryFindCommand(input, out PluginCommandBase command, out string remainder)
+                && command is PluginCommandServer serverCommand
+                && serverCommand.Method != null)
+            {
+                serverCommand.Method.Invoke(remainder, peer, steamId);
+                executedCommand = serverCommand;
+                return true;
+            }
+
+            executedCommand = null;
+            return false;
+        }
     }
 }

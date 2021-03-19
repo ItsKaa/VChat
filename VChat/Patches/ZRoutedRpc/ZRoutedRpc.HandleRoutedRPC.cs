@@ -1,10 +1,8 @@
 ﻿using HarmonyLib;
 using System;
-using System.Linq;
 using UnityEngine;
 using VChat.Data;
 using VChat.Messages;
-using VChat.Services;
 using static ZRoutedRpc;
 
 namespace VChat.Patches
@@ -68,132 +66,14 @@ namespace VChat.Patches
                                     Chat.instance.OnNewChatMessage(null, data.m_senderPeerID, senderPeer?.m_refPos ?? new Vector3(), Talker.Type.Normal, senderPeer?.m_playerName ?? playerName, text);
                                 }
 
-                                // Intercept message so that other connected users won't receive the same message twice.
                                 intercept = true;
                             }
                         }
                     }
 
-                    // Server-sided messages for all parties
-                    if (text.Trim().StartsWith("/addchannel", StringComparison.CurrentCultureIgnoreCase))
+                    if (intercept || VChatPlugin.CommandHandler.TryFindAndExecuteServerCommand(text, senderPeer, senderSteamId, out PluginCommandServer _))
                     {
-                        VChatPlugin.LogWarning($"Got addchannel from local chat");
-                        text = text.Remove(0, "/addchannel".Length);
-                        var channelName = text.Trim();
-                        ServerChannelManager.ClientSendAddChannelToServer(senderPeer.m_uid, senderSteamId, channelName);
-                        intercept = true;
-                    }
-                    else if (text.Trim().StartsWith("/invite", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        text = text.Remove(0, "/invite".Length);
-                        var remainder = text.Trim();
-                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-
-                        if (remainderData.Length >= 2)
-                        {
-                            VChatPlugin.LogWarning($"Got invite from local chat");
-                            var channelName = remainderData[0];
-                            var inviteePlayerName = remainderData[1];
-
-                            var foundPeer = false;
-                            foreach(var targetPeer in ZNet.instance.GetConnectedPeers())
-                            {
-                                if (string.Equals(targetPeer.m_playerName, inviteePlayerName, StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    if (targetPeer.m_socket is ZSteamSocket targetSteamSocket)
-                                    {
-                                        ServerChannelManager.InvitePlayerToChannel(channelName,
-                                            data.m_senderPeerID,
-                                            senderSteamId,
-                                            targetSteamSocket.GetPeerID().m_SteamID
-                                        );
-                                        foundPeer = true;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!foundPeer)
-                            {
-                                ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
-                            }
-                        }
-                        else
-                        {
-                            VChatPlugin.LogWarning($"Invite from local chat wrong command: \"{text}\" | \"{remainder}\" | \"{string.Join(",", remainderData)}\"");
-                        }
-                        intercept = true;
-                    }
-                    else if (text.Trim().StartsWith("/accept", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        VChatPlugin.LogWarning($"Got accept from local chat");
-                        text = text.Remove(0, "/accept".Length);
-                        var channelName = text.Trim();
-                        if (string.IsNullOrEmpty(channelName))
-                        {
-                            var invites = ServerChannelManager.GetChannelInvitesForUser(senderSteamId);
-                            if (invites?.Count() > 0)
-                            {
-                                ServerChannelManager.AcceptChannelInvite(data.m_senderPeerID, invites.FirstOrDefault().ChannelName);
-                            }
-                            else
-                            {
-                                ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
-                            }
-                        }
-                        else
-                        {
-                            ServerChannelManager.AcceptChannelInvite(data.m_senderPeerID, channelName);
-                        }
-                        intercept = true;
-                    }
-                    else if (text.Trim().StartsWith("/decline", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        VChatPlugin.LogWarning($"Got decline from local chat");
-                        text = text.Remove(0, "/decline".Length);
-                        var channelName = text.Trim();
-                        if (string.IsNullOrEmpty(channelName))
-                        {
-                            var invites = ServerChannelManager.GetChannelInvitesForUser(senderSteamId);
-                            if (invites?.Count() > 0)
-                            {
-                                ServerChannelManager.DeclineChannelInvite(data.m_senderPeerID, invites.FirstOrDefault().ChannelName);
-                            }
-                            else
-                            {
-                                ChannelInviteMessage.SendFailedResponseToPeer(senderPeer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
-                            }
-                        }
-                        else
-                        {
-                            ServerChannelManager.DeclineChannelInvite(data.m_senderPeerID, channelName);
-                        }
-                        intercept = true;
-                    }
-                    else if(text.Trim().StartsWith("/"))
-                    {
-                        text = text.Remove(0, 1);
-                        var knownChannels = ServerChannelManager.GetChannelsForUser(senderSteamId);
-                        foreach(var channel in knownChannels)
-                        {
-                            if (!string.IsNullOrWhiteSpace(channel.ServerCommandName))
-                            {
-                                if (text.StartsWith(channel.ServerCommandName, StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    // found command
-                                    VChatPlugin.LogWarning($"User {senderPeer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
-                                    text = text.Remove(0, channel.ServerCommandName.Length).TrimStart();
-                                    ServerChannelManager.SendMessageToChannel(data.m_senderPeerID, channel.Name, text);
-                                    intercept = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-
-                    if(intercept)
-                    {
+                        // Intercept message so that other connected users won't receive the same message twice.
                         data.m_methodHash = GlobalMessages.InterceptedSayHashCode;
                         return false;
                     }

@@ -24,7 +24,7 @@ namespace VChat.Patches
             }
 
             // Attempt to parse a command.
-            if (VChatPlugin.CommandHandler.TryFindAndExecuteCommand(text, __instance, out PluginCommand _))
+            if (VChatPlugin.CommandHandler.TryFindAndExecuteClientCommand(text, __instance, out PluginCommandClient _))
             {
                 return false;
             }

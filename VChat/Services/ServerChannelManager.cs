@@ -94,6 +94,9 @@ namespace VChat.Services
                 ServerChannelInfo.Add(channelInfo);
             }
 
+            // Re-init the server commands so that this one is added to it, might be a better way of doing it but so far valheim doesn't do much multithreading anyway.
+            VChatPlugin.InitialiseServerCommands();
+
             // Send update message to relevant players
             foreach (var peer in ZNet.instance.GetConnectedPeers())
             {

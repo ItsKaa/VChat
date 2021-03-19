@@ -20,6 +20,7 @@ namespace VChat.Patches
                 VChatPlugin.LogWarning($"Player-hosted lobby error occurred {data.m_eResult}, resetting variables.");
                 VChatPlugin.IsPlayerHostedServer = false;
                 GreetingMessage.Reset();
+                VChatPlugin.InitialiseServerCommands();
             }
         }
     }
