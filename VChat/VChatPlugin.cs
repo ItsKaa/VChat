@@ -181,7 +181,7 @@ namespace VChat
                         Settings.GlobalChatColor = color;
                     }
                 }),
-                new PluginCommand("showchat", (text, instance) =>
+                new PluginCommand(Settings.ShowChatCommandName, (text, instance) =>
                 {
                     Settings.AlwaysShowChatWindow = !Settings.AlwaysShowChatWindow;
                     writeSuccessMessage($"{(Settings.AlwaysShowChatWindow ? "Always displaying" : "Auto hiding")} chat window.");
