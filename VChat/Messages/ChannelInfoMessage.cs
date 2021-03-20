@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using VChat.Data.Messages;
-using VChat.Patches;
+using VChat.Extensions;
 
 namespace VChat.Messages
 {
@@ -33,11 +33,12 @@ namespace VChat.Messages
                 {
                     var channelPackage = package.ReadPackage();
                     var channelName = channelPackage.ReadString();
+                    var commandNameString = channelPackage.ReadString();
+                    var colorString = channelPackage.ReadString();
                     var ownerId = channelPackage.ReadULong();
                     var isPublic = channelPackage.ReadBool();
-                    VChatPlugin.LogWarning($"Received a channel configuration from the server ({senderId}), channel name: {channelName}, owner ID: {ownerId}, public: {isPublic}");
                     var isReadOnly = channelPackage.ReadBool();
-                    VChatPlugin.LogWarning($"Received a channel configuration from the server ({senderId}), channel name: {channelName}, owner ID: {ownerId}, public: {isPublic}, read-only: {isReadOnly}");
+                    VChatPlugin.LogWarning($"Received a channel configuration from the server ({senderId}), channel name: {channelName}, command name: {commandNameString}, color: {colorString}, owner ID: {ownerId}, public: {isPublic}, read-only: {isReadOnly}");
                 }
             }
             else
@@ -57,7 +58,9 @@ namespace VChat.Messages
                 foreach (var channelInfo in channelInfoData)
                 {
                     var channelDataPackage = new ZPackage();
-                    channelDataPackage.Write(channelInfo.Name);
+                    channelDataPackage.Write(channelInfo.Name ?? string.Empty);
+                    channelDataPackage.Write(channelInfo.ServerCommandName ?? string.Empty);
+                    channelDataPackage.Write(channelInfo.Color.ToHtmlString());
                     channelDataPackage.Write(channelInfo.OwnerId);
                     channelDataPackage.Write(channelInfo.IsPublic);
                     channelDataPackage.Write(channelInfo.ReadOnly);
