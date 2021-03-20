@@ -418,6 +418,12 @@ namespace VChat
                             {
                                 ServerChannelManager.DeclineChannelInvite(peer.m_uid, channelName);
                             }
+                        }),
+                        new PluginCommandServer("disband", (text, peer, steamId) =>
+                        {
+                            LogWarning($"Got disband from local chat");
+                            var channelName = text.Trim();
+                            ServerChannelManager.DisbandChannel(peer.m_uid, steamId, channelName);
                         })
                     );
                 }

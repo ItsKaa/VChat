@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using VChat.Data.Messages;
 using VChat.Extensions;
@@ -70,6 +71,32 @@ namespace VChat.Services
             lock (_lockChannelInfo)
             {
                 return ServerChannelInfo.Where(x => x.IsPublic || x.OwnerId == steamId || x.Invitees.Contains(steamId));
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of available channels for the specified user where that user is either an owner or administrator in.
+        /// </summary>
+        public static bool CanDisbandChannel(ulong steamId, string channelName)
+        {
+            lock (_lockChannelInfo)
+            {
+                var channel = ServerChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, StringComparison.CurrentCultureIgnoreCase));
+                if(channel == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    if (ValheimHelper.IsAdministrator(steamId))
+                    {
+                        return channel.OwnerId != ServerOwnerId;
+                    }
+                    else
+                    {
+                        return channel.OwnerId == steamId;
+                    }
+                }
             }
         }
 
@@ -210,6 +237,64 @@ namespace VChat.Services
                     VChatPlugin.LogWarning($"Creating channel named {channelName}.");
                     return AddChannel(channelName, steamId, false);
                 }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sends a request to the server to create a channel.
+        /// </summary>
+        public static bool DisbandChannel(long peerId, ulong steamId, string channelName)
+        {
+            var peer = ValheimHelper.GetPeer(peerId);
+            if(!DoesChannelExist(channelName))
+            {
+                ChannelEditMessage.SendFailedResponseToPeer(peerId, ChannelEditMessage.ChannelEditResponseType.ChannelNotFound, channelName);
+            }
+            else if (!CanDisbandChannel(steamId, channelName))
+            {
+                ChannelEditMessage.SendFailedResponseToPeer(peerId, ChannelEditMessage.ChannelEditResponseType.NoPermission, channelName);
+            }
+            else
+            {
+                VChatPlugin.LogWarning($"Disbanding channel named {channelName}.");
+
+                ServerChannelInfo channelInfo;
+                lock(_lockChannelInfo)
+                {
+                    channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, StringComparison.CurrentCultureIgnoreCase));
+                    if(channelInfo != null)
+                    {
+                        ServerChannelInfo.Remove(channelInfo);
+                    }
+                    else
+                    {
+                        ChannelEditMessage.SendFailedResponseToPeer(peerId, ChannelEditMessage.ChannelEditResponseType.ChannelNotFound, channelName);
+                        return false;
+                    }
+                }
+
+                // Re-init the server commands so that this one is added to it, might be a better way of doing it but so far valheim doesn't do much multithreading anyway.
+                VChatPlugin.InitialiseServerCommands();
+
+                foreach (var targetPeer in ZNet.instance.GetConnectedPeers())
+                {
+                    if(ValheimHelper.GetSteamIdFromPeer(targetPeer, out ulong targetSteamId))
+                    {
+                        if (channelInfo.OwnerId == targetSteamId || channelInfo.Invitees.Contains(targetSteamId))
+                        {
+                            // Notify all connected peers with the player that disbanded it.
+                            var message = $"Channel '{channelInfo.Name}' has been disbanded by {peer.m_playerName}.";
+                            SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, message);
+
+                            // Update channel information for VChat clients.
+                            SendChannelInformationToClient(targetPeer.m_uid);
+                        }
+                    }
+                }
+
+                return true;
             }
 
             return false;
