@@ -24,6 +24,16 @@ namespace VChat.Services
         {
             ServerChannelInfo = new List<ServerChannelInfo>();
             ChannelInviteInfo = new List<ServerChannelInviteInfo>();
+
+            // Add VChat channel, this is used to send informational messages.
+            ServerChannelInfo.Add(new ServerChannelInfo()
+            {
+                Name = VChatPlugin.Name,
+                ReadOnly = true,
+                Color = new Color(0.035f, 0.714f, 0.902f), //new Color(0.859f, 0.537f, 0.941f),
+                OwnerId = ServerOwnerId,
+                IsPublic = true,
+            });
         }
 
         public static bool DoesChannelExist(string name)
@@ -169,7 +179,6 @@ namespace VChat.Services
                 var steamId = (peer.m_socket as ZSteamSocket)?.GetPeerID().m_SteamID;
                 if (steamId != null)
                 {
-                    VChatPlugin.LogError($"Sending channel info to {steamId}");
                     var channels = GetChannelsForUser(steamId.Value);
                     ChannelInfoMessage.SendToPeer(peerId, channels);
                     return true;
@@ -318,7 +327,7 @@ namespace VChat.Services
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
                             {
-                                object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}]", $"{peer.m_playerName}: {text}"};
+                                object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}]", $"{peer.m_playerName}: {text}" };
                                 ZRoutedRpc.instance.InvokeRoutedRPC(targetPeer.m_uid, "ChatMessage", parameters);
                             }
                         }
@@ -400,8 +409,7 @@ namespace VChat.Services
                 if (peer != null)
                 {
                     var message = $"Successfully connected to the {channelInfo.Name} channel.";
-                    object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
-                    ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                    SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
 
                     //if (GreetingMessage.PeerInfo.TryGetValue(peerId, out Data.GreetingMessagePeerInfo peerInfo)
                     //    && !peerInfo.HasReceivedGreeting)
@@ -412,8 +420,7 @@ namespace VChat.Services
                         {
                             VChatPlugin.LogWarning($"Sending command info");
                             message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
-                            parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
-                            ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                            SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
                         }
                     }
                 }
@@ -435,7 +442,7 @@ namespace VChat.Services
 
                     string message = $"{inviterPeer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
                     var parameters = new object[] { inviteePeer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
-                    ZRoutedRpc.instance.InvokeRoutedRPC(inviteePeer.m_uid, "ChatMessage", parameters);
+                    SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, message);
 
                 }
                 else

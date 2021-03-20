@@ -47,8 +47,7 @@ namespace VChat.Patches
 
                             foreach (var message in messages)
                             {
-                                object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
-                                ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                                ServerChannelManager.SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
                             }
                         }
 
