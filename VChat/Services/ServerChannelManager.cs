@@ -121,7 +121,7 @@ namespace VChat.Services
             lock (_lockChannelInfo)
             {
                 var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
-                if (channelInfo != null)
+                if (channelInfo != null && !channelInfo.ReadOnly)
                 {
                     if (!channelInfo.Invitees.Contains(inviteeId))
                     {
@@ -153,6 +153,7 @@ namespace VChat.Services
         {
             return channelInfo != null
                 && channelInfo.OwnerId == steamId
+                && !channelInfo.ReadOnly
                 || channelInfo.Invitees.Contains(steamId)
                 || ValheimHelper.IsAdministrator(steamId);
         }
@@ -393,7 +394,7 @@ namespace VChat.Services
         /// </summary>
         public static void SendMessageToClient_ChannelConnected(long peerId, ServerChannelInfo channelInfo)
         {
-            if (ZNet.m_isServer)
+            if (ZNet.m_isServer && !channelInfo.ReadOnly)
             {
                 var peer = ZNet.instance.GetPeer(peerId);
                 if (peer != null)

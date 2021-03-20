@@ -8,6 +8,7 @@ namespace VChat.Data.Messages
         public string Name { get; set; }
         public ulong OwnerId { get; set; }
         public bool IsPublic { get; set; }
+        public bool ReadOnly { get; set; }
         public List<ulong> Invitees { get; set; }
         public string ServerCommandName { get; set; }
         public Color Color { get; set; }
@@ -17,6 +18,7 @@ namespace VChat.Data.Messages
             Name = string.Empty;
             OwnerId = 0;
             IsPublic = false;
+            ReadOnly = false;
             Invitees = new List<ulong>();
             Color = Color.white;
         }

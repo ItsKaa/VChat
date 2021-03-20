@@ -36,6 +36,8 @@ namespace VChat.Messages
                     var ownerId = channelPackage.ReadULong();
                     var isPublic = channelPackage.ReadBool();
                     VChatPlugin.LogWarning($"Received a channel configuration from the server ({senderId}), channel name: {channelName}, owner ID: {ownerId}, public: {isPublic}");
+                    var isReadOnly = channelPackage.ReadBool();
+                    VChatPlugin.LogWarning($"Received a channel configuration from the server ({senderId}), channel name: {channelName}, owner ID: {ownerId}, public: {isPublic}, read-only: {isReadOnly}");
                 }
             }
             else
@@ -58,6 +60,7 @@ namespace VChat.Messages
                     channelDataPackage.Write(channelInfo.Name);
                     channelDataPackage.Write(channelInfo.OwnerId);
                     channelDataPackage.Write(channelInfo.IsPublic);
+                    channelDataPackage.Write(channelInfo.ReadOnly);
                     package.Write(channelDataPackage);
                 }
 
