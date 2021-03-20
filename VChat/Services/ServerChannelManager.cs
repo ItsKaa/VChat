@@ -30,7 +30,7 @@ namespace VChat.Services
             {
                 Name = VChatPlugin.Name,
                 ReadOnly = true,
-                Color = new Color(0.035f, 0.714f, 0.902f), //new Color(0.859f, 0.537f, 0.941f),
+                Color = new Color(0.035f, 0.714f, 0.902f),
                 OwnerId = ServerOwnerId,
                 IsPublic = true,
             });
