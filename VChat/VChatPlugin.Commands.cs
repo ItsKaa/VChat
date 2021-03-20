@@ -443,7 +443,7 @@ namespace VChat
                                 (text, peer, steamId) =>
                                 {
                                     LogWarning($"User {peer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
-                                    ServerChannelManager.SendMessageToChannel(peer.m_uid, channel.Name, text);
+                                    ServerChannelManager.SendMessageToAllUsersInChannel(peer.m_uid, channel.Name, text);
                                 }
                             ));
                         }

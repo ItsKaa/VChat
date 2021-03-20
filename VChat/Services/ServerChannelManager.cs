@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using VChat.Data.Messages;
+using VChat.Extensions;
 using VChat.Helpers;
 using VChat.Messages;
 
@@ -13,6 +15,7 @@ namespace VChat.Services
         private static List<ServerChannelInviteInfo> ChannelInviteInfo { get; set; }
         private static readonly object _lockChannelInfo = new();
         private static readonly object _lockChannelInviteInfo = new();
+        public const ulong ServerOwnerId = 0ul;
 
         // TODO: Setting
         public const bool CanUsersCreateChannels = true;
@@ -294,12 +297,15 @@ namespace VChat.Services
             return false;
         }
 
-        public static bool SendMessageToChannel(long peerId, string channelName, string text)
+        /// <summary>
+        /// Send a message to all connected peers within the provided channel.
+        /// </summary>
+        public static bool SendMessageToAllUsersInChannel(long senderPeerId, string channelName, string text)
         {
-            var peer = ValheimHelper.GetPeer(peerId);
+            var peer = ValheimHelper.GetPeer(senderPeerId);
             if (peer != null && ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
             {
-                var knownChannels = ServerChannelManager.GetChannelsForUser(steamId);
+                var knownChannels = GetChannelsForUser(steamId);
                 foreach (var channel in knownChannels)
                 {
                     if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
@@ -313,10 +319,31 @@ namespace VChat.Services
                             {
                                 object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}]", $"{peer.m_playerName}: {text}"};
                                 ZRoutedRpc.instance.InvokeRoutedRPC(targetPeer.m_uid, "ChatMessage", parameters);
-
                             }
                         }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
+        /// <summary>
+        /// Send a message to a peer in the provided channel, note that this will not send it to any other user within that channel.
+        /// </summary>
+        public static bool SendMessageToPeerInChannel(long targetPeerId, string channelName, string text)
+        {
+            VChatPlugin.LogError("SendMessageToPeerInChannel called");
+            var peer = ValheimHelper.GetPeer(targetPeerId);
+            if (peer != null && ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
+            {
+                var knownChannels = GetChannelsForUser(steamId);
+                foreach (var channel in knownChannels)
+                {
+                    if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, $"<color={channel.Color.ToHtmlString()}>{channel.Name}</color>", text };
+                        ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
                         return true;
                     }
                 }
