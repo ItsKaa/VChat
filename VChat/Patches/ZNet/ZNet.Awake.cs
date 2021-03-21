@@ -12,6 +12,10 @@ namespace VChat.Patches
             GlobalMessages.Register();
             GreetingMessage.Register();
             ChannelInfoMessage.Register();
+            ChannelCreateMessage.Register();
+            ChannelInviteMessage.Register();
+            ChannelEditMessage.Register();
+            ChannelChatMessage.Register();
 
             // Initialise server commands
             VChatPlugin.InitialiseServerCommands();
