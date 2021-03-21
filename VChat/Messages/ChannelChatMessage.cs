@@ -50,7 +50,7 @@ namespace VChat.Messages
         {
             if (!ZNet.m_isServer)
             {
-                if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
+                if (senderId == ValheimHelper.GetServerPeerId())
                 {
                     var version = package.ReadInt();
                     var channelName = package.ReadString();

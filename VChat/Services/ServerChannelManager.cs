@@ -464,7 +464,7 @@ namespace VChat.Services
         {
             if (ZNet.m_isServer && !channelInfo.ReadOnly)
             {
-                var peer = ZNet.instance.GetPeer(peerId);
+                var peer = ZNet.instance?.GetPeer(peerId);
                 if (peer != null)
                 {
                     var message = $"Successfully connected to the {channelInfo.Name} channel.";

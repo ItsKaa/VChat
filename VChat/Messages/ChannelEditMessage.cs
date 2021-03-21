@@ -1,5 +1,4 @@
 ﻿using VChat.Helpers;
-using VChat.Services;
 
 namespace VChat.Messages
 {
@@ -39,7 +38,7 @@ namespace VChat.Messages
 
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
-            if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
+            if (senderId != ValheimHelper.GetServerPeerId())
             {
                 var peer = ZNet.instance.GetPeer(senderId);
                 if (peer != null && peer.m_socket is ZSteamSocket steamSocket)

@@ -2,6 +2,7 @@
 using System.Linq;
 using VChat.Data.Messages;
 using VChat.Extensions;
+using VChat.Helpers;
 
 namespace VChat.Messages
 {
@@ -24,7 +25,7 @@ namespace VChat.Messages
 
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
-            if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
+            if (senderId == ValheimHelper.GetServerPeerId())
             {
                 var version = package.ReadInt();
                 var packageCount = package.ReadInt();

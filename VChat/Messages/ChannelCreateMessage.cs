@@ -44,7 +44,7 @@ namespace VChat.Messages
                     senderPeerId = senderId;
                 }
 
-                var peer = ZNet.instance.GetPeer(senderPeerId);
+                var peer = ZNet.instance?.GetPeer(senderPeerId);
                 if (peer != null && peer.m_socket is ZSteamSocket steamSocket)
                 {
                     VChatPlugin.LogWarning($"Player \"{peer.m_playerName}\" ({senderPeerId}) requested to create channel named {channelName}.");
@@ -57,7 +57,7 @@ namespace VChat.Messages
         {
             if(!ZNet.m_isServer)
             {
-                if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
+                if (senderId == ValheimHelper.GetServerPeerId())
                 {
                     VChatPlugin.LogWarning($"Channel create received from server");
                 }

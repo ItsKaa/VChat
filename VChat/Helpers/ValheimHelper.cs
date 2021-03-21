@@ -39,7 +39,7 @@
         /// </summary>
         public static ZNetPeer GetPeer(long peerId)
         {
-            return ZNet.instance.GetPeer(peerId);
+            return ZNet.instance?.GetPeer(peerId);
         }
 
         /// <summary>
