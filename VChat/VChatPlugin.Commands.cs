@@ -342,7 +342,7 @@ namespace VChat
                         {
                             LogWarning($"Got addchannel from local chat");
                             var channelName = text.Trim();
-                            ServerChannelManager.ClientSendAddChannelToServer(peer.m_uid, steamId, channelName);
+                            ChannelCreateMessage.SendRequestToServer(peer.m_uid, channelName);
                         }),
                         new PluginCommandServer("invite", (text, peer, steamId) =>
                         {
@@ -449,7 +449,7 @@ namespace VChat
                                 (text, peer, steamId) =>
                                 {
                                     LogWarning($"User {peer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
-                                    ServerChannelManager.SendMessageToAllUsersInChannel(peer.m_uid, channel.Name, text);
+                                    ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, peer.m_playerName, text);
                                 }
                             ));
                         }

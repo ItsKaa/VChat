@@ -58,6 +58,7 @@
     <Compile Include="Helpers\MessageHelper.cs" />
     <Compile Include="Helpers\VersionHelper.cs" />
     <Compile Include="Helpers\ValheimHelper.cs" />
+    <Compile Include="Messages\ChannelChatMessage.cs" />
     <Compile Include="Messages\ChannelCreateMessage.cs" />
     <Compile Include="Messages\ChannelEditMessage.cs" />
     <Compile Include="Messages\ChannelInfoMessage.cs" />

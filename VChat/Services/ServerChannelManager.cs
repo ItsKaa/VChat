@@ -437,8 +437,7 @@ namespace VChat.Services
                 {
                     if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        object[] parameters = new object[] { peer.GetRefPos(), (int)Talker.Type.Normal, $"<color={channel.Color.ToHtmlString()}>{channel.Name}</color>", text };
-                        ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, "ChatMessage", parameters);
+                        ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, null, text);
                         return true;
                     }
                 }
