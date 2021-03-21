@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace VChat.Data.Messages
@@ -21,6 +22,17 @@ namespace VChat.Data.Messages
             ReadOnly = false;
             Invitees = new List<ulong>();
             Color = Color.white;
+        }
+
+        public void Update(ServerChannelInfo other)
+        {
+            Name = other.Name;
+            OwnerId = other.OwnerId;
+            IsPublic = other.IsPublic;
+            ReadOnly = other.ReadOnly;
+            Invitees = other.Invitees.ToList();
+            ServerCommandName = other.ServerCommandName;
+            Color = other.Color;
         }
     }
 }

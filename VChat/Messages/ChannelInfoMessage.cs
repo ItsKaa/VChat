@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using VChat.Data.Messages;
 using VChat.Extensions;
 using VChat.Helpers;
@@ -11,8 +12,12 @@ namespace VChat.Messages
         public const string ChannelInfoMessageHashName = VChatPlugin.Name + ".ChannelInfo";
         public const int Version = 1;
 
+        private static List<ServerChannelInfo> ReceivedChannelInfo { get; set; }
+        private static object _lock = new object();
+
         static ChannelInfoMessage()
         {
+            ReceivedChannelInfo = new List<ServerChannelInfo>();
         }
 
         public static void Register()
@@ -29,7 +34,9 @@ namespace VChat.Messages
             {
                 var version = package.ReadInt();
                 var packageCount = package.ReadInt();
-                VChatPlugin.LogWarning($"Received a channel package from the server with {packageCount} channels.");
+                VChatPlugin.Log($"Received a channel package from the server with {packageCount} channels.");
+
+                var list = new List<ServerChannelInfo>();
                 for (int i = 0; i < packageCount; i++)
                 {
                     var channelPackage = package.ReadPackage();
@@ -39,7 +46,46 @@ namespace VChat.Messages
                     var ownerId = channelPackage.ReadULong();
                     var isPublic = channelPackage.ReadBool();
                     var isReadOnly = channelPackage.ReadBool();
-                    VChatPlugin.LogWarning($"Received a channel configuration from the server ({senderId}), channel name: {channelName}, command name: {commandNameString}, color: {colorString}, owner ID: {ownerId}, public: {isPublic}, read-only: {isReadOnly}");
+                    list.Add(new ServerChannelInfo()
+                    {
+                        Color = colorString.ToColor() ?? Color.white,
+                        IsPublic = isPublic,
+                        Name = channelName,
+                        OwnerId = ownerId,
+                        ReadOnly = isReadOnly,
+                        ServerCommandName = commandNameString,
+                    });
+                }
+
+                lock (_lock)
+                {
+                    // Remove deleted channels
+                    foreach (var channel in ReceivedChannelInfo.ToList())
+                    {
+                        if (!list.Exists(x => string.Equals(x.Name, channel.Name, System.StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            VChatPlugin.Log($"Removed channel with name '{channel.Name}'");
+
+                            var existingChannel = ReceivedChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channel.Name, System.StringComparison.CurrentCultureIgnoreCase));
+                            ReceivedChannelInfo.Remove(existingChannel);
+                        }
+                    }
+
+                    // Add or update channels
+                    foreach (var channel in list)
+                    {
+                        var existingChannel = ReceivedChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channel.Name, System.StringComparison.CurrentCultureIgnoreCase));
+                        if (existingChannel != null)
+                        {
+                            VChatPlugin.Log($"Updated channel configuration - channel name: {channel.Name}, command name: {channel.ServerCommandName}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, read-only: {channel.ReadOnly}");
+                            existingChannel.Update(channel);
+                        }
+                        else
+                        {
+                            VChatPlugin.Log($"Received a channel configuration from the server - channel name: {channel.Name}, command name: {channel.ServerCommandName}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, read-only: {channel.ReadOnly}");
+                            ReceivedChannelInfo.Add(channel);
+                        }
+                    }
                 }
             }
             else
@@ -68,7 +114,7 @@ namespace VChat.Messages
                     package.Write(channelDataPackage);
                 }
 
-                VChatPlugin.LogWarning($"Sending channel pacakge to {peerId} with {channelInfoData.Count()} channels.");
+                VChatPlugin.Log($"Sending channel pacakge to {peerId} with {channelInfoData.Count()} channels.");
                 ZRoutedRpc.instance.InvokeRoutedRPC(peerId, ChannelInfoMessageHashName, package);
             }
             else
