@@ -7,14 +7,7 @@
         /// </summary>
         public static long GetServerPeerId()
         {
-            if (VChatPlugin.IsPlayerHostedServer)
-            {
-                return ZRoutedRpc.instance.GetServerPeerID();
-            }
-            else
-            {
-                return ZNet.instance.GetServerPeer()?.m_uid ?? long.MaxValue;
-            }
+            return ZRoutedRpc.instance.GetServerPeerID();
         }
 
         /// <summary>
