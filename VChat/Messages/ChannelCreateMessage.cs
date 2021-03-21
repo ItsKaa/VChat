@@ -1,4 +1,5 @@
-﻿using VChat.Services;
+﻿using VChat.Helpers;
+using VChat.Services;
 
 namespace VChat.Messages
 {
@@ -21,31 +22,53 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
+                ZRoutedRpc.instance.Register<ZPackage>(ChannelCreateMessageHashName, OnMessage_Server);
+            }
+            else
+            {
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelCreateMessageHashName, OnMessage_Client);
+            }
+        }
+
+        private static void OnMessage_Server(long senderId, ZPackage package)
+        {
+            if (ZNet.m_isServer)
+            {
+                var version = package.ReadInt();
+                var channelName = package.ReadString();
+                var senderPeerId = package.ReadLong();
+
+                // Only use the packet peer id if it's sent from the server.
+                if (senderId != ValheimHelper.GetServerPeerId())
+                {
+                    senderPeerId = senderId;
+                }
+
+                var peer = ZNet.instance.GetPeer(senderPeerId);
+                if (peer != null && peer.m_socket is ZSteamSocket steamSocket)
+                {
+                    VChatPlugin.LogWarning($"Player \"{peer.m_playerName}\" ({senderPeerId}) requested to create channel named {channelName}.");
+                    AddChannelForPeer(senderPeerId, steamSocket.GetPeerID().m_SteamID, channelName);
+                }
             }
         }
 
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
-            if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
+            if(!ZNet.m_isServer)
             {
-                var peer = ZNet.instance.GetPeer(senderId);
-                if (peer != null && peer.m_socket is ZSteamSocket steamSocket)
+                if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
                 {
-                    var version = package.ReadInt();
-                    var channelName = package.ReadString();
-
-                    VChatPlugin.LogWarning($"Player \"{peer.m_playerName}\" ({senderId}) requested to create channel named {channelName}.");
-                    ServerChannelManager.ClientSendAddChannelToServer(senderId, steamSocket.GetPeerID().m_SteamID, channelName);
+                    VChatPlugin.LogWarning($"Channel create received from server");
                 }
-            }
-            else
-            {
-                VChatPlugin.LogWarning($"Ignoring a channel configuration message received from a client with id {senderId}.");
+                else
+                {
+                    VChatPlugin.LogWarning($"Ignoring a channel create message received from a client with id {senderId}.");
+                }
             }
         }
 
-        public static void SendFailedResponseToPeer(long peerId, ChannelCreateResponseType responseType, string channelName)
+        public static void SendResponseToPeer(long peerId, ChannelCreateResponseType responseType, string channelName)
         {
             if (ZNet.m_isServer)
             {
@@ -63,20 +86,40 @@ namespace VChat.Messages
             }
         }
 
-        public static void SendRequestToServer(string channelName)
+        public static void SendRequestToServer(long senderPeerId, string channelName)
         {
-            if (!ZNet.m_isServer)
-            {
-                var package = new ZPackage();
-                package.Write(Version);
-                package.Write(channelName);
+            var package = new ZPackage();
+            package.Write(Version);
+            package.Write(channelName);
+            package.Write(senderPeerId);
 
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), ChannelCreateMessageHashName, package);
-            }
-            else
+            ZRoutedRpc.instance.InvokeRoutedRPC(ValheimHelper.GetServerPeerId(), ChannelCreateMessageHashName, package);
+        }
+
+        /// <summary>
+        /// Adds a channel for the provided peer, this has to be executed by the server.
+        /// </summary>
+        private static bool AddChannelForPeer(long peerId, ulong steamId, string channelName)
+        {
+            if (ZNet.m_isServer)
             {
-                VChatPlugin.LogWarning($"Cannot send the channel create request to a client.");
+                if (ServerChannelManager.DoesChannelExist(channelName))
+                {
+                    SendResponseToPeer(peerId, ChannelCreateResponseType.ChannelAlreadyExists, channelName);
+                }
+                else
+                {
+                    if (!ServerChannelManager.CanUsersCreateChannels && !ValheimHelper.IsAdministrator(steamId))
+                    {
+                        SendResponseToPeer(peerId, ChannelCreateResponseType.NoPermission, channelName);
+                    }
+                    else
+                    {
+                        return ServerChannelManager.AddChannel(channelName, steamId, false);
+                    }
+                }
             }
+            return false;
         }
     }
 }

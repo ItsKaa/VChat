@@ -220,31 +220,6 @@ namespace VChat.Services
         /// <summary>
         /// Sends a request to the server to create a channel.
         /// </summary>
-        public static bool ClientSendAddChannelToServer(long peerId, ulong steamId, string channelName)
-        {
-            if (DoesChannelExist(channelName))
-            {
-                ChannelCreateMessage.SendFailedResponseToPeer(peerId, ChannelCreateMessage.ChannelCreateResponseType.ChannelAlreadyExists, channelName);
-            }
-            else
-            {
-                if (!CanUsersCreateChannels && !ValheimHelper.IsAdministrator(steamId))
-                {
-                    ChannelCreateMessage.SendFailedResponseToPeer(peerId, ChannelCreateMessage.ChannelCreateResponseType.NoPermission, channelName);
-                }
-                else
-                {
-                    VChatPlugin.LogWarning($"Creating channel named {channelName}.");
-                    return AddChannel(channelName, steamId, false);
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Sends a request to the server to create a channel.
-        /// </summary>
         public static bool DisbandChannel(long peerId, ulong steamId, string channelName)
         {
             var peer = ValheimHelper.GetPeer(peerId);
@@ -495,17 +470,13 @@ namespace VChat.Services
                     var message = $"Successfully connected to the {channelInfo.Name} channel.";
                     SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
 
-                    //if (GreetingMessage.PeerInfo.TryGetValue(peerId, out Data.GreetingMessagePeerInfo peerInfo)
-                    //    && !peerInfo.HasReceivedGreeting)
+                    // Only send if command name is set, otherwise it's considered a read-only channel.
+                    VChatPlugin.LogWarning($"{peerId} connected to the channel {channelInfo.Name}, commandName: /{channelInfo.ServerCommandName}");
+                    if (!string.IsNullOrEmpty(channelInfo.ServerCommandName))
                     {
-                        // Only send if command name is set, otherwise it's considered a read-only channel.
-                        VChatPlugin.LogWarning($"{peerId} connected to the channel {channelInfo.Name}, commandName: /{channelInfo.ServerCommandName}");
-                        if (!string.IsNullOrEmpty(channelInfo.ServerCommandName))
-                        {
-                            VChatPlugin.LogWarning($"Sending command info");
-                            message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
-                            SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
-                        }
+                        VChatPlugin.LogWarning($"Sending command info");
+                        message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
+                        SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
                     }
                 }
             }
@@ -525,7 +496,6 @@ namespace VChat.Services
                     VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{inviteePeer.m_playerName}\" ({peerId}).");
 
                     string message = $"{inviterPeer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
-                    var parameters = new object[] { inviteePeer.GetRefPos(), (int)Talker.Type.Normal, VChatPlugin.Name, message };
                     SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, message);
 
                 }
