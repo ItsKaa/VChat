@@ -140,7 +140,7 @@ namespace VChat.Messages
         public static void SendGlobalMessageToPeer(long peerId, int type, Vector3 pos, string playerName, string text)
         {
             var parameters = new object[] { pos, type, playerName, text };
-            MessageHelper.SendMessageToPeer(peerId, playerName, text, GlobalChatHashName, parameters);
+            MessageHelper.SendMessageToPeer(peerId, "Global", playerName, text, GlobalChatHashName, parameters);
         }
 
         /// <summary>
