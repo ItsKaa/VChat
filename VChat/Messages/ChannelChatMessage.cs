@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using VChat.Helpers;
 
 namespace VChat.Messages
@@ -44,7 +45,7 @@ namespace VChat.Messages
             MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, () =>
             {
                 SendToPeer(peerId, channelName, pos, callerName, text);
-            });
+            }, new System.Version(2,0,0));
         }
 
         private static void OnMessage_Client(long senderId, ZPackage package)
@@ -82,7 +83,7 @@ namespace VChat.Messages
                 package.Write(callerName ?? string.Empty);
                 package.Write(text ?? string.Empty);
 
-                MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, ChannelChatMessageHashName, package);
+                MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, ChannelChatMessageHashName, package, new System.Version(2,0,0));
             }
             else
             {

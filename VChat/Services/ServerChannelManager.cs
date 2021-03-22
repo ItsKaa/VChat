@@ -306,7 +306,7 @@ namespace VChat.Services
                             MessageHelper.SendMessageToPeer(targetPeer.m_uid, VChatPlugin.Name, null, text, () =>
                             {
                                 SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, text);
-                            });
+                            }, new System.Version(2,0,0));
 
                             // Update channel information for VChat clients.
                             SendChannelInformationToClient(targetPeer.m_uid);
