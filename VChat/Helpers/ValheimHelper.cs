@@ -1,4 +1,6 @@
-﻿namespace VChat.Helpers
+﻿using System.Linq;
+
+namespace VChat.Helpers
 {
     public static class ValheimHelper
     {
@@ -40,6 +42,28 @@
         public static ZNetPeer GetPeer(long peerId)
         {
             return ZNet.instance?.GetPeer(peerId);
+        }
+
+        /// <summary>
+        /// Returns the local player's peer id.
+        /// </summary>
+        public static long GetLocalPlayerPeerId()
+        {
+            return ZNet.instance?.GetUID() ?? long.MaxValue;
+        }
+
+        /// <summary>
+        /// Returns the local player's steam id. Not suited for servers.
+        /// </summary>
+        public static ulong GetLocalPlayerSteamId()
+        {
+            var hostname = ZNet.instance?.GetPlayerList()?.FirstOrDefault(x => x.m_characterID == ZNet.instance.m_characterID).m_host;
+            if(ulong.TryParse(hostname, out ulong steamId) && steamId > 0)
+            {
+                return steamId;
+            }
+
+            return ulong.MaxValue;
         }
 
         /// <summary>
