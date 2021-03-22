@@ -301,8 +301,12 @@ namespace VChat.Services
                         if (channelInfo.OwnerId == targetSteamId || channelInfo.Invitees.Contains(targetSteamId))
                         {
                             // Notify all connected peers with the player that disbanded it.
-                            var message = $"Channel '{channelInfo.Name}' has been disbanded by {peer.m_playerName}.";
-                            SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, message);
+                            var text = $"Channel '{channelInfo.Name}' has been disbanded by {peer.m_playerName}.";
+
+                            MessageHelper.SendMessageToPeer(targetPeer.m_uid, VChatPlugin.Name, null, text, () =>
+                            {
+                                SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, text);
+                            });
 
                             // Update channel information for VChat clients.
                             SendChannelInformationToClient(targetPeer.m_uid);
