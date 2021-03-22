@@ -81,7 +81,7 @@ namespace VChat.Services
         {
             lock (_lockChannelInfo)
             {
-                var channel = ServerChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, StringComparison.CurrentCultureIgnoreCase));
+                var channel = FindChannel(channelName);
                 if(channel == null)
                 {
                     return false;
@@ -90,7 +90,7 @@ namespace VChat.Services
                 {
                     if (ValheimHelper.IsAdministrator(steamId))
                     {
-                        return channel.OwnerId != ServerOwnerId;
+                        return true;
                     }
                     else
                     {
@@ -266,11 +266,11 @@ namespace VChat.Services
             var peer = ValheimHelper.GetPeer(peerId);
             if(!DoesChannelExist(channelName))
             {
-                ChannelEditMessage.SendFailedResponseToPeer(peerId, ChannelEditMessage.ChannelEditResponseType.ChannelNotFound, channelName);
+                ChannelDisbandMessage.SendResponseToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
             }
             else if (!CanDisbandChannel(steamId, channelName))
             {
-                ChannelEditMessage.SendFailedResponseToPeer(peerId, ChannelEditMessage.ChannelEditResponseType.NoPermission, channelName);
+                ChannelDisbandMessage.SendResponseToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.NoPermission, channelName);
             }
             else
             {
@@ -286,7 +286,7 @@ namespace VChat.Services
                     }
                     else
                     {
-                        ChannelEditMessage.SendFailedResponseToPeer(peerId, ChannelEditMessage.ChannelEditResponseType.ChannelNotFound, channelName);
+                        ChannelDisbandMessage.SendResponseToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
                         return false;
                     }
                 }

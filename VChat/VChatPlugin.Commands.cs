@@ -375,7 +375,7 @@ namespace VChat
                         {
                             LogWarning($"Got disband from local chat");
                             var channelName = text.Trim();
-                            ServerChannelManager.DisbandChannel(peer.m_uid, steamId, channelName);
+                            ChannelDisbandMessage.SendToServer(peer.m_uid, channelName);
                         })
                     );
                 }

@@ -3,14 +3,12 @@ using HarmonyLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using VChat.Configuration;
 using VChat.Data;
 using VChat.Extensions;
 using VChat.Helpers;
-using VChat.Messages;
 using VChat.Services;
 
 namespace VChat

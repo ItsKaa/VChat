@@ -12,7 +12,6 @@ namespace VChat.Messages
             EditChannelColor,
             EditChannelOwner,
             EditChannelIsPublic,
-            DisbandChannel,
         }
 
         public enum ChannelEditResponseType
