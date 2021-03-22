@@ -199,13 +199,13 @@ namespace VChat.Services
         /// </summary>
         /// <param name="executedCommand">The executed command, if any.</param>
         /// <returns>True if successful</returns>
-        public bool TryFindAndExecuteServerCommand(string input, ZNetPeer peer, ulong steamId, out PluginCommandServer executedCommand)
+        public bool TryFindAndExecuteServerCommand(string input, long peerId, ulong steamId, out PluginCommandServer executedCommand)
         {
             if (TryFindCommand(input, out PluginCommandBase command, out string remainder)
                 && command is PluginCommandServer serverCommand
                 && serverCommand.Method != null)
             {
-                serverCommand.Method.Invoke(remainder, peer, steamId);
+                serverCommand.Method.Invoke(remainder, peerId, steamId);
                 executedCommand = serverCommand;
                 return true;
             }

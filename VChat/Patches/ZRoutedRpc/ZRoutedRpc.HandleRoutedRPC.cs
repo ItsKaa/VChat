@@ -71,7 +71,7 @@ namespace VChat.Patches
                         }
                     }
 
-                    if (intercept || VChatPlugin.CommandHandler.TryFindAndExecuteServerCommand(text, senderPeer, senderSteamId, out PluginCommandServer _))
+                    if (intercept || VChatPlugin.CommandHandler.TryFindAndExecuteServerCommand(text, senderPeer.m_uid, senderSteamId, out PluginCommandServer _))
                     {
                         // Intercept message so that other connected users won't receive the same message twice.
                         data.m_methodHash = GlobalMessages.InterceptedSayHashCode;

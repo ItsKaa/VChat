@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using VChat.Data;
 using VChat.Extensions;
+using VChat.Helpers;
 using VChat.Messages;
 using VChat.Services;
 
@@ -337,47 +338,47 @@ namespace VChat
 
                 if (ZNet.instance?.IsServer() == true)
                 {
-                    CommandHandler.AddCommands(
-                        new PluginCommandServer("addchannel", (text, peer, steamId) =>
-                        {
-                            LogWarning($"Got addchannel from local chat");
-                            var channelName = text.Trim();
-                            ChannelCreateMessage.SendRequestToServer(peer.m_uid, channelName);
-                        }),
-                        new PluginCommandServer("invite", (text, peer, steamId) =>
-                        {
-                            var remainder = text.Trim();
-                            var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                CommandHandler.AddCommands(
+                    new PluginCommandServer("addchannel", (text, peerId, steamId) =>
+                    {
+                        LogWarning($"Got addchannel from local chat");
+                        var channelName = text.Trim();
+                        ChannelCreateMessage.SendRequestToServer(peerId, channelName);
+                    }),
+                    new PluginCommandServer("invite", (text, peerId, steamId) =>
+                    {
+                        var remainder = text.Trim();
+                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
-                            string channelName = null;
-                            string inviteePlayerName = null;
-                            if (remainderData.Length >= 2)
-                            {
-                                channelName = remainderData[0];
-                                inviteePlayerName = remainderData[1];
-                            }
+                        string channelName = null;
+                        string inviteePlayerName = null;
+                        if (remainderData.Length >= 2)
+                        {
+                            channelName = remainderData[0];
+                            inviteePlayerName = remainderData[1];
+                        }
 
-                            ChannelInviteMessage.SendToServer(peer.m_uid, ChannelInviteMessage.ChannelInviteType.Invite, channelName, inviteePlayerName);
-                        }),
-                        new PluginCommandServer("accept", (text, peer, steamId) =>
-                        {
-                            LogWarning($"Got accept from local chat");
-                            var channelName = text.Trim();
-                            ChannelInviteMessage.SendToServer(peer.m_uid, ChannelInviteMessage.ChannelInviteType.Accept, channelName);
-                        }),
-                        new PluginCommandServer("decline", (text, peer, steamId) =>
-                        {
-                            LogWarning($"Got decline from local chat");
-                            var channelName = text.Trim();
-                            ChannelInviteMessage.SendToServer(peer.m_uid, ChannelInviteMessage.ChannelInviteType.Decline, channelName);
-                        }),
-                        new PluginCommandServer("disband", (text, peer, steamId) =>
-                        {
-                            LogWarning($"Got disband from local chat");
-                            var channelName = text.Trim();
-                            ChannelDisbandMessage.SendToServer(peer.m_uid, channelName);
-                        })
-                    );
+                        ChannelInviteMessage.SendToServer(peerId, ChannelInviteMessage.ChannelInviteType.Invite, channelName, inviteePlayerName);
+                    }),
+                    new PluginCommandServer("accept", (text, peerId, steamId) =>
+                    {
+                        LogWarning($"Got accept from local chat");
+                        var channelName = text.Trim();
+                        ChannelInviteMessage.SendToServer(peerId, ChannelInviteMessage.ChannelInviteType.Accept, channelName);
+                    }),
+                    new PluginCommandServer("decline", (text, peerId, steamId) =>
+                    {
+                        LogWarning($"Got decline from local chat");
+                        var channelName = text.Trim();
+                        ChannelInviteMessage.SendToServer(peerId, ChannelInviteMessage.ChannelInviteType.Decline, channelName);
+                    }),
+                    new PluginCommandServer("disband", (text, peerId, steamId) =>
+                    {
+                        LogWarning($"Got disband from local chat");
+                        var channelName = text.Trim();
+                        ChannelDisbandMessage.SendToServer(peerId, channelName);
+                    })
+                );
                 }
 
                 InitialiseServerChannelCommands();
@@ -385,7 +386,8 @@ namespace VChat
         }
 
         /// <summary>
-        /// Adds all the channel text commands for the server sided command handler
+        /// Adds all the channel text commands for the server-sided channsls.
+        /// VChat clients will use the received channel info message to set-up the channel configuration.
         /// </summary>
         private static void InitialiseServerChannelCommands()
         {
@@ -398,10 +400,14 @@ namespace VChat
                         if (!string.IsNullOrWhiteSpace(channel.ServerCommandName))
                         {
                             CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries),
-                                (text, peer, steamId) =>
+                                (text, peerId, steamId) =>
                                 {
-                                    LogWarning($"User {peer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
-                                    ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, peer.m_playerName, text);
+                                    var peer = ValheimHelper.GetPeer(peerId);
+                                    if (peer != null)
+                                    {
+                                        LogWarning($"User {peer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
+                                        ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, peer.m_playerName, text);
+                                    }
                                 }
                             ));
                         }
