@@ -40,9 +40,10 @@ namespace VChat.Messages
                 peerId = senderId;
             }
 
-            MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, () =>
+            var peer = ZNet.instance.GetPeer(peerId);
+            MessageHelper.SendMessageToPeer(peerId, channelName, peer?.m_playerName ?? callerName, text, () =>
             {
-                SendToPeer(peerId, channelName, pos, callerName, text);
+                SendToPeer(peerId, channelName, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
             });
         }
 
