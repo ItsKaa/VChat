@@ -109,8 +109,15 @@ namespace VChat
         public static string GetFormattedMessage(CombinedMessageType messageType, string user, string text)
         {
             var textColor = GetTextColor(messageType);
+            return GetFormattedMessage(textColor, null, user, text);
+        }
+
+        public static string GetFormattedMessage(Color color, string channelName, string user, string text)
+        {
+            var textColor = color;
             var userColor = Color.Lerp(textColor, Color.black, 0.33f);
-            return $"<color={userColor.ToHtmlString()}>{user}</color>: <color={textColor.ToHtmlString()}>{text}</color>";
+            return $"<color={userColor.ToHtmlString()}>{(string.IsNullOrEmpty(channelName) ? "" : $"[{channelName}]")} " +
+                $"{(string.IsNullOrEmpty(user) ? "" : $"{user}")}</color>: <color={textColor.ToHtmlString()}>{text}</color>";
         }
 
         public static bool UpdateCurrentChatTypeAndColor(InputField inputField, string text)

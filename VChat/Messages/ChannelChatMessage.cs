@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using VChat.Extensions;
 using VChat.Helpers;
-using VChat.Services;
 
 namespace VChat.Messages
 {
@@ -59,12 +57,9 @@ namespace VChat.Messages
                     var callerName = package.ReadString();
                     var text = package.ReadString();
 
-                    // TODO: use channel ID and read the config
-                    var textColor = Color.green;
-                    var userColor = Color.Lerp(textColor, Color.black, 0.33f);
-
-                    // TODO: GetFormattedMessage for custom channels, easy to imlement once we can read the channels in the client.
-                    var formattedMessage = $"<color={userColor.ToHtmlString()}>[{channelName}]{(string.IsNullOrEmpty(callerName) ? "" : $" {callerName}")}</color>: <color={textColor.ToHtmlString()}>{text}</color>";
+                    // Use the channel config to read the color or use the default.
+                    var textColor = ChannelInfoMessage.FindChannel(channelName)?.Color ?? Color.white;
+                    var formattedMessage = VChatPlugin.GetFormattedMessage(textColor, channelName, callerName, text);
                     Chat.instance?.AddString(formattedMessage);
                 }
                 else
