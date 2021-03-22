@@ -327,7 +327,8 @@ namespace VChat
         }
 
         /// <summary>
-        /// Initialise the server command handler, this should be called when ZNet is initialised.
+        /// Initialise the server-sided commands, this should be called when ZNet is initialised.
+        /// This is also called for VChat clients.
         /// </summary>
         internal static void InitialiseServerCommands()
         {
@@ -336,8 +337,6 @@ namespace VChat
                 Log("Initialising server-wide commands");
                 RemoveServerCommands();
 
-                if (ZNet.instance?.IsServer() == true)
-                {
                 CommandHandler.AddCommands(
                     new PluginCommandServer("addchannel", (text, peerId, steamId) =>
                     {
@@ -379,7 +378,6 @@ namespace VChat
                         ChannelDisbandMessage.SendToServer(peerId, channelName);
                     })
                 );
-                }
 
                 InitialiseServerChannelCommands();
             }
@@ -407,6 +405,25 @@ namespace VChat
                                     {
                                         LogWarning($"User {peer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
                                         ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, peer.m_playerName, text);
+                                    }
+                                }
+                            ));
+                        }
+                    }
+                }
+                else
+                {
+                    foreach(var channel in ChannelInfoMessage.GetChannelInfo())
+                    {
+                        if(!string.IsNullOrWhiteSpace(channel.ServerCommandName))
+                        {
+                            CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries),
+                                (text, peerId, steamId) =>
+                                {
+                                    var peer = ValheimHelper.GetPeer(peerId);
+                                    if (peer != null)
+                                    {
+                                        ChannelChatMessage.SendToServer(peerId, channel.Name, peer.m_refPos, peer.m_playerName, text);
                                     }
                                 }
                             ));

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using VChat.Data;
+using VChat.Helpers;
 using VChat.Messages;
 
 namespace VChat.Patches
@@ -23,8 +24,12 @@ namespace VChat.Patches
                 VChatPlugin.MessageSendHistoryIndex = 0;
             }
 
-            // Attempt to parse a command.
+            // Parse client or server commands.
             if (VChatPlugin.CommandHandler.TryFindAndExecuteClientCommand(text, __instance, out PluginCommandClient _))
+            {
+                return false;
+            }
+            else if (VChatPlugin.CommandHandler.TryFindAndExecuteServerCommand(text, ValheimHelper.GetLocalPlayerPeerId(), ValheimHelper.GetLocalPlayerSteamId(), out PluginCommandServer _))
             {
                 return false;
             }

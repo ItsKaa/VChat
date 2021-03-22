@@ -28,6 +28,14 @@ namespace VChat.Messages
             }
         }
 
+        public static IEnumerable<ServerChannelInfo> GetChannelInfo()
+        {
+            lock (_lock)
+            {
+                return ReceivedChannelInfo.ToList();
+            }
+        }
+
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
             if (senderId == ValheimHelper.GetServerPeerId())
@@ -87,6 +95,9 @@ namespace VChat.Messages
                         }
                     }
                 }
+
+                // Re-initialise server commands
+                VChatPlugin.InitialiseServerCommands();
             }
             else
             {
