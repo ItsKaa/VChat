@@ -420,11 +420,8 @@ namespace VChat
                             CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries),
                                 (text, peerId, steamId) =>
                                 {
-                                    var peer = ValheimHelper.GetPeer(peerId);
-                                    if (peer != null)
-                                    {
-                                        ChannelChatMessage.SendToServer(peerId, channel.Name, peer.m_refPos, peer.m_playerName, text);
-                                    }
+                                    var localPlayer = Player.m_localPlayer;
+                                    ChannelChatMessage.SendToServer(peerId, channel.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.name ?? string.Empty, text);
                                 }
                             ));
                         }
