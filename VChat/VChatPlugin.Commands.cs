@@ -417,11 +417,11 @@ namespace VChat
                     {
                         if(!string.IsNullOrWhiteSpace(channel.ServerCommandName))
                         {
-                            CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries),
+                            CommandHandler.AddCommand(new PluginCommandServerChannel(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries), channel,
                                 (text, peerId, steamId) =>
                                 {
                                     var localPlayer = Player.m_localPlayer;
-                                    ChannelChatMessage.SendToServer(peerId, channel.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.name ?? string.Empty, text);
+                                    ChannelChatMessage.SendToServer(peerId, channel.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.GetPlayerName() ?? string.Empty, text);
                                 }
                             ));
                         }

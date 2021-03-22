@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using VChat.Data;
+using VChat.Data.Messages;
 
 namespace VChat.Services
 {
@@ -163,6 +165,26 @@ namespace VChat.Services
             }
 
             VChatPlugin.LogError($"Could not find the command for {type}, is this a new unhandled command?");
+            return null;
+        }
+
+        /// <summary>
+        /// Attempt to find the server channel command based on the channel information.
+        /// </summary>
+        public PluginCommandServerChannel FindCustomChannelCommand(ServerChannelInfo channelInfo)
+        {
+            lock (_lock)
+            {
+                foreach (var command in Commands.OfType<PluginCommandServerChannel>())
+                {
+                    if (string.Equals(command.ChannelInfo.Name, channelInfo.Name, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return command;
+                    }
+                }
+            }
+
+            VChatPlugin.LogError($"Could not find the custom channel with {channelInfo.Name}");
             return null;
         }
 
