@@ -349,75 +349,27 @@ namespace VChat
                             var remainder = text.Trim();
                             var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
+                            string channelName = null;
+                            string inviteePlayerName = null;
                             if (remainderData.Length >= 2)
                             {
-                                LogWarning($"Got invite from local chat");
-                                var channelName = remainderData[0];
-                                var inviteePlayerName = remainderData[1];
+                                channelName = remainderData[0];
+                                inviteePlayerName = remainderData[1];
+                            }
 
-                                foreach (var targetPeer in ZNet.instance.GetConnectedPeers())
-                                {
-                                    if (string.Equals(targetPeer.m_playerName, inviteePlayerName, StringComparison.CurrentCultureIgnoreCase))
-                                    {
-                                        if (targetPeer.m_socket is ZSteamSocket targetSteamSocket)
-                                        {
-                                            ServerChannelManager.InvitePlayerToChannel(channelName,
-                                                peer.m_uid,
-                                                steamId,
-                                                targetSteamSocket.GetPeerID().m_SteamID
-                                            );
-                                            ChannelInviteMessage.SendFailedResponseToPeer(peer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                LogWarning($"Invite from local chat wrong command: \"{text}\" | \"{remainder}\" | \"{string.Join(",", remainderData)}\"");
-                            }
+                            ChannelInviteMessage.SendToServer(peer.m_uid, ChannelInviteMessage.ChannelInviteType.Invite, channelName, inviteePlayerName);
                         }),
                         new PluginCommandServer("accept", (text, peer, steamId) =>
                         {
                             LogWarning($"Got accept from local chat");
                             var channelName = text.Trim();
-                            if (string.IsNullOrEmpty(channelName))
-                            {
-                                var invites = ServerChannelManager.GetChannelInvitesForUser(steamId);
-                                if (invites?.Count() > 0)
-                                {
-                                    ServerChannelManager.AcceptChannelInvite(peer.m_uid, invites.FirstOrDefault().ChannelName);
-                                }
-                                else
-                                {
-                                    ChannelInviteMessage.SendFailedResponseToPeer(peer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
-                                }
-                            }
-                            else
-                            {
-                                ServerChannelManager.AcceptChannelInvite(peer.m_uid, channelName);
-                            }
+                            ChannelInviteMessage.SendToServer(peer.m_uid, ChannelInviteMessage.ChannelInviteType.Accept, channelName);
                         }),
                         new PluginCommandServer("decline", (text, peer, steamId) =>
                         {
                             LogWarning($"Got decline from local chat");
                             var channelName = text.Trim();
-                            if (string.IsNullOrEmpty(channelName))
-                            {
-                                var invites = ServerChannelManager.GetChannelInvitesForUser(steamId);
-                                if (invites?.Count() > 0)
-                                {
-                                    ServerChannelManager.DeclineChannelInvite(peer.m_uid, invites.FirstOrDefault().ChannelName);
-                                }
-                                else
-                                {
-                                    ChannelInviteMessage.SendFailedResponseToPeer(peer.m_uid, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
-                                }
-                            }
-                            else
-                            {
-                                ServerChannelManager.DeclineChannelInvite(peer.m_uid, channelName);
-                            }
+                            ChannelInviteMessage.SendToServer(peer.m_uid, ChannelInviteMessage.ChannelInviteType.Decline, channelName);
                         }),
                         new PluginCommandServer("disband", (text, peer, steamId) =>
                         {

@@ -150,6 +150,47 @@ namespace VChat.Services
             return false;
         }
 
+        internal static ServerChannelInfo FindChannel(string channelName)
+        {
+            lock (_lockChannelInfo)
+            {
+                return ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
+            }
+        }
+
+        /// <summary>
+        /// Add an invite to the collection and sends the request to the peer
+        /// </summary>
+        public static void AddInvite(long peerId, ServerChannelInviteInfo inviteInfo)
+        {
+            lock (_lockChannelInviteInfo)
+            {
+                ChannelInviteInfo.Add(inviteInfo);
+            }
+        }
+
+        public static void AddInvite(ZNetPeer peer, ServerChannelInviteInfo inviteInfo)
+            => AddInvite(peer?.m_uid ?? long.MaxValue, inviteInfo);
+
+        public static bool RemoveInvite(ulong steamId, string channelName)
+        {
+            lock (_lockChannelInviteInfo)
+            {
+                var inviteInfo = ServerChannelManager.ChannelInviteInfo.FirstOrDefault(x =>
+                       x.InviteeId == steamId
+                    && string.Equals(x.ChannelName, channelName, StringComparison.CurrentCultureIgnoreCase)
+                );
+
+                if (inviteInfo != null)
+                {
+                    ChannelInviteInfo.Remove(inviteInfo);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Add a player to the invitee list of an existing channel.
         /// </summary>
@@ -275,97 +316,6 @@ namespace VChat.Services
             return false;
         }
 
-        /// <summary>
-        /// Sends an invite to a peer, from a peer, if it has the permission to do so.
-        /// </summary>
-        public static bool InvitePlayerToChannel(string channelName, long inviterPeerId, ulong inviterSteamId, ulong inviteeId)
-        {
-            if (CanInvite(inviterSteamId, channelName))
-            {
-                var peer = ValheimHelper.FindPeerBySteamId(inviteeId);
-                if (peer != null)
-                {
-                    var inviteInfo = new ServerChannelInviteInfo()
-                    {
-                        InviteeId = inviteeId,
-                        InviterId = inviterSteamId,
-                        ChannelName = channelName,
-                    };
-                    lock (_lockChannelInviteInfo)
-                    {
-                        ChannelInviteInfo.Add(inviteInfo);
-                    }
-                    SendInviteRequestToPeer(peer.m_uid, inviteInfo);
-                }
-                else
-                {
-                    ChannelInviteMessage.SendFailedResponseToPeer(inviterPeerId, ChannelInviteMessage.ChannelInviteResponseType.UserNotFound, channelName);
-                    return false;
-                }
-                return true;
-            }
-            else
-            {
-                ChannelInviteMessage.SendFailedResponseToPeer(inviterPeerId, ChannelInviteMessage.ChannelInviteResponseType.NoPermission, channelName);
-            }
-            return false;
-        }
-
-        public static bool AcceptChannelInvite(long peerId, string channelName)
-        {
-            if (ZNet.m_isServer)
-            {
-                if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
-                {
-                    // Find the invite and remove it if present
-                    var foundInvite = false;
-                    lock (_lockChannelInviteInfo)
-                    {
-                        var inviteInfo = ChannelInviteInfo.FirstOrDefault(x =>
-                               x.InviteeId == steamId
-                            && string.Equals(x.ChannelName, channelName, StringComparison.CurrentCultureIgnoreCase)
-                        );
-                        if (inviteInfo != null)
-                        {
-                            ChannelInviteInfo.Remove(inviteInfo);
-                            foundInvite = true;
-                        }
-                    }
-
-                    // Handle the invite
-                    if (foundInvite)
-                    {
-                        if (AddPlayerToChannelInviteeList(channelName, steamId))
-                        {
-                            ServerChannelInfo channelInfo;
-                            lock (_lockChannelInfo)
-                            {
-                                channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
-                            }
-
-                            if (channelInfo != null)
-                            {
-                                VChatPlugin.LogWarning($"User '{peer.m_playerName}' accepted channel invite '{channelName}' exist?");
-                                SendChannelInformationToClient(peerId);
-                                SendMessageToClient_ChannelConnected(peerId, channelInfo);
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            VChatPlugin.LogWarning($"Channel invite accepted but somehow the channel wasn't found, does the channel '{channelName}' exist?");
-                        }
-
-                    }
-                    else
-                    {
-                        ChannelInviteMessage.SendFailedResponseToPeer(peerId, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
-                    }
-                }
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Send a message to all connected peers within the provided channel.
@@ -449,7 +399,7 @@ namespace VChat.Services
                     }
                     else
                     {
-                        ChannelInviteMessage.SendFailedResponseToPeer(peerId, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
+                        ChannelInviteMessage.SendToPeer(peerId, ChannelInviteMessage.ChannelInviteType.Decline, ChannelInviteMessage.ChannelInviteResponseType.NoInviteFound, channelName);
                     }
                 }
             }
@@ -478,30 +428,6 @@ namespace VChat.Services
                         message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
                         SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
                     }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sends an invite request to a client, this comes from another client but the server redirects it.
-        /// </summary>
-        public static void SendInviteRequestToPeer(long peerId, ServerChannelInviteInfo channelInviteInfo)
-        {
-            if (ZNet.m_isServer)
-            {
-                var inviteePeer = ZNet.instance.GetPeer(peerId);
-                var inviterPeer = ValheimHelper.GetPeerFromSteamId(channelInviteInfo.InviterId);
-                if (inviteePeer != null && inviterPeer != null)
-                {
-                    VChatPlugin.LogWarning($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{inviteePeer.m_playerName}\" ({peerId}).");
-
-                    string message = $"{inviterPeer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
-                    SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, message);
-
-                }
-                else
-                {
-                    VChatPlugin.LogWarning($"Peer id could not be found for steam id {channelInviteInfo.InviteeId} or {channelInviteInfo.InviterId} from invite request");
                 }
             }
         }
