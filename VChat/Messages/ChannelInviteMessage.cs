@@ -200,7 +200,7 @@ namespace VChat.Messages
                     {
                         // Send packet to the peer and a chat message in the VChat channel.
                         SendToPeer(inviteePeer.m_uid, ChannelInviteType.Invite, ChannelInviteResponseType.OK, channelInviteInfo.ChannelName, inviterPeer.m_playerName);
-                        ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, channelInviteInfo.ChannelName, text);
+                        ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, text);
                     });
 
                 }
