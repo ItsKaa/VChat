@@ -35,6 +35,13 @@ namespace VChat.Messages
                 return ReceivedChannelInfo.ToList();
             }
         }
+        public static ServerChannelInfo FindChannel(string channelName)
+        {
+            lock (_lock)
+            {
+                return ReceivedChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, System.StringComparison.CurrentCultureIgnoreCase));
+            }
+        }
 
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
