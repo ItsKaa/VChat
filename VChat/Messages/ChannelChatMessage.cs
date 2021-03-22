@@ -33,15 +33,17 @@ namespace VChat.Messages
             var callerName = package.ReadString();
             var text = package.ReadString();
 
-            if(senderId != ValheimHelper.GetServerPeerId())
+            if (senderId != ValheimHelper.GetServerPeerId())
             {
                 peerId = senderId;
+                var peer = ZNet.instance.GetPeer(peerId);
+                callerName = peer?.m_playerName ?? callerName;
+                pos = peer?.m_refPos ?? pos;
             }
 
-            var peer = ZNet.instance.GetPeer(peerId);
-            MessageHelper.SendMessageToPeer(peerId, channelName, peer?.m_playerName ?? callerName, text, () =>
+            MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, () =>
             {
-                SendToPeer(peerId, channelName, peer?.m_refPos ?? pos, peer?.m_playerName ?? callerName, text);
+                SendToPeer(peerId, channelName, pos, callerName, text);
             });
         }
 
