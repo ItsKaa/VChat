@@ -422,6 +422,9 @@ namespace VChat
                                 {
                                     var localPlayer = Player.m_localPlayer;
                                     ChannelChatMessage.SendToServer(peerId, channel.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.GetPlayerName() ?? string.Empty, text);
+
+                                    LastChatType.Set(CustomMessageType.CustomServerChannel);
+                                    LastCustomChatChannelInfo = channel;
                                 }
                             ));
                         }

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using UnityEngine;
 using VChat.Data;
 using VChat.Helpers;
 using VChat.Messages;
@@ -49,6 +50,16 @@ namespace VChat.Patches
                     {
                         case CustomMessageType.Global:
                             GlobalMessages.SendGlobalMessageToServer(text);
+                            break;
+                        case CustomMessageType.CustomServerChannel:
+                            {
+                                var command = VChatPlugin.CommandHandler.FindCustomChannelCommand(VChatPlugin.LastCustomChatChannelInfo);
+                                if (command != null && command.ChannelInfo != null)
+                                {
+                                    var localPlayer = Player.m_localPlayer;
+                                    ChannelChatMessage.SendToServer(ValheimHelper.GetLocalPlayerPeerId(), command.ChannelInfo.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.GetPlayerName() ?? string.Empty, text);
+                                }
+                            }
                             break;
                     }
                     return false;

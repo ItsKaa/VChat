@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VChat.Configuration;
 using VChat.Data;
+using VChat.Data.Messages;
 using VChat.Extensions;
 using VChat.Helpers;
 using VChat.Services;
@@ -32,6 +33,7 @@ namespace VChat
         public static int MessageSendHistoryIndex { get; set; } = 0;
         public static CombinedMessageType CurrentInputChatType { get; set; }
         public static CombinedMessageType LastChatType { get; set; }
+        public static ServerChannelInfo LastCustomChatChannelInfo { get; set; }
         public static float ChatHideTimer { get; set; }
         private static readonly object _commandHandlerLock = new();
 
@@ -40,6 +42,7 @@ namespace VChat
             ReceivedMessageInfo = new ConcurrentDictionary<long, UserMessageInfo>();
             MessageSendHistory = new List<string>();
             CommandHandler = new CommandHandler();
+            LastCustomChatChannelInfo = null;
             LastChatType = new CombinedMessageType(CustomMessageType.Global);
             CurrentInputChatType = new CombinedMessageType(LastChatType.Value);
         }
@@ -95,6 +98,9 @@ namespace VChat
                     case CustomMessageType.Global:
                         color = (getDefault ? null : Settings.GlobalChatColor) ?? new Color(0.890f, 0.376f, 0.050f);
                         break;
+                    case CustomMessageType.CustomServerChannel:
+                        color = LastCustomChatChannelInfo?.Color ?? Color.white;
+                        break;
                 }
             }
             return color;
@@ -136,6 +142,17 @@ namespace VChat
                     {
                         messageType.Set(CustomMessageType.Global);
                         foundCommand = true;
+                    }
+                    else
+                    {
+                        if (CommandHandler.TryFindCommand(text, out PluginCommandBase command, out string _)
+                            && command is PluginCommandServerChannel serverCommand)
+                        {
+                            messageType.Set(CustomMessageType.CustomServerChannel);
+                            LastCustomChatChannelInfo = serverCommand.ChannelInfo;
+                            foundCommand = true;
+
+                        }
                     }
                 }
 
