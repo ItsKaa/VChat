@@ -393,6 +393,7 @@ namespace VChat
             {
                 if (ZNet.instance?.IsServer() == true)
                 {
+                    // Initialise the server-wide channel commands for the server
                     foreach (var channel in ServerChannelManager.GetServerChannelInfoCopy())
                     {
                         if (!string.IsNullOrWhiteSpace(channel.ServerCommandName))
@@ -403,7 +404,7 @@ namespace VChat
                                     var peer = ValheimHelper.GetPeer(peerId);
                                     if (peer != null)
                                     {
-                                        LogWarning($"User {peer.m_playerName} typed in channel {channel.Name} with command {channel.ServerCommandName}");
+                                        Log($"User {peer.m_playerName} ({peer.m_uid}) sent a message in channel {channel.Name}");
                                         ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, peer.m_playerName, text);
                                     }
                                 }
@@ -413,6 +414,7 @@ namespace VChat
                 }
                 else
                 {
+                    // Initialise the server-wide channel commands for a client
                     foreach(var channel in ChannelInfoMessage.GetChannelInfo())
                     {
                         if(!string.IsNullOrWhiteSpace(channel.ServerCommandName))
@@ -428,6 +430,24 @@ namespace VChat
                                 }
                             ));
                         }
+                    }
+
+                    // Update the last active chat channel
+                    if(LastCustomChatChannelInfo != null && LastChatType.CustomTypeValue == CustomMessageType.CustomServerChannel)
+                    {
+                        var channel = ChannelInfoMessage.FindChannel(LastCustomChatChannelInfo.Name);
+                        if(channel != null)
+                        {
+                            LastCustomChatChannelInfo = channel;
+                        }
+                        else
+                        {
+                            LastChatType.Set(Talker.Type.Normal);
+                            LastCustomChatChannelInfo = null;
+                        }
+
+                        // Update the input color of the chat
+                        UpdateChatInputColor(Chat.instance?.m_input, LastChatType);
                     }
                 }
             }
