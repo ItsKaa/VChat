@@ -1,4 +1,5 @@
 ﻿using VChat.Helpers;
+using VChat.Services;
 
 namespace VChat.Messages
 {
@@ -54,18 +55,32 @@ namespace VChat.Messages
             }
         }
 
-        public static void SendFailedResponseToPeer(long peerId, ChannelEditResponseType responseType, string channelName)
+        public static void SendResponseToPeer(long peerId, ChannelEditResponseType responseType, string channelName)
         {
             if (ZNet.m_isServer)
             {
-                var package = new ZPackage();
-                package.Write(Version);
-                package.Write((int)ChannelEditType.ServerResponse);
-                package.Write(channelName);
-                package.Write(((int)responseType).ToString());
+                var peer = ValheimHelper.GetPeer(peerId);
+                if (peer != null)
+                {
+                    string text = null;
+                    switch (responseType)
+                    {
+                        case ChannelEditResponseType.ChannelNotFound:
+                            text = "Cannot find a channel with that name.";
+                            break;
+                        case ChannelEditResponseType.NoPermission:
+                            text = "You do not have permission to edit that channel.";
+                            break;
+                        default:
+                            VChatPlugin.LogError($"Unknown response type for edit channel received: {responseType}");
+                            break;
+                    }
 
-                VChatPlugin.LogWarning($"Sending edit response ({responseType}) to {peerId} for channel \"{channelName}\".");
-                ZRoutedRpc.instance.InvokeRoutedRPC(peerId, ChannelEditMessageHashName, package);
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
+                    }
+                }
             }
             else
             {

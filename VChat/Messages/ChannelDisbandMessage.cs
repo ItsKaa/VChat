@@ -24,10 +24,6 @@ namespace VChat.Messages
             {
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelDisbandMessageHashName, OnMessage_Server);
             }
-            else
-            {
-                ZRoutedRpc.instance.Register<ZPackage>(ChannelDisbandMessageHashName, OnMessage_Client);
-            }
         }
 
         private static void OnMessage_Server(long senderId, ZPackage package)
@@ -53,21 +49,6 @@ namespace VChat.Messages
             }
         }
 
-        private static void OnMessage_Client(long senderId, ZPackage package)
-        {
-            if (!ZNet.m_isServer)
-            {
-                if (senderId == ValheimHelper.GetServerPeerId())
-                {
-                    VChatPlugin.LogWarning($"Channel disband response received from server");
-                }
-                else
-                {
-                    VChatPlugin.LogWarning($"Ignoring a channel disband message received from a client with id {senderId}.");
-                }
-            }
-        }
-
         public static void SendResponseToPeer(long peerId, ChannelDisbandResponseType responseType, string channelName)
         {
             if (ZNet.m_isServer)
@@ -77,8 +58,28 @@ namespace VChat.Messages
                 package.Write((int)responseType);
                 package.Write(channelName);
 
-                VChatPlugin.LogWarning($"Sending channel disband response ({responseType}) to {peerId} for channel \"{channelName}\".");
-                ZRoutedRpc.instance.InvokeRoutedRPC(peerId, ChannelDisbandMessageHashName, package);
+                var peer = ValheimHelper.GetPeer(peerId);
+                if (peer != null)
+                {
+                    string text = null;
+                    switch (responseType)
+                    {
+                        case ChannelDisbandResponseType.ChannelNotFound:
+                            text = "Cannot find a channel with that name.";
+                            break;
+                        case ChannelDisbandResponseType.NoPermission:
+                            text = "You do not have permission to disband that channel.";
+                            break;
+                        default:
+                            VChatPlugin.LogError($"Unknown response type for disband channel received: {responseType}");
+                            break;
+                    }
+
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
+                    }
+                }
             }
             else
             {

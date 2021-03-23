@@ -230,10 +230,10 @@ namespace VChat.Services
         public static bool CanInvite(ulong steamId, ServerChannelInfo channelInfo)
         {
             return channelInfo != null
-                && channelInfo.OwnerId == steamId
+                && (channelInfo.OwnerId == steamId
                 && !channelInfo.ReadOnly
                 || channelInfo.Invitees.Contains(steamId)
-                || ValheimHelper.IsAdministrator(steamId);
+                || ValheimHelper.IsAdministrator(steamId));
         }
 
         /// <summary>
@@ -355,9 +355,8 @@ namespace VChat.Services
         /// <summary>
         /// Send a message to a peer in the provided channel, note that this will not send it to any other user within that channel.
         /// </summary>
-        public static bool SendMessageToPeerInChannel(long targetPeerId, string channelName, string text)
+        public static bool SendMessageToPeerInChannel(long targetPeerId, string channelName, string text, Color? color = null)
         {
-            VChatPlugin.LogError("SendMessageToPeerInChannel called");
             var peer = ValheimHelper.GetPeer(targetPeerId);
             if (peer != null && ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
             {
@@ -366,12 +365,30 @@ namespace VChat.Services
                 {
                     if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, null, text);
+                        ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, null, text, color);
                         return true;
                     }
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Sends an success message in the VChat channel to a user, colors everything green.
+        /// </summary>
+        /// <returns></returns>
+        public static bool SendVChatSuccessMessageToPeer(long targetPeerId, string text)
+        {
+            return SendMessageToPeerInChannel(targetPeerId, VChatPlugin.Name, text, new Color(0.137f, 1f, 0f));
+        }
+
+        /// <summary>
+        /// Sends an error message in the VChat channel to a user, colors everything red.
+        /// </summary>
+        /// <returns></returns>
+        public static bool SendVChatErrorMessageToPeer(long targetPeerId, string text)
+        {
+            return SendMessageToPeerInChannel(targetPeerId, VChatPlugin.Name, text, Color.red);
         }
 
         public static bool DeclineChannelInvite(long peerId, string channelName)

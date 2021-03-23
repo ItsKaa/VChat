@@ -24,10 +24,6 @@ namespace VChat.Messages
             {
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelCreateMessageHashName, OnMessage_Server);
             }
-            else
-            {
-                ZRoutedRpc.instance.Register<ZPackage>(ChannelCreateMessageHashName, OnMessage_Client);
-            }
         }
 
         private static void OnMessage_Server(long senderId, ZPackage package)
@@ -53,32 +49,32 @@ namespace VChat.Messages
             }
         }
 
-        private static void OnMessage_Client(long senderId, ZPackage package)
-        {
-            if(!ZNet.m_isServer)
-            {
-                if (senderId == ValheimHelper.GetServerPeerId())
-                {
-                    VChatPlugin.LogWarning($"Channel create received from server");
-                }
-                else
-                {
-                    VChatPlugin.LogWarning($"Ignoring a channel create message received from a client with id {senderId}.");
-                }
-            }
-        }
-
         public static void SendResponseToPeer(long peerId, ChannelCreateResponseType responseType, string channelName)
         {
             if (ZNet.m_isServer)
             {
-                var package = new ZPackage();
-                package.Write(Version);
-                package.Write((int)responseType);
-                package.Write(channelName);
+                var peer = ValheimHelper.GetPeer(peerId);
+                if (peer != null)
+                {
+                    string text = null;
+                    switch(responseType)
+                    {
+                        case ChannelCreateResponseType.ChannelAlreadyExists:
+                            text = "A channel with that name already exists.";
+                            break;
+                        case ChannelCreateResponseType.NoPermission:
+                            text = "You do not have permission to create a channel.";
+                            break;
+                        default:
+                            VChatPlugin.LogError($"Unknown response type for create channel received: {responseType}");
+                            break;
+                    }
 
-                VChatPlugin.LogWarning($"Sending response ({responseType}) to {peerId} for channel \"{channelName}\".");
-                ZRoutedRpc.instance.InvokeRoutedRPC(peerId, ChannelCreateMessageHashName, package);
+                    if(!string.IsNullOrEmpty(text))
+                    {
+                        ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
+                    }
+                }
             }
             else
             {
