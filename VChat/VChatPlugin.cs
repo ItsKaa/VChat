@@ -21,6 +21,7 @@ namespace VChat
         public const string GUID = "org.itskaa.vchat";
         public const string Name = "VChat";
         public const string Version = "2.0.0";
+        public const bool   IsBetaVersion = true;
         public const int    NexusID = 362;
         public const string RepositoryAuthor = "ItsKaa";
         public const string RepositoryName = "VChat";
@@ -56,13 +57,13 @@ namespace VChat
 
             LastChatType.Set(Settings.DefaultChatChannel);
             CurrentInputChatType.Set(LastChatType);
-            Log($"Initialised {Name} ({Version})");
+            Log($"Initialised {Name} ({Version}) {(IsBetaVersion ? "BETA" : "")}");
 
             // Get the latest release from github and notify if there is a newer version.
             var latestReleaseVersion = GithubHelper.GetLatestGithubRelease(RepositoryAuthor, RepositoryName);
             if (!string.IsNullOrEmpty(latestReleaseVersion))
             {
-                if (VersionHelper.IsNewerVersion(Version, latestReleaseVersion))
+                if (VersionHelper.IsNewerVersion(Version, latestReleaseVersion, IsBetaVersion))
                 {
                     LogWarning($"Version {latestReleaseVersion} of VChat has been released, please see {RepositoryUrl}");
                 }

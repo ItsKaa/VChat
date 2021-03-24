@@ -40,7 +40,7 @@ namespace VChat.Patches
 
                             var messages = new[]
                             {
-                                $"This server runs {VChatPlugin.Name} {VChatPlugin.Version}, We detected that you do not have this mod installed.",
+                                $"This server runs {VChatPlugin.Name} {VChatPlugin.Version}{(VChatPlugin.IsBetaVersion ? " BETA" : "")}, We detected that you do not have this mod installed.",
                                 $"You can find the latest version on {VChatPlugin.RepositoryUrl}",
                                 $"{VChatPlugin.Name} channel messages will be sent in your local chat channel.",
                                 $"Type {VChatPlugin.Settings.CommandPrefix}{VChatPlugin.Settings.GlobalChatCommandName.FirstOrDefault()} [text] to send a message to the global chat.",

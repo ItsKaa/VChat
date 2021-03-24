@@ -64,16 +64,16 @@ namespace VChat.Patches
             if (!string.IsNullOrEmpty(latestReleaseVersion))
             {
                 List<string> messages = new();
-                if (VersionHelper.IsNewerVersion(VChatPlugin.Version, latestReleaseVersion))
+                if (VersionHelper.IsNewerVersion(VChatPlugin.Version, latestReleaseVersion, VChatPlugin.IsBetaVersion))
                 {
                     messages.AddRange(new[] {
-                        $"You are running on an older version of {VChatPlugin.Name} ({VChatPlugin.Version}).",
+                        $"You are running on an older version of {VChatPlugin.Name} ({VChatPlugin.Version}{(VChatPlugin.IsBetaVersion ? " BETA" : "")}).",
                         $"version {latestReleaseVersion} has been released, see {VChatPlugin.RepositoryUrl}",
                     });
                 }
                 else
                 {
-                    messages.Add($"{VChatPlugin.Name} {VChatPlugin.Version} is loaded and up to date.");
+                    messages.Add($"{VChatPlugin.Name} {VChatPlugin.Version}{(VChatPlugin.IsBetaVersion ? " BETA" : "")} is loaded and up to date.");
                 }
 
                 foreach (var msg in messages)
