@@ -17,6 +17,7 @@ namespace VChat.Patches
             ChannelEditMessage.Register();
             ChannelChatMessage.Register();
             ChannelDisbandMessage.Register();
+            ChannelLeaveMessage.Register();
 
             // Initialise server commands
             VChatPlugin.InitialiseServerCommands();

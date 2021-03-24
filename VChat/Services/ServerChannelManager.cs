@@ -213,6 +213,87 @@ namespace VChat.Services
         }
 
         /// <summary>
+        /// Remove a player from an existing channel, if the user is the owner, the ownership will be passed on, or the channel will disband if it's empty.
+        /// </summary>
+        public static bool RemovePlayerFromChannel(long peerId, ulong steamId, string channelName)
+        {
+            lock (_lockChannelInfo)
+            {
+                var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                if (channelInfo != null)
+                {
+                    if(channelInfo.OwnerId == steamId)
+                    {
+                        if (channelInfo.Invitees.Count == 0)
+                        {
+                            // Disband
+                            DisbandChannel(peerId, steamId, channelName);
+                            return true;
+                        }
+                        else
+                        {
+                            // Retrieve the list of active steam ids
+                            var steamIds = ZNet.instance.GetConnectedPeers().Select(peer =>
+                            {
+                                if (ValheimHelper.GetSteamIdFromPeer(peer, out ulong peerSteamId))
+                                {
+                                    return peerSteamId;
+                                }
+                                return ulong.MaxValue;
+                            }).Where(x => x != ulong.MaxValue).Distinct();
+
+                            // Get the first active player in that collection
+                            ulong newOwnerId = 0UL;
+                            foreach(var inviteeId in channelInfo.Invitees)
+                            {
+                                if(steamIds.Contains(inviteeId))
+                                {
+                                    newOwnerId = inviteeId;
+                                    break;
+                                }
+                            }
+
+                            // If we cannot find an online player, simply pass it on to the first invitee.
+                            if(newOwnerId == 0UL)
+                            {
+                                newOwnerId = channelInfo.Invitees.FirstOrDefault();
+                                VChatPlugin.Log($"Passing the channel '{channelInfo.Name}' to the first invitee because nobody else is online.");
+                            }
+
+                            // Retrieve the owner peer
+                            var ownerPeer = ValheimHelper.GetPeerFromSteamId(newOwnerId);
+                            var ownerPlayerName = ownerPeer?.m_playerName ?? $"{newOwnerId}";
+
+                            // Apply the owner
+                            channelInfo.OwnerId = newOwnerId;
+                            channelInfo.Invitees.Remove(newOwnerId);
+                            VChatPlugin.Log($"Passing the channel '{channelInfo.Name}' to {ownerPeer?.m_playerName}, id {newOwnerId}.");
+
+                            // Send a message to every online player in that channel
+                            var channelInviteeSteamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
+                            foreach (var inviteeSteamId in steamIds.Where(x => channelInviteeSteamIds.Contains(x)))
+                            {
+                                if(ValheimHelper.GetPeerIdFromSteamId(inviteeSteamId, out long inviteePeerId))
+                                {
+                                    SendMessageToPeerInChannel(inviteePeerId, channelName, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
+                                }
+                            }
+
+                            return true;
+                        }
+                    }
+                    else if(channelInfo.Invitees.Contains(steamId))
+                    {
+                        channelInfo.Invitees.Remove(steamId);
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns true if the channel can be found and if the user has permission to invite.
         /// </summary>
         public static bool CanInvite(ulong steamId, string channelName)

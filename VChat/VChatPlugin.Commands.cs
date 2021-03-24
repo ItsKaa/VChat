@@ -376,6 +376,12 @@ namespace VChat
                         LogWarning($"Got disband from local chat");
                         var channelName = text.Trim();
                         ChannelDisbandMessage.SendToServer(peerId, channelName);
+                    }),
+                    new PluginCommandServer("leave", (text, peerId, steamId) =>
+                    {
+                        LogWarning($"Got leave from local chat");
+                        var channelName = text.Trim();
+                        ChannelLeaveMessage.SendToServer(peerId, channelName);
                     })
                 );
 
