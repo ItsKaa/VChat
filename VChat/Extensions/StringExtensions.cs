@@ -1,4 +1,7 @@
-﻿namespace VChat.Extensions
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+namespace VChat.Extensions
 {
     public static class StringExtensions
     {
@@ -24,5 +27,19 @@
 
         public static string Between(this string source, string start, string end, int fromPosition = 0)
             => Between(source, start, end, out int _, fromPosition);
+
+        public static string ReplaceIgnoreCase(this string source, string oldValue, string newValue)
+        {
+            return Regex.Replace(source, oldValue, newValue, RegexOptions.IgnoreCase);
+        }
+
+        public static string ReplaceIgnoreCase(this string source, IEnumerable<string> oldValues, string newValue)
+        {
+            foreach(var oldValue in oldValues)
+            {
+                source = source.ReplaceIgnoreCase(oldValue, newValue);
+            }
+            return source;
+        }
     }
 }
