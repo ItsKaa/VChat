@@ -398,6 +398,21 @@ namespace VChat
                         }
 
                         ChannelKickMessage.SendToServer(peerId, channelName, playerName);
+                    }),
+                    new PluginCommandServer(new[] { "setcolor", "setchannelcolor" }, (text, peerId, steamId) =>
+                    {
+                        var remainder = text.Trim();
+                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                        LogWarning($"Got edit color from local chat");
+                        string channelName = null;
+                        string colorValue = null;
+                        if (remainderData.Length >= 2)
+                        {
+                            channelName = remainderData[0];
+                            colorValue = remainderData[1];
+                        }
+                        ChannelEditMessage.SendToServer(peerId, ChannelEditMessage.ChannelEditType.EditChannelColor, channelName, colorValue);
                     })
                 );
 

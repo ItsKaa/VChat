@@ -1,4 +1,8 @@
-﻿using VChat.Helpers;
+﻿using Steamworks;
+using System;
+using UnityEngine;
+using VChat.Extensions;
+using VChat.Helpers;
 using VChat.Services;
 
 namespace VChat.Messages
@@ -7,18 +11,15 @@ namespace VChat.Messages
     {
         public enum ChannelEditType
         {
-            ServerResponse,
-            EditChannelName,
-            EditChannelCommand,
             EditChannelColor,
-            EditChannelOwner,
-            EditChannelIsPublic,
         }
 
         public enum ChannelEditResponseType
         {
+            OK,
             ChannelNotFound,
             NoPermission,
+            InvalidValue,
         }
 
         public const string ChannelEditMessageHashName = VChatPlugin.Name + ".ChannelEdit";
@@ -38,20 +39,28 @@ namespace VChat.Messages
 
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
-            if (senderId == ValheimHelper.GetServerPeerId())
+            var version = package.ReadInt();
+            var senderPeerId = package.ReadLong();
+            var editType = package.ReadInt();
+            var channelName = package.ReadString();
+            var value = package.ReadString();
+
+            // Only use the packet peer id if it's sent from the server.
+            if (senderId != ValheimHelper.GetServerPeerId())
             {
-                var version = package.ReadInt();
-                var editType = package.ReadInt();
-                var channelName = package.ReadString();
-                var value = package.ReadString();
+                senderPeerId = senderId;
             }
-            else
+
+            if (ValheimHelper.GetSteamIdFromPeer(senderPeerId, out ulong senderSteamId))
             {
-                VChatPlugin.LogWarning($"Ignoring a channel edit message received from a client with id {senderId}.");
+                if (editType == (int)ChannelEditType.EditChannelColor)
+                {
+                    EditChannelColor(senderPeerId, senderSteamId, channelName, value);
+                }
             }
         }
 
-        public static void SendResponseToPeer(long peerId, ChannelEditResponseType responseType, string channelName)
+        public static void SendToPeer(long peerId, ChannelEditType type, ChannelEditResponseType responseType, string channelName, string value)
         {
             if (ZNet.m_isServer)
             {
@@ -66,6 +75,14 @@ namespace VChat.Messages
                             break;
                         case ChannelEditResponseType.NoPermission:
                             text = "You do not have permission to edit that channel.";
+                            break;
+                        case ChannelEditResponseType.InvalidValue:
+                            {
+                                if (type == ChannelEditType.EditChannelColor)
+                                {
+                                    text = $"Could not parse the color '{value}'";
+                                }
+                            }
                             break;
                         default:
                             VChatPlugin.LogError($"Unknown response type for edit channel received: {responseType}");
@@ -84,22 +101,45 @@ namespace VChat.Messages
             }
         }
 
-        public static void SendRequestToServer(ChannelEditType type, string channelName, string value)
+        public static void SendToServer(long senderId, ChannelEditType type, string channelName, string value)
         {
-            if (!ZNet.m_isServer)
-            {
-                var package = new ZPackage();
-                package.Write(Version);
-                package.Write((int)type);
-                package.Write(channelName);
-                package.Write(value);
+            var package = new ZPackage();
+            package.Write(Version);
+            package.Write(senderId);
+            package.Write((int)type);
+            package.Write(channelName ?? string.Empty);
+            package.Write(value ?? string.Empty);
 
-                ZRoutedRpc.instance.InvokeRoutedRPC(ValheimHelper.GetServerPeerId(), ChannelEditMessageHashName, package);
+            ZRoutedRpc.instance.InvokeRoutedRPC(ValheimHelper.GetServerPeerId(), ChannelEditMessageHashName, package);
+        }
+        public static void SendToServer(long senderId, ChannelEditType type, string channelName, Color color)
+            => SendToServer(senderId, type, channelName, color.ToHtmlString());
+
+        private static bool EditChannelColor(long peerId, ulong steamId, string channelName, string colorValue)
+        {
+            if(!ServerChannelManager.DoesChannelExist(channelName))
+            {
+                SendToPeer(peerId, ChannelEditType.EditChannelColor, ChannelEditResponseType.ChannelNotFound, channelName, colorValue);
+            }
+            else if(!ServerChannelManager.CanModerateChannel(steamId, channelName))
+            {
+                SendToPeer(peerId, ChannelEditType.EditChannelColor, ChannelEditResponseType.NoPermission, channelName, colorValue);
             }
             else
             {
-                VChatPlugin.LogWarning($"Cannot send the channel edit request to a client.");
+                var color = colorValue?.ToColor();
+                if (!color.HasValue)
+                {
+                    SendToPeer(peerId, ChannelEditType.EditChannelColor, ChannelEditResponseType.InvalidValue, channelName, colorValue);
+                }
+                else
+                {
+                    ServerChannelManager.EditChannelColor(channelName, color.Value, peerId);
+                }
+                return true;
             }
+
+            return false;
         }
     }
 }

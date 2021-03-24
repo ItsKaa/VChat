@@ -458,6 +458,38 @@ namespace VChat.Services
             return false;
         }
 
+        /// <summary>
+        /// Update channel color.
+        /// </summary>
+        public static bool EditChannelColor(string channelName, Color color, long senderPeerId = 0L)
+        {
+            lock (_lockChannelInfo)
+            {
+                var channel = FindChannel(channelName);
+                if (channel == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    // Apply minimum alpha value
+                    if (color.a < 0.20)
+                    {
+                        color = new Color(color.r, color.g, color.b, Math.Max(0.2f, color.a));
+                    }
+
+                    channel.Color = color;
+                }
+            }
+
+            var senderPlayerName = senderPeerId == 0L ? "server" : ValheimHelper.GetPeer(senderPeerId)?.m_playerName;
+            VChatPlugin.Log($"Player '{senderPlayerName}' has changed channel color of the channel '{channelName}' to '{color.ToHtmlString()}'.");
+
+            SendChannelInformationToConnectedClients(channelName);
+            SendMessageToAllPeersInChannel(channelName, $"<i>Channel color has been modified.</i>");
+            return true;
+        }
+
 
         /// <summary>
         /// Send a message to all connected peers within the provided channel.
