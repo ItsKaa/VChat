@@ -110,7 +110,7 @@ namespace VChat.Messages
                     }
                     else if (ServerChannelManager.CanModerateChannel(senderSteamId, channelName))
                     {
-                        return ServerChannelManager.RemovePlayerFromChannel(targetPeer.m_uid, targetSteamId, channelName);
+                        return ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeer.m_uid, targetSteamId, channelName);
                     }
                     else
                     {

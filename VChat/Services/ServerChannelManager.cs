@@ -219,21 +219,26 @@ namespace VChat.Services
         /// <param name="senderPeerId">The peer id of the player remvoing the target player, set this to 0 if sending from the server.</param>
         public static bool RemovePlayerFromChannel(long senderPeerId, long targetPeerId, ulong targetSteamId, string channelName)
         {
+            bool result = false;
+            bool hasOwnerChanged = false;
+
             lock (_lockChannelInfo)
             {
                 var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
                 if (channelInfo != null)
                 {
-                    if(channelInfo.OwnerId == targetSteamId)
+                    // If the owner is being removed, change the owner of the channel or disband it if it's empty.
+                    if (channelInfo.OwnerId == targetSteamId)
                     {
                         if (channelInfo.Invitees.Count == 0)
                         {
-                            // Disband
+                            // Channel is empty, disband it.
                             DisbandChannel(targetPeerId, targetSteamId, channelName);
                             return true;
                         }
                         else
                         {
+                            // Change the owner.
                             // Retrieve the list of active steam ids
                             var steamIds = ZNet.instance.GetConnectedPeers().Select(peer =>
                             {
@@ -262,39 +267,49 @@ namespace VChat.Services
                                 VChatPlugin.Log($"Passing the channel '{channelInfo.Name}' to the first invitee because nobody else is online.");
                             }
 
-                            // Retrieve the owner peer
-                            var ownerPeer = ValheimHelper.GetPeerFromSteamId(newOwnerId);
-                            var ownerPlayerName = ownerPeer?.m_playerName ?? $"{newOwnerId}";
-
                             // Apply the owner
                             channelInfo.OwnerId = newOwnerId;
                             channelInfo.Invitees.Remove(newOwnerId);
-                            VChatPlugin.Log($"Owner has been removed from the channel, passing the channel '{channelInfo.Name}' to {ownerPeer?.m_playerName}, id {newOwnerId}.");
+                            VChatPlugin.Log($"Owner has been removed from the channel, passing the channel '{channelInfo.Name}' to {newOwnerId}.");
 
-                            // Send a message to every online player in that channel
-                            var channelInviteeSteamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
-                            foreach (var inviteeSteamId in steamIds.Where(x => channelInviteeSteamIds.Contains(x)))
-                            {
-                                if(ValheimHelper.GetPeerIdFromSteamId(inviteeSteamId, out long inviteePeerId))
-                                {
-                                    SendMessageToPeerInChannel(inviteePeerId, channelName, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
-                                }
-                            }
-                            SendChannelInformationToClient(targetPeerId);
-                            return true;
+                            hasOwnerChanged = true;
+                            result = true;
                         }
                     }
-                    else if(channelInfo.Invitees.Contains(targetSteamId))
+
+                    result |= channelInfo.Invitees.Contains(targetSteamId);
+                    if (result)
                     {
-                        VChatPlugin.Log($"Player '{ValheimHelper.GetPeer(peerId)?.m_playerName}' has been removed from the channel '{channelName}'.");
-                        channelInfo.Invitees.Remove(steamId);
-                        SendChannelInformationToClient(peerId);
-                        return true;
+                        var targetPlayerName = ValheimHelper.GetPeer(targetPeerId)?.m_playerName ?? $"{targetSteamId}";
+                        var senderPlayerName = senderPeerId == 0L ? "the server" : ValheimHelper.GetPeer(senderPeerId)?.m_playerName ?? "unknown";
+
+                        VChatPlugin.Log($"Player '{targetPlayerName}' has been removed from the channel '{channelName}' by {senderPlayerName}.");
+
+                        // Notify all active players that the target has been removed from the channel.
+                        if (senderPeerId == targetPeerId)
+                        {
+                            SendMessageToAllPeersInChannel(channelName, $"<i>{targetPlayerName} has left the channel.</i>");
+                        }
+                        else
+                        {
+                            SendMessageToAllPeersInChannel(channelName, $"<i>{targetPlayerName} has been removed from the channel by {senderPlayerName}.</i>", Color.gray);
+                        }
+
+                        // Remove the invitee after the message is sent
+                        channelInfo.Invitees.Remove(targetSteamId);
+                        SendChannelInformationToClient(targetPeerId);
+                    }
+
+                    if(hasOwnerChanged)
+                    {
+                        var ownerPeer = ValheimHelper.GetPeerFromSteamId(channelInfo.OwnerId);
+                        var ownerPlayerName = ownerPeer?.m_playerName ?? $"{channelInfo.OwnerId}";
+                        SendMessageToAllPeersInChannel(channelName, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
                     }
                 }
             }
 
-            return false;
+            return result;
         }
 
         /// <summary>
