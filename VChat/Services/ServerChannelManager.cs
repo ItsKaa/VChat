@@ -410,10 +410,7 @@ namespace VChat.Services
                             // Notify all connected peers with the player that disbanded it.
                             var text = $"Channel '{channelInfo.Name}' has been disbanded by {peer.m_playerName}.";
 
-                            MessageHelper.SendMessageToPeer(targetPeer.m_uid, VChatPlugin.Name, null, text, () =>
-                            {
                                 SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, text);
-                            }, new System.Version(2,0,0));
 
                             // Update channel information for VChat clients.
                             SendChannelInformationToClient(targetPeer.m_uid);
@@ -445,11 +442,8 @@ namespace VChat.Services
                         {
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
-                            {
-                                MessageHelper.SendMessageToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_playerName ?? callerName, text, () =>
                                 {
                                     ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? callerName, text, customColor);
-                                }, new System.Version(2,0,0));
                             }
                         }
                         return true;

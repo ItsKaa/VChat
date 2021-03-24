@@ -221,13 +221,9 @@ namespace VChat.Messages
                     VChatPlugin.Log($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{inviteePeer.m_playerName}\" ({inviteePeer.m_uid}).");
 
                     string text = $"{inviterPeer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
-                    MessageHelper.SendMessageToPeer(inviteePeer.m_uid, VChatPlugin.Name, null, text, () =>
-                    {
-                        // Send packet to the peer and a chat message in the VChat channel.
-                        SendToPeer(inviteePeer.m_uid, ChannelInviteType.Invite, ChannelInviteResponseType.OK, channelInviteInfo.ChannelName, inviterPeer.m_playerName);
-                        ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, text);
-                    }, new System.Version(2,0,0));
+                    ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, text);
 
+                    SendToPeer(inviteePeer.m_uid, ChannelInviteType.Invite, ChannelInviteResponseType.OK, channelInviteInfo.ChannelName, inviterPeer.m_playerName);
                 }
                 else
                 {
