@@ -382,6 +382,22 @@ namespace VChat
                         LogWarning($"Got leave from local chat");
                         var channelName = text.Trim();
                         ChannelLeaveMessage.SendToServer(peerId, channelName);
+                    }),
+                    new PluginCommandServer("remove", (text, peerId, steamId) =>
+                    {
+                        var remainder = text.Trim();
+                        var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                        LogWarning($"Got remove from local chat");
+                        string channelName = null;
+                        string playerName = null;
+                        if (remainderData.Length >= 2)
+                        {
+                            channelName = remainderData[0];
+                            playerName  = remainderData[1];
+                        }
+
+                        ChannelKickMessage.SendToServer(peerId, channelName, playerName);
                     })
                 );
 

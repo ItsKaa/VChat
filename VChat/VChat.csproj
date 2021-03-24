@@ -65,6 +65,7 @@
     <Compile Include="Messages\ChannelEditMessage.cs" />
     <Compile Include="Messages\ChannelInfoMessage.cs" />
     <Compile Include="Messages\ChannelInviteMessage.cs" />
+    <Compile Include="Messages\ChannelKickMessage.cs" />
     <Compile Include="Messages\ChannelLeaveMessage.cs" />
     <Compile Include="Messages\GlobalMessages.cs" />
     <Compile Include="Messages\GreetingMessage.cs" />
