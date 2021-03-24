@@ -1,5 +1,6 @@
 ﻿using System;
 using VChat.Data;
+using VChat.Extensions;
 using VChat.Messages;
 
 namespace VChat.Helpers
@@ -41,6 +42,9 @@ namespace VChat.Helpers
                 var peer = ZNet.instance.GetPeer(peerId);
                 if (peer != null)
                 {
+                    // Reformat text since the vanilla client doesn't support rich-text formatting.
+                    text = text.ReplaceIgnoreCase(new[] { "<i>", "</i>", "<b>", "</b>" }, "");
+
                     var chatMessageParameters = new object[] {
                         peer.m_refPos,
                         (int)Talker.Type.Normal,
