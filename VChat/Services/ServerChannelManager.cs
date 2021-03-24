@@ -408,24 +408,22 @@ namespace VChat.Services
         /// </summary>
         public static bool SendMessageToAllUsersInChannel(long senderPeerId, string channelName, string callerName, string text, Color? customColor = null)
         {
-            var peer = ValheimHelper.GetPeer(senderPeerId);
-            if (peer != null && ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
+            var senderPeer = ValheimHelper.GetPeer(senderPeerId);
+            if (senderPeer != null && ValheimHelper.GetSteamIdFromPeer(senderPeer, out ulong senderSteamId))
             {
-                var knownChannels = GetChannelsForUser(steamId);
-                foreach (var channel in knownChannels)
+                foreach (var channel in GetChannelsForUser(senderSteamId))
                 {
                     if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var steamIds = new List<ulong> { channel.OwnerId };
-                        steamIds.AddRange(channel.Invitees);
+                        var steamIds = channel.Invitees.Concat(new[] { channel.OwnerId });
                         foreach (var channelUserSteamId in steamIds)
                         {
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
                             {
-                                MessageHelper.SendMessageToPeer(targetPeer.m_uid, channel.Name, targetPeer?.m_playerName ?? callerName, text, () =>
+                                MessageHelper.SendMessageToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_playerName ?? callerName, text, () =>
                                 {
-                                    ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, targetPeer?.m_refPos ?? new Vector3(), targetPeer?.m_playerName ?? callerName, text, customColor);
+                                    ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? callerName, text, customColor);
                                 }, new System.Version(2,0,0));
                             }
                         }
