@@ -368,6 +368,38 @@ namespace VChat.Services
         }
 
         /// <summary>
+        /// Sends the accessible channel information to the peer.
+        /// </summary>
+        public static bool SendChannelInformationToConnectedClients(string channelName)
+        {
+            if (ZNet.m_isServer)
+            {
+                var channel = FindChannel(channelName);
+                if (channel != null)
+                {
+                    var steamIds = channel.Invitees.ToList();
+                    if (channel.OwnerId != 0L)
+                    {
+                        steamIds.Add(channel.OwnerId);
+                    }
+
+                    foreach (var peer in ZNet.instance.GetConnectedPeers())
+                    {
+                        if (ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId)
+                            && steamIds.Contains(steamId))
+                        {
+                            var channels = GetChannelsForUser(steamId);
+                            ChannelInfoMessage.SendToPeer(peer.m_uid, channels);
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Sends a request to the server to create a channel.
         /// </summary>
         public static bool DisbandChannel(long peerId, ulong steamId, string channelName)
