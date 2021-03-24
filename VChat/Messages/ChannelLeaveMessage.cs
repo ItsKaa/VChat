@@ -41,10 +41,9 @@ namespace VChat.Messages
                     senderPeerId = senderId;
                 }
 
-                var peer = ZNet.instance?.GetPeer(senderPeerId);
-                if (peer != null && peer.m_socket is ZSteamSocket steamSocket)
+                if (ValheimHelper.GetSteamIdFromPeer(senderPeerId, out ulong senderSteamId))
                 {
-                    LeaveChannelForPeer(senderPeerId, steamSocket.GetPeerID().m_SteamID, channelName);
+                    LeaveChannelForPeer(senderPeerId, senderPeerId, senderSteamId, channelName);
                 }
             }
         }

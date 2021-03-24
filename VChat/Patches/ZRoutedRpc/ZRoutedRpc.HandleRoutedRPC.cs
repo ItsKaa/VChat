@@ -2,6 +2,7 @@
 using System;
 using UnityEngine;
 using VChat.Data;
+using VChat.Helpers;
 using VChat.Messages;
 using static ZRoutedRpc;
 
@@ -21,8 +22,10 @@ namespace VChat.Patches
                     var ctype = package.ReadInt();
                     var playerName = package.ReadString();
                     var text = package.ReadString();
-                    var senderSteamSocket = senderPeer.m_socket as ZSteamSocket;
-                    var senderSteamId = senderSteamSocket?.GetPeerID().m_SteamID ?? ulong.MaxValue;
+                    if (!ValheimHelper.GetSteamIdFromPeer(senderPeer, out ulong senderSteamId))
+                    {
+                        VChatPlugin.LogWarning($"Got local chat message but couldn't read the steam id.");
+                    }
 
                     VChatPlugin.Log($"Got message from  by user {playerName}: \"{text}\"");
 

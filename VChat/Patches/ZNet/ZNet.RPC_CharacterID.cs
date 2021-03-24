@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using VChat.Data;
+using VChat.Helpers;
 using VChat.Messages;
 using VChat.Services;
 
@@ -52,9 +53,8 @@ namespace VChat.Patches
                         }
 
                         // Send channel information
-                        if (peer.m_socket is ZSteamSocket steamSocket)
+                        if (ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
                         {
-                            var steamId = steamSocket.GetPeerID().m_SteamID;
                             foreach (var channelInfo in ServerChannelManager.GetChannelsForUser(steamId))
                             {
                                 ServerChannelManager.SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);

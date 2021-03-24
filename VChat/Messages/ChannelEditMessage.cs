@@ -38,16 +38,12 @@ namespace VChat.Messages
 
         private static void OnMessage_Client(long senderId, ZPackage package)
         {
-            if (senderId != ValheimHelper.GetServerPeerId())
+            if (senderId == ValheimHelper.GetServerPeerId())
             {
-                var peer = ZNet.instance.GetPeer(senderId);
-                if (peer != null && peer.m_socket is ZSteamSocket steamSocket)
-                {
-                    var version = package.ReadInt();
-                    var editType = package.ReadInt();
-                    var channelName = package.ReadString();
-                    var value = package.ReadString();
-                }
+                var version = package.ReadInt();
+                var editType = package.ReadInt();
+                var channelName = package.ReadString();
+                var value = package.ReadString();
             }
             else
             {

@@ -40,11 +40,11 @@ namespace VChat.Messages
                     senderPeerId = senderId;
                 }
 
-                var peer = ZNet.instance?.GetPeer(senderPeerId);
-                if (peer != null && peer.m_socket is ZSteamSocket steamSocket)
+                var senderPeer = ZNet.instance?.GetPeer(senderPeerId);
+                if (ValheimHelper.GetSteamIdFromPeer(senderPeer, out ulong senderSteamId))
                 {
-                    VChatPlugin.LogWarning($"Player \"{peer.m_playerName}\" ({senderPeerId}) requested to create channel named {channelName}.");
-                    AddChannelForPeer(senderPeerId, steamSocket.GetPeerID().m_SteamID, channelName);
+                    VChatPlugin.LogWarning($"Player \"{senderPeer.m_playerName}\" ({senderPeerId}) requested to create channel named {channelName}.");
+                    AddChannelForPeer(senderPeerId, senderSteamId, channelName);
                 }
             }
         }

@@ -141,8 +141,8 @@ namespace VChat.Services
             // Send update message to relevant players
             foreach (var peer in ZNet.instance.GetConnectedPeers())
             {
-                if (peer.m_socket is ZSteamSocket steamSocket
-                    && steamSocket.GetPeerID().m_SteamID == ownerSteamId)
+                if (ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId)
+                    && steamId == ownerSteamId)
                 {
                     SendChannelInformationToClient(peer.m_uid);
                     SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);
@@ -343,11 +343,9 @@ namespace VChat.Services
         {
             if (ZNet.m_isServer)
             {
-                var peer = ZNet.instance.GetPeer(peerId);
-                var steamId = (peer.m_socket as ZSteamSocket)?.GetPeerID().m_SteamID;
-                if (steamId != null)
+                if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId))
                 {
-                    var channels = GetChannelsForUser(steamId.Value);
+                    var channels = GetChannelsForUser(steamId);
                     ChannelInfoMessage.SendToPeer(peerId, channels);
                     return true;
                 }
