@@ -405,7 +405,7 @@ namespace VChat.Services
         /// <summary>
         /// Send a message to all connected peers within the provided channel.
         /// </summary>
-        public static bool SendMessageToAllUsersInChannel(long senderPeerId, string channelName, string text)
+        public static bool SendMessageToAllUsersInChannel(long senderPeerId, string channelName, string callerName, string text, Color? customColor = null)
         {
             var peer = ValheimHelper.GetPeer(senderPeerId);
             if (peer != null && ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
@@ -422,8 +422,10 @@ namespace VChat.Services
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
                             {
-                                object[] parameters = new object[] { targetPeer.GetRefPos(), (int)Talker.Type.Normal, $"[{channel.Name}]", $"{peer.m_playerName}: {text}" };
-                                ZRoutedRpc.instance.InvokeRoutedRPC(targetPeer.m_uid, "ChatMessage", parameters);
+                                MessageHelper.SendMessageToPeer(targetPeer.m_uid, channel.Name, targetPeer?.m_playerName ?? callerName, text, () =>
+                                {
+                                    ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, targetPeer?.m_refPos ?? new Vector3(), targetPeer?.m_playerName ?? callerName, text, customColor);
+                                }, new System.Version(2,0,0));
                             }
                         }
                         return true;
@@ -446,7 +448,7 @@ namespace VChat.Services
                 {
                     if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        ChannelChatMessage.SendToServer(peer.m_uid, channel.Name, peer.m_refPos, null, text, color);
+                        ChannelChatMessage.SendToPeer(peer.m_uid, channel.Name, peer.m_refPos, null, text, color);
                         return true;
                     }
                 }
@@ -520,7 +522,7 @@ namespace VChat.Services
                 if (peer != null)
                 {
                     var message = $"Successfully connected to the {channelInfo.Name} channel.";
-                    SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
+                    SendMessageToPeerInChannel(peerId, VChatPlugin.Name, message);
 
                     // Only send if command name is set, otherwise it's considered a read-only channel.
                     VChatPlugin.LogWarning($"{peerId} connected to the channel {channelInfo.Name}, commandName: /{channelInfo.ServerCommandName}");
@@ -528,7 +530,7 @@ namespace VChat.Services
                     {
                         VChatPlugin.LogWarning($"Sending command info");
                         message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
-                        SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
+                        SendMessageToPeerInChannel(peerId, VChatPlugin.Name, message);
                     }
                 }
             }

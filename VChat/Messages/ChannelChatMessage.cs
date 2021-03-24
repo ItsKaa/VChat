@@ -51,10 +51,7 @@ namespace VChat.Messages
                 var channel = ServerChannelManager.FindChannel(channelName);
                 if (isSentByServer || (channel != null && (!channel.ReadOnly || channel.OwnerId == steamId || ValheimHelper.IsAdministrator(steamId))))
                 {
-                    MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, () =>
-                    {
-                        SendToPeer(peerId, channelName, pos, callerName, text, colorHtmlString?.ToColor());
-                    }, new System.Version(2, 0, 0));
+                    ServerChannelManager.SendMessageToAllUsersInChannel(peerId, channelName, callerName, text, colorHtmlString?.ToColor());
                 }
                 else
                 {
