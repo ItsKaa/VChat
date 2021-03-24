@@ -75,9 +75,10 @@ namespace VChat.Services
         }
 
         /// <summary>
-        /// Returns the list of available channels for the specified user where that user is either an owner or administrator in.
+        /// Returns true if the user has special permissions for that channel.
+        /// This means that the user can kick playerss and disband the channel.
         /// </summary>
-        public static bool CanDisbandChannel(ulong steamId, string channelName)
+        public static bool CanModerateChannel(ulong steamId, string channelName)
         {
             lock (_lockChannelInfo)
             {
@@ -349,7 +350,7 @@ namespace VChat.Services
             {
                 ChannelDisbandMessage.SendResponseToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
             }
-            else if (!CanDisbandChannel(steamId, channelName))
+            else if (!CanModerateChannel(steamId, channelName))
             {
                 ChannelDisbandMessage.SendResponseToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.NoPermission, channelName);
             }

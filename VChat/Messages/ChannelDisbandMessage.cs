@@ -110,7 +110,7 @@ namespace VChat.Messages
                 }
                 else
                 {
-                    if(!ServerChannelManager.CanDisbandChannel(steamId, channelName))
+                    if(!ServerChannelManager.CanModerateChannel(steamId, channelName))
                     {
                         SendResponseToPeer(peerId, ChannelDisbandResponseType.NoPermission, channelName);
                     }
