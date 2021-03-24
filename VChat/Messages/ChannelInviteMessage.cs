@@ -116,7 +116,10 @@ namespace VChat.Messages
                         case ChannelInviteResponseType.OK:
                             {
                                 isSuccess = true;
-                                text = $"Declined the invite for channel '{channelName}.'";
+                                if (inviteType == ChannelInviteType.Decline)
+                                {
+                                    text = $"Declined the invite for channel '{channelName}.'";
+                                }
                             }
                             break;
 
