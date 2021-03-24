@@ -103,24 +103,24 @@ namespace VChat.Messages
             ZRoutedRpc.instance.InvokeRoutedRPC(ValheimHelper.GetServerPeerId(), ChannelCreateMessageHashName, package);
         }
 
-        private static bool LeaveChannelForPeer(long peerId, ulong steamId, string channelName)
+        private static bool LeaveChannelForPeer(long senderPeerId, long targetPeerId, ulong targetSteamId, string channelName)
         {
             if (ZNet.m_isServer)
             {
                 if (ServerChannelManager.DoesChannelExist(channelName))
                 {
-                    var channel = ServerChannelManager.GetChannelsForUser(steamId).FirstOrDefault(x => string.Equals(x.Name, channelName, System.StringComparison.CurrentCultureIgnoreCase));
+                    var channel = ServerChannelManager.GetChannelsForUser(targetSteamId).FirstOrDefault(x => string.Equals(x.Name, channelName, System.StringComparison.CurrentCultureIgnoreCase));
                     if(channel != null)
                     {
-                        if(ServerChannelManager.RemovePlayerFromChannel(peerId, steamId, channelName))
+                        if(ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeerId, targetSteamId, channelName))
                         {
-                            SendToPeer(peerId, ChannelLeaveResponseType.OK, channelName);
+                            SendToPeer(targetPeerId, ChannelLeaveResponseType.OK, channelName);
                         }
                     }
                 }
                 else
                 {
-                    SendToPeer(peerId, ChannelLeaveResponseType.ChannelNotFound, channelName);
+                    SendToPeer(targetPeerId, ChannelLeaveResponseType.ChannelNotFound, channelName);
                 }
             }
             return false;

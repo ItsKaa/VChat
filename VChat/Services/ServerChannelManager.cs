@@ -216,19 +216,20 @@ namespace VChat.Services
         /// <summary>
         /// Remove a player from an existing channel, if the user is the owner, the ownership will be passed on, or the channel will disband if it's empty.
         /// </summary>
-        public static bool RemovePlayerFromChannel(long peerId, ulong steamId, string channelName)
+        /// <param name="senderPeerId">The peer id of the player remvoing the target player, set this to 0 if sending from the server.</param>
+        public static bool RemovePlayerFromChannel(long senderPeerId, long targetPeerId, ulong targetSteamId, string channelName)
         {
             lock (_lockChannelInfo)
             {
                 var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
                 if (channelInfo != null)
                 {
-                    if(channelInfo.OwnerId == steamId)
+                    if(channelInfo.OwnerId == targetSteamId)
                     {
                         if (channelInfo.Invitees.Count == 0)
                         {
                             // Disband
-                            DisbandChannel(peerId, steamId, channelName);
+                            DisbandChannel(targetPeerId, targetSteamId, channelName);
                             return true;
                         }
                         else
@@ -279,11 +280,11 @@ namespace VChat.Services
                                     SendMessageToPeerInChannel(inviteePeerId, channelName, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
                                 }
                             }
-                            SendChannelInformationToClient(peerId);
+                            SendChannelInformationToClient(targetPeerId);
                             return true;
                         }
                     }
-                    else if(channelInfo.Invitees.Contains(steamId))
+                    else if(channelInfo.Invitees.Contains(targetSteamId))
                     {
                         VChatPlugin.Log($"Player '{ValheimHelper.GetPeer(peerId)?.m_playerName}' has been removed from the channel '{channelName}'.");
                         channelInfo.Invitees.Remove(steamId);
