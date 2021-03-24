@@ -195,16 +195,25 @@ namespace VChat.Services
         /// <summary>
         /// Add a player to the invitee list of an existing channel.
         /// </summary>
-        public static bool AddPlayerToChannelInviteeList(string channelName, ulong inviteeId)
+        public static bool AddPlayerToChannelInviteeList(long peerId, ulong steamId, string channelName)
         {
             lock (_lockChannelInfo)
             {
                 var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
                 if (channelInfo != null && !channelInfo.ReadOnly)
                 {
-                    if (!channelInfo.Invitees.Contains(inviteeId))
+                    if (!channelInfo.Invitees.Contains(steamId))
                     {
-                        channelInfo.Invitees.Add(inviteeId);
+                        channelInfo.Invitees.Add(steamId);
+
+                        SendChannelInformationToClient(peerId);
+                        SendMessageToClient_ChannelConnected(peerId, channelInfo);
+
+                        var playerName = ValheimHelper.GetPeer(peerId)?.m_playerName;
+                        if (!string.IsNullOrEmpty(playerName))
+                        {
+                            SendMessageToAllPeersInChannel(channelName, $"<i>{playerName} has joined the channel.</i>");
+                        }
                     }
                     return true;
                 }
@@ -292,7 +301,7 @@ namespace VChat.Services
                         }
                         else
                         {
-                            SendMessageToAllPeersInChannel(channelName, $"<i>{targetPlayerName} has been removed from the channel by {senderPlayerName}.</i>", Color.gray);
+                            SendMessageToAllPeersInChannel(channelName, $"<i>{targetPlayerName} has been removed from the channel by {senderPlayerName}.</i>");
                         }
 
                         // Remove the invitee after the message is sent

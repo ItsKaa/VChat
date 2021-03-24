@@ -253,14 +253,12 @@ namespace VChat.Messages
 
                     if (ServerChannelManager.RemoveInvite(steamId, channelName))
                     {
-                        if (ServerChannelManager.AddPlayerToChannelInviteeList(channelName, steamId))
+                        if (ServerChannelManager.AddPlayerToChannelInviteeList(peerId, steamId, channelName))
                         {
                             ServerChannelInfo channelInfo = ServerChannelManager.FindChannel(channelName);
                             if (channelInfo != null)
                             {
                                 VChatPlugin.Log($"User '{peer.m_playerName}' accepted channel invite '{channelName}' exist?");
-                                ServerChannelManager.SendChannelInformationToClient(peerId);
-                                ServerChannelManager.SendMessageToClient_ChannelConnected(peerId, channelInfo);
                                 SendToPeer(peerId, ChannelInviteType.Accept, ChannelInviteResponseType.OK, channelInfo.Name);
                                 return true;
                             }
