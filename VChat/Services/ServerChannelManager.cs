@@ -458,6 +458,33 @@ namespace VChat.Services
         }
 
         /// <summary>
+        /// Send a message to the provided channel to all active players that have access to it, without using a player-name.
+        /// </summary>
+        public static bool SendMessageToAllPeersInChannel(string channelName, string text, Color? color = null)
+        {
+            var channelInfo = FindChannel(channelName);
+            if (channelInfo == null)
+            {
+                // List of players ids to send that message to.
+                var steamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
+
+                // Send a message to every online player in that channel
+                var channelInviteeSteamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
+                foreach (var inviteeSteamId in steamIds.Where(x => channelInviteeSteamIds.Contains(x)))
+                {
+                    if (ValheimHelper.GetPeerIdFromSteamId(inviteeSteamId, out long inviteePeerId))
+                    {
+                        SendMessageToPeerInChannel(inviteePeerId, channelName, text, color);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Sends an success message in the VChat channel to a user, colors everything green.
         /// </summary>
         /// <returns></returns>
