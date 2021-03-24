@@ -1,10 +1,13 @@
-﻿using UnityEngine;
+﻿using System.Text.RegularExpressions;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace VChat.Extensions
 {
     public static class UnityExtensions
     {
+        private static Regex _stripUnityRichFormattingRegex = new Regex(@"<(/)?(i|b|size|color|material|quad)=?.*?>", RegexOptions.IgnoreCase);
+
         public static Color? ToColor(this string nameOrHtmlString)
         {
             if (ColorUtility.TryParseHtmlString(nameOrHtmlString, out Color color))
@@ -41,6 +44,15 @@ namespace VChat.Extensions
             {
                 component.ChangeClickThrough(enableClickThrough);
             }
+        }
+
+        /// <summary>
+        /// Returns a string without the known Unity rich text formatting.
+        /// </summary>
+        public static string StripRichTextFormatting(this string source)
+        {
+            return _stripUnityRichFormattingRegex.Replace(source, "");
+
         }
     }
 }
