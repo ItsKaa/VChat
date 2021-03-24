@@ -268,7 +268,7 @@ namespace VChat.Services
                             // Apply the owner
                             channelInfo.OwnerId = newOwnerId;
                             channelInfo.Invitees.Remove(newOwnerId);
-                            VChatPlugin.Log($"Passing the channel '{channelInfo.Name}' to {ownerPeer?.m_playerName}, id {newOwnerId}.");
+                            VChatPlugin.Log($"Owner has been removed from the channel, passing the channel '{channelInfo.Name}' to {ownerPeer?.m_playerName}, id {newOwnerId}.");
 
                             // Send a message to every online player in that channel
                             var channelInviteeSteamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
@@ -279,13 +279,15 @@ namespace VChat.Services
                                     SendMessageToPeerInChannel(inviteePeerId, channelName, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
                                 }
                             }
-
+                            SendChannelInformationToClient(peerId);
                             return true;
                         }
                     }
                     else if(channelInfo.Invitees.Contains(steamId))
                     {
+                        VChatPlugin.Log($"Player '{ValheimHelper.GetPeer(peerId)?.m_playerName}' has been removed from the channel '{channelName}'.");
                         channelInfo.Invitees.Remove(steamId);
+                        SendChannelInformationToClient(peerId);
                         return true;
                     }
                 }
