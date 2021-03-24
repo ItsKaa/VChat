@@ -297,6 +297,8 @@ namespace VChat.Services
                         // Notify all active players that the target has been removed from the channel.
                         if (senderPeerId == targetPeerId)
                         {
+                            // The sender already receives a confirmation message, so first remove the player from the invitee list to avoid duplicates.
+                            channelInfo.Invitees.Remove(targetSteamId);
                             SendMessageToAllPeersInChannel(channelName, $"<i>{targetPlayerName} has left the channel.</i>");
                         }
                         else
@@ -304,7 +306,7 @@ namespace VChat.Services
                             SendMessageToAllPeersInChannel(channelName, $"<i>{targetPlayerName} has been removed from the channel by {senderPlayerName}.</i>");
                         }
 
-                        // Remove the invitee after the message is sent
+                        // Remove the invitee after the message is sent and update the channel list of that player.
                         channelInfo.Invitees.Remove(targetSteamId);
                         SendChannelInformationToClient(targetPeerId);
                     }
@@ -410,7 +412,7 @@ namespace VChat.Services
                             // Notify all connected peers with the player that disbanded it.
                             var text = $"Channel '{channelInfo.Name}' has been disbanded by {peer.m_playerName}.";
 
-                                SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, text);
+                            SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, text);
 
                             // Update channel information for VChat clients.
                             SendChannelInformationToClient(targetPeer.m_uid);
@@ -437,13 +439,18 @@ namespace VChat.Services
                 {
                     if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var steamIds = channel.Invitees.Concat(new[] { channel.OwnerId });
+                        var steamIds = channel.Invitees.ToList();
+                        if(channel.OwnerId != 0L)
+                        {
+                            steamIds.Add(channel.OwnerId);
+                        }
+
                         foreach (var channelUserSteamId in steamIds)
                         {
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
-                                {
-                                    ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? callerName, text, customColor);
+                            {
+                                ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? callerName, text, customColor);
                             }
                         }
                         return true;
@@ -480,15 +487,24 @@ namespace VChat.Services
         public static bool SendMessageToAllPeersInChannel(string channelName, string text, Color? color = null)
         {
             var channelInfo = FindChannel(channelName);
-            if (channelInfo == null)
+            if (channelInfo != null)
             {
                 // List of players ids to send that message to.
-                var steamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
+                var steamIds = channelInfo.Invitees.ToList();
 
                 // Send a message to every online player in that channel
-                var channelInviteeSteamIds = channelInfo.Invitees.Concat(new[] { channelInfo.OwnerId });
-                foreach (var inviteeSteamId in steamIds.Where(x => channelInviteeSteamIds.Contains(x)))
+                var channelInviteeSteamIds = channelInfo.Invitees.ToList();
+                if(channelInfo.OwnerId != 0L)
                 {
+                    steamIds.Add(channelInfo.OwnerId);
+                    channelInviteeSteamIds.Add(channelInfo.OwnerId);
+                }
+
+                VChatPlugin.LogError($"SendMessageToAllPeersInChannel, sending to {steamIds.Count} / {channelInviteeSteamIds.Count} ");
+
+                foreach (var inviteeSteamId in steamIds.Distinct().Where(x => channelInviteeSteamIds.Contains(x)))
+                {
+                    VChatPlugin.LogError($"Sending to invitee {inviteeSteamId}: {text}");
                     if (ValheimHelper.GetPeerIdFromSteamId(inviteeSteamId, out long inviteePeerId))
                     {
                         SendMessageToPeerInChannel(inviteePeerId, channelName, text, color);
