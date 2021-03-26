@@ -114,7 +114,28 @@ namespace VChat.Services
         /// <summary>
         /// Adds a channel to the server.
         /// </summary>
-        public static bool AddChannel(string name, ulong ownerSteamId, bool isPublic)
+        internal static void AddChannelsDirect(params ServerChannelInfo[] serverChannelInfos)
+        {
+            lock (_lockChannelInfo)
+            {
+                foreach (var channelInfo in serverChannelInfos)
+                {
+                    if (DoesChannelExist(channelInfo.Name))
+                    {
+                        VChatPlugin.LogError($"AddChannelDirect: Cannot add channel named {channelInfo.Name} because it already exists");
+                    }
+                    else
+                    {
+                        ServerChannelInfo.Add(channelInfo);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a channel to the server.
+        /// </summary>
+        public static bool AddChannel(string name, ulong ownerSteamId, bool isPublic, Color? color = null)
         {
             if (DoesChannelExist(name))
             {
