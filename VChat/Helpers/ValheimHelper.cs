@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
+using VChat.Extensions;
 
 namespace VChat.Helpers
 {
@@ -34,6 +36,35 @@ namespace VChat.Helpers
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Returns the peer when the player name matches the input, or null if it cannot be found.
+        /// Uses method NameEquals to compare.
+        /// </summary>
+        public static ZNetPeer FindPeerByPlayerName(string playerName)
+        {
+            foreach (var peer in ZNet.instance.GetConnectedPeers())
+            {
+                if(NameEquals(peer?.m_playerName, playerName))
+                {
+                    return peer;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Compares two names, removes all formatting and unnecessary characters to perform a comparison.
+        /// </summary>
+        public static bool NameEquals(string name, string otherName)
+        {
+            // Remove unity formatting and whitespaces
+            var strippedName = name?.StripRichTextFormatting()?.StripWhitespaces() ?? string.Empty;
+            var strippedOtherName = otherName?.StripRichTextFormatting()?.StripWhitespaces() ?? string.Empty;
+
+            // Compare
+            return string.Equals(strippedName, strippedOtherName, System.StringComparison.CurrentCultureIgnoreCase);
         }
 
         /// <summary>

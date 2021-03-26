@@ -58,7 +58,7 @@ namespace VChat.Messages
                     var channelName = package.ReadString();
                     var targetPlayerName = package.ReadString();
 
-                    var targetPeer = ZNet.instance.GetPeerByPlayerName(targetPlayerName);
+                    var targetPeer = ValheimHelper.FindPeerByPlayerName(targetPlayerName);
                     if (targetPeer != null
                         && ValheimHelper.GetSteamIdFromPeer(targetPeer, out ulong targetSteamId))
                     {

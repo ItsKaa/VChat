@@ -6,7 +6,8 @@ namespace VChat.Extensions
 {
     public static class UnityExtensions
     {
-        private static Regex _stripUnityRichFormattingRegex = new Regex(@"<(/)?(i|b|size|color|material|quad)=?.*?>", RegexOptions.IgnoreCase);
+        private static readonly Regex _stripUnityRichFormattingRegex = new(@"<(/)?(i|b|size|color|material|quad)=?.*?>", RegexOptions.IgnoreCase);
+        private static readonly Regex _stripWhitespacesRegex = new("\\s*");
 
         public static Color? ToColor(this string nameOrHtmlString)
         {
@@ -52,6 +53,15 @@ namespace VChat.Extensions
         public static string StripRichTextFormatting(this string source)
         {
             return _stripUnityRichFormattingRegex.Replace(source, "");
+
+        }
+
+        /// <summary>
+        /// Returns a string without whitespaces
+        /// </summary>
+        public static string StripWhitespaces(this string source)
+        {
+            return _stripWhitespacesRegex.Replace(source, "");
 
         }
     }

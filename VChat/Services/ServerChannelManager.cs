@@ -43,7 +43,7 @@ namespace VChat.Services
             {
                 foreach (var channel in ServerChannelInfo)
                 {
-                    if (name.Equals(channel.Name, StringComparison.CurrentCultureIgnoreCase))
+                    if (ValheimHelper.NameEquals(name, channel.Name))
                     {
                         return true;
                     }
@@ -155,7 +155,7 @@ namespace VChat.Services
         {
             lock (_lockChannelInfo)
             {
-                return ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                return ServerChannelInfo.FirstOrDefault(x => ValheimHelper.NameEquals(channelName, x.Name));
             }
         }
 
@@ -177,9 +177,9 @@ namespace VChat.Services
         {
             lock (_lockChannelInviteInfo)
             {
-                var inviteInfo = ServerChannelManager.ChannelInviteInfo.FirstOrDefault(x =>
+                var inviteInfo = ChannelInviteInfo.FirstOrDefault(x =>
                        x.InviteeId == steamId
-                    && string.Equals(x.ChannelName, channelName, StringComparison.CurrentCultureIgnoreCase)
+                    && ValheimHelper.NameEquals(x.ChannelName, channelName)
                 );
 
                 if (inviteInfo != null)
@@ -199,7 +199,7 @@ namespace VChat.Services
         {
             lock (_lockChannelInfo)
             {
-                var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                var channelInfo = FindChannel(channelName);
                 if (channelInfo != null && !channelInfo.ReadOnly)
                 {
                     if (!channelInfo.Invitees.Contains(steamId))
@@ -233,7 +233,7 @@ namespace VChat.Services
 
             lock (_lockChannelInfo)
             {
-                var channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(channelName, x.Name, StringComparison.CurrentCultureIgnoreCase));
+                var channelInfo = FindChannel(channelName);
                 if (channelInfo != null)
                 {
                     // If the owner is being removed, change the owner of the channel or disband it if it's empty.
@@ -330,7 +330,7 @@ namespace VChat.Services
         {
             lock (_lockChannelInfo)
             {
-                var channel = ServerChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, StringComparison.CurrentCultureIgnoreCase));
+                var channel = FindChannel(channelName);
                 return CanInvite(steamId, channel);
             }
         }
@@ -420,8 +420,8 @@ namespace VChat.Services
                 ServerChannelInfo channelInfo;
                 lock(_lockChannelInfo)
                 {
-                    channelInfo = ServerChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, StringComparison.CurrentCultureIgnoreCase));
-                    if(channelInfo != null)
+                    channelInfo = FindChannel(channelName);
+                    if (channelInfo != null)
                     {
                         ServerChannelInfo.Remove(channelInfo);
                     }
@@ -501,7 +501,7 @@ namespace VChat.Services
             {
                 foreach (var channel in GetChannelsForUser(senderSteamId))
                 {
-                    if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
+                    if (ValheimHelper.NameEquals(channel.Name, channelName))
                     {
                         var steamIds = channel.Invitees.ToList();
                         if(channel.OwnerId != 0L)
@@ -535,7 +535,7 @@ namespace VChat.Services
                 var knownChannels = GetChannelsForUser(steamId);
                 foreach (var channel in knownChannels)
                 {
-                    if (string.Equals(channel.Name, channelName, StringComparison.CurrentCultureIgnoreCase))
+                    if (ValheimHelper.NameEquals(channel.Name, channelName))
                     {
                         ChannelChatMessage.SendToPeer(peer.m_uid, channel.Name, peer.m_refPos, null, text, color);
                         return true;
@@ -611,7 +611,7 @@ namespace VChat.Services
                     {
                         var inviteInfo = ChannelInviteInfo.FirstOrDefault(x =>
                                x.InviteeId == steamId
-                            && string.Equals(x.ChannelName, channelName, StringComparison.CurrentCultureIgnoreCase)
+                            && ValheimHelper.NameEquals(x.ChannelName, channelName)
                         );
                         if (inviteInfo != null)
                         {

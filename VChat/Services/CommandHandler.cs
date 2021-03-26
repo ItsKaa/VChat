@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VChat.Data;
 using VChat.Data.Messages;
+using VChat.Helpers;
 
 namespace VChat.Services
 {
@@ -177,7 +178,7 @@ namespace VChat.Services
             {
                 foreach (var command in Commands.OfType<PluginCommandServerChannel>())
                 {
-                    if (string.Equals(command.ChannelInfo.Name, channelInfo.Name, StringComparison.CurrentCultureIgnoreCase))
+                    if (ValheimHelper.NameEquals(command.ChannelInfo.Name, channelInfo.Name))
                     {
                         return command;
                     }

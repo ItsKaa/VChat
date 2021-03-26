@@ -103,7 +103,7 @@ namespace VChat.Messages
                 }
                 else
                 {
-                    var targetPeer = ZNet.instance.GetPeerByPlayerName(playerName);
+                    var targetPeer = ValheimHelper.FindPeerByPlayerName(playerName);
                     if (targetPeer == null || !ValheimHelper.GetSteamIdFromPeer(targetPeer, out ulong targetSteamId))
                     {
                         SendToPeer(senderPeerId, ChannelKickResponseType.PlayerNotFound, channelName);

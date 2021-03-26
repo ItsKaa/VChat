@@ -35,11 +35,17 @@ namespace VChat.Messages
                 return ReceivedChannelInfo.ToList();
             }
         }
-        public static ServerChannelInfo FindChannel(string channelName)
+
+        internal static ServerChannelInfo FindChannel(IEnumerable<ServerChannelInfo> collection, string channelName)
+        {
+            return collection.FirstOrDefault(x => ValheimHelper.NameEquals(x.Name, channelName));
+        }
+
+        internal static ServerChannelInfo FindChannel(string channelName)
         {
             lock (_lock)
             {
-                return ReceivedChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channelName, System.StringComparison.CurrentCultureIgnoreCase));
+                return FindChannel(ReceivedChannelInfo, channelName);
             }
         }
 
@@ -77,11 +83,11 @@ namespace VChat.Messages
                     // Remove deleted channels
                     foreach (var channel in ReceivedChannelInfo.ToList())
                     {
-                        if (!list.Exists(x => string.Equals(x.Name, channel.Name, System.StringComparison.CurrentCultureIgnoreCase)))
+                        if (!list.Exists(x => ValheimHelper.NameEquals(x.Name, channel.Name)))
                         {
                             VChatPlugin.Log($"Removed channel with name '{channel.Name}'");
 
-                            var existingChannel = ReceivedChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channel.Name, System.StringComparison.CurrentCultureIgnoreCase));
+                            var existingChannel = FindChannel(channel.Name);
                             ReceivedChannelInfo.Remove(existingChannel);
                         }
                     }
@@ -89,7 +95,7 @@ namespace VChat.Messages
                     // Add or update channels
                     foreach (var channel in list)
                     {
-                        var existingChannel = ReceivedChannelInfo.FirstOrDefault(x => string.Equals(x.Name, channel.Name, System.StringComparison.CurrentCultureIgnoreCase));
+                        var existingChannel = FindChannel(channel.Name);
                         if (existingChannel != null)
                         {
                             VChatPlugin.Log($"Updated channel configuration - channel name: {channel.Name}, command name: {channel.ServerCommandName}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, read-only: {channel.ReadOnly}");

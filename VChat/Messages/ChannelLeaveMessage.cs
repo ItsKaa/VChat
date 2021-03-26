@@ -108,7 +108,7 @@ namespace VChat.Messages
             {
                 if (ServerChannelManager.DoesChannelExist(channelName))
                 {
-                    var channel = ServerChannelManager.GetChannelsForUser(targetSteamId).FirstOrDefault(x => string.Equals(x.Name, channelName, System.StringComparison.CurrentCultureIgnoreCase));
+                    var channel = ServerChannelManager.GetChannelsForUser(targetSteamId).FirstOrDefault(x => ValheimHelper.NameEquals(x.Name, channelName));
                     if(channel != null)
                     {
                         if(ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeerId, targetSteamId, channelName))
