@@ -433,9 +433,9 @@ namespace VChat
                     // Initialise the server-wide channel commands for the server
                     foreach (var channel in ServerChannelManager.GetServerChannelInfoCopy())
                     {
-                        if (!string.IsNullOrWhiteSpace(channel.ServerCommandName))
+                        if (!channel.IsPluginOwnedChannel)
                         {
-                            CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries),
+                            CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName,
                                 (text, peerId, steamId) =>
                                 {
                                     var peer = ValheimHelper.GetPeer(peerId);
@@ -454,9 +454,9 @@ namespace VChat
                     // Initialise the server-wide channel commands for a client
                     foreach(var channel in ChannelInfoMessage.GetChannelInfo())
                     {
-                        if(!string.IsNullOrWhiteSpace(channel.ServerCommandName))
+                        if (!channel.IsPluginOwnedChannel)
                         {
-                            CommandHandler.AddCommand(new PluginCommandServerChannel(channel.ServerCommandName.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries), channel,
+                            CommandHandler.AddCommand(new PluginCommandServerChannel(channel.ServerCommandName, channel,
                                 (text, peerId, steamId) =>
                                 {
                                     var localPlayer = Player.m_localPlayer;
