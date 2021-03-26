@@ -1,6 +1,4 @@
-﻿using Steamworks;
-using System;
-using UnityEngine;
+﻿using UnityEngine;
 using VChat.Extensions;
 using VChat.Helpers;
 using VChat.Services;
