@@ -49,7 +49,7 @@ namespace VChat.Messages
             {
                 // Check permissions of that user
                 var channel = ServerChannelManager.FindChannel(channelName);
-                if (isSentByServer || (channel != null && (!channel.ReadOnly || channel.OwnerId == steamId || ValheimHelper.IsAdministrator(steamId))))
+                if (isSentByServer || (channel != null && (!channel.IsPluginOwnedChannel || channel.OwnerId == steamId || ValheimHelper.IsAdministrator(steamId))))
                 {
                     ServerChannelManager.SendMessageToAllUsersInChannel(peerId, channelName, callerName, text, colorHtmlString?.ToColor());
                 }

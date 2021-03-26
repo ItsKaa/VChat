@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VChat.Extensions;
 
 namespace VChat.Data.Messages
 {
@@ -9,9 +10,9 @@ namespace VChat.Data.Messages
         public string Name { get; set; }
         public ulong OwnerId { get; set; }
         public bool IsPublic { get; set; }
-        public bool ReadOnly { get; set; }
+        public bool IsPluginOwnedChannel { get; set; }
         public List<ulong> Invitees { get; set; }
-        public string ServerCommandName { get; set; }
+        public string ServerCommandName => Name.StripRichTextFormatting().StripWhitespaces();
         public Color Color { get; set; }
 
         public ServerChannelInfo()
@@ -19,7 +20,7 @@ namespace VChat.Data.Messages
             Name = string.Empty;
             OwnerId = 0;
             IsPublic = false;
-            ReadOnly = false;
+            IsPluginOwnedChannel = false;
             Invitees = new List<ulong>();
             Color = Color.white;
         }
@@ -29,9 +30,8 @@ namespace VChat.Data.Messages
             Name = other.Name;
             OwnerId = other.OwnerId;
             IsPublic = other.IsPublic;
-            ReadOnly = other.ReadOnly;
+            IsPluginOwnedChannel = other.IsPluginOwnedChannel;
             Invitees = other.Invitees.ToList();
-            ServerCommandName = other.ServerCommandName;
             Color = other.Color;
         }
     }

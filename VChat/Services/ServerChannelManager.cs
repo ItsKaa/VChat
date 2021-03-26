@@ -30,7 +30,7 @@ namespace VChat.Services
             ServerChannelInfo.Add(new ServerChannelInfo()
             {
                 Name = VChatPlugin.Name,
-                ReadOnly = true,
+                IsPluginOwnedChannel = true,
                 Color = new Color(0.035f, 0.714f, 0.902f),
                 OwnerId = ServerOwnerId,
                 IsPublic = true,
@@ -127,7 +127,7 @@ namespace VChat.Services
                 Name = name,
                 OwnerId = ownerSteamId,
                 IsPublic = isPublic,
-                ServerCommandName = name.ToLower().Replace(" ", ""),
+                Color = color ?? Color.white,
             };
 
             lock (_lockChannelInfo)
@@ -148,7 +148,7 @@ namespace VChat.Services
                     SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);
                 }
             }
-            return false;
+            return true;
         }
 
         internal static ServerChannelInfo FindChannel(string channelName)
@@ -200,7 +200,7 @@ namespace VChat.Services
             lock (_lockChannelInfo)
             {
                 var channelInfo = FindChannel(channelName);
-                if (channelInfo != null && !channelInfo.ReadOnly)
+                if (channelInfo != null && !channelInfo.IsPluginOwnedChannel)
                 {
                     if (!channelInfo.Invitees.Contains(steamId))
                     {
@@ -342,7 +342,7 @@ namespace VChat.Services
         {
             return channelInfo != null
                 && (channelInfo.OwnerId == steamId
-                && !channelInfo.ReadOnly
+                && !channelInfo.IsPluginOwnedChannel
                 || channelInfo.Invitees.Contains(steamId)
                 || ValheimHelper.IsAdministrator(steamId));
         }
@@ -641,7 +641,7 @@ namespace VChat.Services
         /// </summary>
         public static void SendMessageToClient_ChannelConnected(long peerId, ServerChannelInfo channelInfo)
         {
-            if (ZNet.m_isServer && !channelInfo.ReadOnly)
+            if (ZNet.m_isServer && !channelInfo.IsPluginOwnedChannel)
             {
                 var peer = ZNet.instance?.GetPeer(peerId);
                 if (peer != null)
@@ -650,8 +650,8 @@ namespace VChat.Services
                     SendMessageToPeerInChannel(peerId, VChatPlugin.Name, message);
 
                     // Only send if command name is set, otherwise it's considered a read-only channel.
-                    VChatPlugin.LogWarning($"{peerId} connected to the channel {channelInfo.Name}, commandName: /{channelInfo.ServerCommandName}");
-                    if (!string.IsNullOrEmpty(channelInfo.ServerCommandName))
+                    VChatPlugin.LogWarning($"{peerId} connected to the channel {channelInfo.Name}");
+                    if (!channelInfo.IsPluginOwnedChannel)
                     {
                         VChatPlugin.LogWarning($"Sending command info");
                         message = $"Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message in the {channelInfo.Name} chat.";
