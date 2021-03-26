@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using VChat.Messages;
+using VChat.Services;
 
 namespace VChat.Patches
 {
@@ -22,6 +23,9 @@ namespace VChat.Patches
 
             // Initialise server commands
             VChatPlugin.InitialiseServerCommands();
+
+            // Read stored data
+            PluginDataManager.Read();
         }
     }
 }

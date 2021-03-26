@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\PluginSettings.cs" />
+    <Compile Include="Services\PluginDataManager.cs" />
     <Compile Include="Data\CombinedMessageType.cs" />
     <Compile Include="Data\GreetingMessagePeerInfo.cs" />
     <Compile Include="Data\GlobalMessageType.cs" />
@@ -284,6 +285,9 @@
     <Content Include="icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Patches\World\World.SaveWorldMetaData.cs" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /F "$(TargetDir)$(TargetName).dll" "$(GameDir)BepInEx\plugins\"

@@ -168,6 +168,9 @@ namespace VChat.Services
                     SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);
                 }
             }
+
+            // Save data to Player class
+            PluginDataManager.Save();
             return true;
         }
 
@@ -329,6 +332,9 @@ namespace VChat.Services
                         // Remove the invitee after the message is sent and update the channel list of that player.
                         channelInfo.Invitees.Remove(targetSteamId);
                         SendChannelInformationToClient(targetPeerId);
+
+                        // Save data to Player class
+                        PluginDataManager.Save();
                     }
 
                     if(hasOwnerChanged)
@@ -472,6 +478,8 @@ namespace VChat.Services
                     }
                 }
 
+                // Save data to Player class
+                PluginDataManager.Save();
                 return true;
             }
 
