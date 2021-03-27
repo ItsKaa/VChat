@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using VChat.Configuration;
@@ -38,6 +39,7 @@ namespace VChat
         public static ServerChannelInfo LastCustomChatChannelInfo { get; set; }
         public static float ChatHideTimer { get; set; }
         private static readonly object _commandHandlerLock = new();
+        private static Harmony _harmony;
 
         static VChatPlugin()
         {
@@ -50,10 +52,10 @@ namespace VChat
             CurrentInputChatType = new CombinedMessageType(LastChatType.Value);
         }
 
-        public void Awake()
+        private void Awake()
         {
-            var harmony = new Harmony(GUID);
-            harmony.PatchAll();
+            _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), GUID);
+
             Settings = new PluginSettings(Config);
             InitialiseClientCommands();
 
@@ -74,6 +76,11 @@ namespace VChat
                     Log($"{Name} ({Version}) is up to date.");
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            _harmony?.UnpatchAll(GUID);
         }
 
         public static Color GetTextColor(CombinedMessageType type, bool getDefault = false)
