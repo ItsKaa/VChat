@@ -1,4 +1,5 @@
-﻿using BepInEx.Configuration;
+﻿using BepInEx;
+using BepInEx.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -419,6 +420,18 @@ namespace VChat.Configuration
         }
         #endregion Server
 
+        public PluginSettings(VChatPlugin plugin, string configFilePath)
+        {
+            LastTickDate = DateTime.MinValue;
+            LastFileModifiedDate = DateTime.MinValue;
+
+            // Setup a new config file
+            var metadata = MetadataHelper.GetMetadata(plugin);
+            ConfigFile = new ConfigFile(configFilePath, saveOnInit: false, metadata);
+
+            SetupConfig();
+            ConfigFile.ConfigReloaded += ConfigFile_ConfigReloaded;
+        }
         public PluginSettings(ConfigFile configFile)
         {
             LastTickDate = DateTime.MinValue;

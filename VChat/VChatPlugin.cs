@@ -3,6 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,7 +61,32 @@ namespace VChat
         {
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), GUID);
 
-            Settings = new PluginSettings(Config);
+            // VChat 2.0.0: Uses VChat.cfg instead of org.itskaa.vchat.cfg
+            try
+            {
+                var configFilePath = Utility.CombinePaths((Application.isEditor ? "." : Paths.ConfigPath), $"{Name}.cfg");
+                try
+                {
+                    if (File.Exists(Config.ConfigFilePath) && !File.Exists(configFilePath))
+                    {
+                        Log($"Updating configuration path to {configFilePath}.");
+                        File.Move(Config.ConfigFilePath, configFilePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogError($"Failed to move old configuration ({Config?.ConfigFilePath}) to new file path ({configFilePath}) Error: {ex}");
+                }
+
+                Settings = new PluginSettings(this, configFilePath);
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to initialise config with new settings path, using old path... Error: {ex}");
+                Settings = new PluginSettings(Config);
+            }
+
+
             InitialiseClientCommands();
 
             LastChatType.Set(Settings.DefaultChatChannel);
