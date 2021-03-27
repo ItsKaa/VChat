@@ -168,7 +168,7 @@ namespace VChat.Services
                 }
             }
 
-            // Save data to Player class
+            // Save data when channel is modified.
             PluginDataManager.Save();
             return true;
         }
@@ -261,6 +261,9 @@ namespace VChat.Services
             bool result = false;
             bool hasOwnerChanged = false;
 
+            var senderPeer = ValheimHelper.GetPeer(senderPeerId);
+            ValheimHelper.GetSteamIdFromPeer(senderPeer, out ulong senderSteamId);
+
             lock (_lockChannelInfo)
             {
                 var channelInfo = FindChannel(channelName);
@@ -271,8 +274,17 @@ namespace VChat.Services
                     {
                         if (channelInfo.Invitees.Count == 0)
                         {
+                            var steamIdsForChannel = channelInfo.GetSteamIds();
+
                             // Channel is empty, disband it.
-                            DisbandChannel(targetPeerId, targetSteamId, channelName);
+                            if (DisbandChannel(senderPeerId, senderSteamId, channelName))
+                            {
+                                // Also send message to the sender if it's not in the channel, this can be true if it's an administrator.
+                                if (senderPeer != null && !steamIdsForChannel.Contains(senderSteamId))
+                                {
+                                    SendVChatSuccessMessageToPeer(senderPeerId, $"{channelInfo.Name} has been disbanded.");
+                                }
+                            }
                             return true;
                         }
                         else
@@ -316,11 +328,11 @@ namespace VChat.Services
                         }
                     }
 
-                    result |= channelInfo.Invitees.Contains(targetSteamId);
+                    result |= channelInfo.GetSteamIds().Contains(targetSteamId);
                     if (result)
                     {
                         var targetPlayerName = ValheimHelper.GetPeer(targetPeerId)?.m_playerName ?? $"{targetSteamId}";
-                        var senderPlayerName = senderPeerId == 0L ? "the server" : ValheimHelper.GetPeer(senderPeerId)?.m_playerName ?? "unknown";
+                        var senderPlayerName = senderPeerId == 0L ? "the server" : senderPeer?.m_playerName ?? "unknown";
 
                         VChatPlugin.Log($"Player '{targetPlayerName}' has been removed from the channel '{channelName}' by {senderPlayerName}.");
 
@@ -334,14 +346,26 @@ namespace VChat.Services
                         else
                         {
                             SendMessageToAllPeersInChannel(channelName, null, $"<i>{targetPlayerName} has been removed from the channel by {senderPlayerName}.</i>");
+
+                            var channelSteamIds = channelInfo.GetSteamIds();
+
+                            // Also send message to the previous owner if it's not part of the the channel anymore.
+                            if (!channelSteamIds.Contains(targetSteamId))
+                            {
+                                SendMessageToPeerInChannel(targetPeerId, VChatPlugin.Name, null, $"<i>You have been removed from the channel {channelName} by {senderPlayerName}.</i>", Color.gray);
+                            }
+
+                            // Also send message to the sender if it's not in the channel, this can be true if it's an administrator.
+                            if (senderPeer != null && !channelSteamIds.Contains(senderSteamId))
+                            {
+                                SendVChatSuccessMessageToPeer(senderPeerId, $"{targetPlayerName} has been removed from the channel.");
+                            }
+
                         }
 
                         // Remove the invitee after the message is sent and update the channel list of that player.
                         channelInfo.Invitees.Remove(targetSteamId);
                         SendChannelInformationToClient(targetPeerId);
-
-                        // Save data to Player class
-                        PluginDataManager.Save();
                     }
 
                     if(hasOwnerChanged)
@@ -349,6 +373,12 @@ namespace VChat.Services
                         var ownerPeer = ValheimHelper.GetPeerFromSteamId(channelInfo.OwnerId);
                         var ownerPlayerName = ownerPeer?.m_playerName ?? $"{channelInfo.OwnerId}";
                         SendMessageToAllPeersInChannel(channelName, null, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
+                    }
+
+                    // Save data when channel is modified.
+                    if (result || hasOwnerChanged)
+                    {
+                        PluginDataManager.Save();
                     }
                 }
             }
@@ -430,15 +460,15 @@ namespace VChat.Services
         /// Disband a channel, this will check if the user has permission to disband and it will send the response back to the user.
         /// This will also send a message to every connected user if the channel did disband.
         /// </summary>
-        public static bool DisbandChannel(long peerId, ulong steamId, string channelName)
+        public static bool DisbandChannel(long senderPeerId, ulong senderSteamId, string channelName)
         {
             if(!DoesChannelExist(channelName))
             {
-                ChannelDisbandMessage.SendToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
+                ChannelDisbandMessage.SendToPeer(senderPeerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
             }
-            else if (!CanModerateChannel(steamId, channelName))
+            else if (!CanModerateChannel(senderSteamId, channelName))
             {
-                ChannelDisbandMessage.SendToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.NoPermission, channelName);
+                ChannelDisbandMessage.SendToPeer(senderPeerId, ChannelDisbandMessage.ChannelDisbandResponseType.NoPermission, channelName);
             }
             else
             {
@@ -454,7 +484,7 @@ namespace VChat.Services
                     }
                     else
                     {
-                        ChannelDisbandMessage.SendToPeer(peerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
+                        ChannelDisbandMessage.SendToPeer(senderPeerId, ChannelDisbandMessage.ChannelDisbandResponseType.ChannelNotFound, channelName);
                         return false;
                     }
                 }
@@ -462,25 +492,24 @@ namespace VChat.Services
                 // Re-init the server commands so that this one is added to it, might be a better way of doing it but so far valheim doesn't do much multithreading anyway.
                 VChatPlugin.InitialiseServerCommands();
 
-                foreach (var targetPeer in ZNet.instance.GetConnectedPeers())
+                var senderPeer = ValheimHelper.GetPeer(senderPeerId);
+
+                // Send a message to all connected users and the sender, in case this is an administrator it may mean it's not connected to the channel.
+                foreach (var targetSteamId in channelInfo.GetSteamIds().Concat(new[] { senderSteamId }).Distinct())
                 {
-                    if(ValheimHelper.GetSteamIdFromPeer(targetPeer, out ulong targetSteamId))
+                    if(ValheimHelper.GetPeerIdFromSteamId(targetSteamId, out long targetPeerId))
                     {
-                        if (channelInfo.OwnerId == targetSteamId || channelInfo.Invitees.Contains(targetSteamId))
-                        {
-                            // Notify all connected peers with the player that disbanded it.
-                            var peer = ValheimHelper.GetPeer(peerId);
-                            var text = $"Channel '{channelInfo.Name}' has been disbanded by {peer?.m_playerName ?? "Server"}.";
+                        // Notify all connected peers with the player that disbanded it.
+                        var text = $"Channel '{channelInfo.Name}' has been disbanded by {senderPeer?.m_playerName ?? "Server"}.";
 
-                            SendMessageToPeerInChannel(targetPeer.m_uid, VChatPlugin.Name, null, text);
+                        SendMessageToPeerInChannel(targetPeerId, VChatPlugin.Name, null, text);
 
-                            // Update channel information for VChat clients.
-                            SendChannelInformationToClient(targetPeer.m_uid);
-                        }
+                        // Update channel information for VChat clients.
+                        SendChannelInformationToClient(targetPeerId);
                     }
                 }
 
-                // Save data to Player class
+                // Save data when channel is modified.
                 PluginDataManager.Save();
                 return true;
             }
@@ -493,9 +522,10 @@ namespace VChat.Services
         /// </summary>
         public static bool EditChannelColor(string channelName, Color color, long senderPeerId = 0L)
         {
+            ServerChannelInfo channel = null;
             lock (_lockChannelInfo)
             {
-                var channel = FindChannel(channelName);
+                channel = FindChannel(channelName);
                 if (channel == null)
                 {
                     return false;
@@ -516,7 +546,15 @@ namespace VChat.Services
             VChatPlugin.Log($"Player '{senderPlayerName}' has changed channel color of the channel '{channelName}' to '{color.ToHtmlString()}'.");
 
             SendChannelInformationToConnectedClients(channelName);
-            SendMessageToAllPeersInChannel(channelName, null, $"<i>Channel color has been modified.</i>");
+            SendMessageToAllPeersInChannel(channelName, null, "<i>Channel color has been modified.</i>");
+
+            // Also send message to the sender if it's not in the channel, this can be true if it's an administrator.
+            if (ValheimHelper.GetSteamIdFromPeer(senderPeerId, out ulong senderSteamId)
+                && !channel.GetSteamIds().Contains(senderSteamId))
+            {
+                SendMessageToPeerInChannel(senderPeerId, VChatPlugin.Name, null, $"Modified the color for channel <color={channel.Color.ToHtmlString()}>{channel.Name}</color>.");
+            }
+
             return true;
         }
 
@@ -616,24 +654,32 @@ namespace VChat.Services
                 if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId, out ZNetPeer peer))
                 {
                     // Find the invite and remove it if present
-                    var foundInvite = false;
+                    ServerChannelInviteInfo inviteInfo = null;
                     lock (_lockChannelInviteInfo)
                     {
-                        var inviteInfo = ChannelInviteInfo.FirstOrDefault(x =>
+                        inviteInfo = ChannelInviteInfo.FirstOrDefault(x =>
                                x.InviteeId == steamId
                             && ValheimHelper.NameEquals(x.ChannelName, channelName)
                         );
+
                         if (inviteInfo != null)
                         {
                             ChannelInviteInfo.Remove(inviteInfo);
-                            foundInvite = true;
                         }
                     }
 
                     // Handle the invite
-                    if (foundInvite)
+                    if (inviteInfo != null)
                     {
                         VChatPlugin.LogWarning($"User '{peer.m_playerName}' declined channel invite '{channelName}'.");
+
+                        // Also send a message to the inviter
+                        if (ValheimHelper.GetPeerIdFromSteamId(inviteInfo.InviterId, out long inviterPeerId)
+                            && inviterPeerId != peerId)
+                        {
+                            ChannelInviteMessage.SendToPeer(inviterPeerId, ChannelInviteMessage.ChannelInviteDeclineResponseType.InviteeDeclined, channelName, null, peerId);
+                        }
+
                         return true;
                     }
                     else
