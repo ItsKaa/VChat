@@ -117,8 +117,8 @@ namespace VChat
         {
             var textColor = color;
             var userColor = Color.Lerp(textColor, Color.black, 0.33f);
-            return $"<color={userColor.ToHtmlString()}>{(string.IsNullOrEmpty(channelName) ? "" : $"[{channelName}]")} " +
-                $"{(string.IsNullOrEmpty(user) ? "" : $"{user}")}</color>{(string.IsNullOrEmpty(user) ? "" : ":")} <color={textColor.ToHtmlString()}>{text}</color>";
+            return $"<color={userColor.ToHtmlString()}>{(string.IsNullOrEmpty(channelName) ? "" : $"[{channelName}] ")}" +
+                $"{(string.IsNullOrEmpty(user) ? "" : $"{user}")}</color>{(string.IsNullOrEmpty(user) ? "" : ": ")}<color={textColor.ToHtmlString()}>{text}</color>";
         }
 
         public static bool UpdateCurrentChatTypeAndColor(InputField inputField, string text)
