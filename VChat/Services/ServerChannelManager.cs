@@ -38,14 +38,19 @@ namespace VChat.Services
 
         internal static void Reset()
         {
-            lock (_lockChannelInfo)
+            // Resetting these is very scary business, it should only be done for player hosted servers
+            // because a player could host a server and then connect to a server with VChat installed.
+            if (VChatPlugin.IsPlayerHostedServer)
             {
-                ServerChannelInfo.Clear();
-            }
+                lock (_lockChannelInfo)
+                {
+                    ServerChannelInfo.Clear();
+                }
 
-            lock (_lockChannelInviteInfo)
-            {
-                ChannelInviteInfo.Clear();
+                lock (_lockChannelInviteInfo)
+                {
+                    ChannelInviteInfo.Clear();
+                }
             }
         }
 

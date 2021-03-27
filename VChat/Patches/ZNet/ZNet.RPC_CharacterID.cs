@@ -59,7 +59,7 @@ namespace VChat.Patches
                                 {
                                     messagesToSend.AddRange(new[]
                                     {
-                                        $"You are running on an older version of {VChatPlugin.Name}, please be aware that custom channels will appear in your local chat channel."
+                                    $"You are running on an older version of {VChatPlugin.Name}, please be aware that custom channels will appear in your local chat channel.",
                                         $"Please update to {VChatPlugin.Name} 2.0.0 to allow the Valheim client to support these channels.",
                                     });
                                 }
