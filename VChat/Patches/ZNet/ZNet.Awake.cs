@@ -21,11 +21,11 @@ namespace VChat.Patches
             ChannelLeaveMessage.Register();
             ChannelKickMessage.Register();
 
-            // Initialise server commands
-            VChatPlugin.InitialiseServerCommands();
-
             // Read stored data
             PluginDataManager.Read();
+
+            // Initialise server commands
+            VChatPlugin.InitialiseServerCommands();
         }
     }
 }
