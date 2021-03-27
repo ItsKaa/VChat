@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VChat.Data;
@@ -52,14 +53,39 @@ namespace VChat.Patches
                             }
                         }
 
-                        // Send channel information
                         if (ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId))
                         {
+                            // Send channel information
                             foreach (var channelInfo in ServerChannelManager.GetChannelsForUser(steamId))
                             {
                                 ServerChannelManager.SendMessageToClient_ChannelConnected(peer.m_uid, channelInfo);
                             }
+
+                            // Add the player name to the colleciton
+                            string playerName = peer.m_playerName;
+
+                            VChatPlugin.KnownPlayers.AddOrUpdate(steamId,
+                                (id) =>
+                                {
+                                    VChatPlugin.LogWarning($"Recorded player name '{playerName}' for id {steamId}.");
+                                    return new KnownPlayerData()
+                                    {
+                                        SteamId = steamId,
+                                        LastLoginTime = DateTime.UtcNow,
+                                        PlayerName = playerName,
+                                        LastKnownVChatVersionString = peerInfo.Version
+                                    };
+                                },
+                                (id, oldValue) =>
+                                {
+                                    oldValue.UpdatePlayerName(playerName);
+                                    oldValue.SteamId = steamId;
+                                    oldValue.LastLoginTime = DateTime.UtcNow;
+                                    oldValue.LastKnownVChatVersionString = peerInfo.Version;
+                                    return oldValue;
+                                });
                         }
+
 
                         SpawnedPlayers.Add(peer.m_uid);
                     }

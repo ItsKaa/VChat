@@ -38,6 +38,7 @@ namespace VChat
         public static ServerChannelInfo CurrentCustomChatChannelInfo { get; set; }
         public static ServerChannelInfo LastCustomChatChannelInfo { get; set; }
         public static Action onInitialised;
+        internal static ConcurrentDictionary<ulong, KnownPlayerData> KnownPlayers { get; set; }
 
         public static float ChatHideTimer { get; set; }
         private static readonly object _commandHandlerLock = new();
@@ -52,6 +53,7 @@ namespace VChat
             CurrentCustomChatChannelInfo = null;
             LastChatType = new CombinedMessageType(CustomMessageType.Global);
             CurrentInputChatType = new CombinedMessageType(LastChatType.Value);
+            KnownPlayers = new ConcurrentDictionary<ulong, KnownPlayerData>();
         }
 
         private void Awake()

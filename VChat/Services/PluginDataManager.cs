@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using VChat.Data;
 using VChat.Data.Messages;
 using VChat.Extensions;
 
@@ -18,27 +19,32 @@ namespace VChat.Services
         {
             if (ZNet.instance?.IsDedicated() == true || VChatPlugin.IsPlayerHostedServer)
             {
-                // Root package, in case we add more content to the world data.
-                var package = new ZPackage();
-
-                // Create server data package
-                var serverDataPackage = new ZPackage();
-
-                // Write data
-                serverDataPackage.Write(Version);
-                SerializeChannels(serverDataPackage);
-
-                // Write server package
-                package.Write(serverDataPackage);
-
                 try
                 {
+                    // Root package, in case we add more content to the world data.
+                    var package = new ZPackage();
+
+                    // Create server data package
+                    var serverDataPackage = new ZPackage();
+
+                    // Write data
+                    serverDataPackage.Write(Version);
+                    SerializeChannels(serverDataPackage);
+                    SerializeKnownPlayers(serverDataPackage);
+
+                    // Write server package
+                    package.Write(serverDataPackage);
+
 #if USEPLAYERPREFS
                     var base64String = package.GetBase64();
                     PlayerPrefs.SetString(PlayerPrefsKeyName, base64String);
 #else
                     var filePath = GetFilePath();
-                    using var fs = new FileStream(filePath, FileMode.OpenOrCreate | FileMode.Truncate);
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+                    using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
                     using var writer = new BinaryWriter(fs);
                     writer.Write(package.GetArray());
 #endif
@@ -80,23 +86,24 @@ namespace VChat.Services
                         package = new ZPackage(bytes);
                     }
 #endif
+
+                    if (package != null)
+                    {
+                        var serverPackage = package.ReadPackage();
+                        var version = serverPackage.ReadInt();
+
+                        DeserializeChannels(serverPackage, version);
+                        DeserializeKnownPlayerNames(serverPackage, version);
+                    }
+                    else
+                    {
+                        VChatPlugin.LogWarning("No save data found");
+                    }
                 }
                 catch (Exception ex)
                 {
                     VChatPlugin.LogError($"Failed to load VChat data! Error: {ex}");
                     return false;
-                }
-
-                if (package != null)
-                {
-                    var serverPackage = package.ReadPackage();
-                    var version = serverPackage.ReadInt();
-
-                    DeserializeChannels(serverPackage, version);
-                }
-                else
-                {
-                    VChatPlugin.LogWarning("No save data found");
                 }
 
                 return true;
@@ -147,6 +154,33 @@ namespace VChat.Services
             package.Write(channelCollectionPackage);
         }
 
+        private static void SerializeKnownPlayers(ZPackage package)
+        {
+            var knownPlayerCollectionPackage = new ZPackage();
+
+            knownPlayerCollectionPackage.Write(VChatPlugin.KnownPlayers.Values.Count);
+            foreach (var knownPlayer in VChatPlugin.KnownPlayers.Values.ToList())
+            {
+                var knownPlayerPackage = new ZPackage();
+                knownPlayerPackage.Write(knownPlayer.SteamId);
+                knownPlayerPackage.Write(knownPlayer.LastLoginTime.Ticks);
+                knownPlayerPackage.Write(knownPlayer.PlayerName ?? string.Empty);
+                knownPlayerPackage.Write(knownPlayer.LastKnownVChatVersionString ?? string.Empty);
+
+                knownPlayerPackage.Write(knownPlayer.OtherPlayerNames.Count);
+                foreach(var otherPlayerName in knownPlayer.OtherPlayerNames)
+                {
+                    var otherPlayerPackage = new ZPackage();
+                    otherPlayerPackage.Write(otherPlayerName ?? string.Empty);
+                    knownPlayerPackage.Write(otherPlayerPackage);
+                }
+
+                knownPlayerCollectionPackage.Write(knownPlayerPackage);
+            }
+
+            package.Write(knownPlayerCollectionPackage);
+        }
+
         private static void DeserializeChannels(ZPackage package, int version)
         {
             var channels = new List<ServerChannelInfo>();
@@ -189,6 +223,40 @@ namespace VChat.Services
             }
 
             ServerChannelManager.AddChannelsDirect(channels.ToArray());
+        }
+
+        private static void DeserializeKnownPlayerNames(ZPackage package, int version)
+        {
+            ZPackage knownPlayerCollectionPackage = package.ReadPackage();
+
+            int numberOfKnownPlayers = knownPlayerCollectionPackage.ReadInt();
+            for (int i = 0; i < numberOfKnownPlayers; i++)
+            {
+                var knownPlayersPackage = knownPlayerCollectionPackage.ReadPackage();
+                var steamId = knownPlayersPackage.ReadULong();
+                var lastLoginDateTicks = knownPlayersPackage.ReadLong();
+                var playerName = knownPlayersPackage.ReadString();
+                var lastKnownVChatVersionString = knownPlayersPackage.ReadString();
+
+                var knownPlayerData = new KnownPlayerData()
+                {
+                    LastLoginTime = new DateTime(lastLoginDateTicks),
+                    PlayerName = playerName,
+                    SteamId = steamId,
+                    LastKnownVChatVersionString = lastKnownVChatVersionString,
+                };
+
+                var numberOfOtherPlayerNames = knownPlayersPackage.ReadInt();
+                for (int j = 0; j < numberOfOtherPlayerNames; j++)
+                {
+                    var otherPlayerPackage = knownPlayersPackage.ReadPackage();
+                    var otherPlayerName = otherPlayerPackage.ReadString();
+
+                    knownPlayerData.OtherPlayerNames.Add(otherPlayerName);
+                }
+
+                VChatPlugin.KnownPlayers.TryAdd(steamId, knownPlayerData);
+            }
         }
 
         internal static string GetFilePath()
