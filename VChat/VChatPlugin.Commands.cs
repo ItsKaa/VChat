@@ -340,7 +340,6 @@ namespace VChat
                 CommandHandler.AddCommands(
                     new PluginCommandServer(Settings.AddChannelCommandName, (text, peerId, steamId) =>
                     {
-                        LogWarning($"Got addchannel from local chat");
                         var channelName = text.Trim();
                         ChannelCreateMessage.SendToServer(peerId, channelName);
                     }),
@@ -361,25 +360,21 @@ namespace VChat
                     }),
                     new PluginCommandServer(Settings.AcceptInviteCommandName, (text, peerId, steamId) =>
                     {
-                        LogWarning($"Got accept from local chat");
                         var channelName = text.Trim();
                         ChannelInviteMessage.SendToServer(peerId, ChannelInviteMessage.ChannelInviteType.Accept, channelName);
                     }),
                     new PluginCommandServer(Settings.DeclineInviteCommandName, (text, peerId, steamId) =>
                     {
-                        LogWarning($"Got decline from local chat");
                         var channelName = text.Trim();
                         ChannelInviteMessage.SendToServer(peerId, ChannelInviteMessage.ChannelInviteType.Decline, channelName);
                     }),
                     new PluginCommandServer(Settings.DisbandChannelCommandName, (text, peerId, steamId) =>
                     {
-                        LogWarning($"Got disband from local chat");
                         var channelName = text.Trim();
                         ChannelDisbandMessage.SendToServer(peerId, channelName);
                     }),
                     new PluginCommandServer(Settings.LeaveChannelCommandName, (text, peerId, steamId) =>
                     {
-                        LogWarning($"Got leave from local chat");
                         var channelName = text.Trim();
                         ChannelLeaveMessage.SendToServer(peerId, channelName);
                     }),
@@ -388,7 +383,6 @@ namespace VChat
                         var remainder = text.Trim();
                         var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
-                        LogWarning($"Got remove from local chat");
                         string channelName = null;
                         string playerName = null;
                         if (remainderData.Length >= 2)
@@ -404,7 +398,6 @@ namespace VChat
                         var remainder = text.Trim();
                         var remainderData = text.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
-                        LogWarning($"Got edit color from local chat");
                         string channelName = null;
                         string colorValue = null;
                         if (remainderData.Length >= 2)
@@ -439,7 +432,6 @@ namespace VChat
                             CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName,
                                 (text, peerId, steamId) =>
                                 {
-                                    Log($"{channel.Name} server channel command called");
                                     var peer = ValheimHelper.GetPeer(peerId);
                                     if (peer != null)
                                     {
@@ -463,8 +455,6 @@ namespace VChat
                             CommandHandler.AddCommand(new PluginCommandServerChannel(channel.ServerCommandName, channel,
                                 (text, peerId, steamId) =>
                                 {
-                                    Log($"Sending message to server channel '{channel.Name}': {text}");
-
                                     var localPlayer = Player.m_localPlayer;
                                     ChannelChatMessage.SendToServer(peerId, channel.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.GetPlayerName() ?? string.Empty, text);
 
