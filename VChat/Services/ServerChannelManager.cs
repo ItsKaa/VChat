@@ -36,6 +36,19 @@ namespace VChat.Services
             });
         }
 
+        internal static void Reset()
+        {
+            lock (_lockChannelInfo)
+            {
+                ServerChannelInfo.Clear();
+            }
+
+            lock (_lockChannelInviteInfo)
+            {
+                ChannelInviteInfo.Clear();
+            }
+        }
+
         public static bool DoesChannelExist(string name)
         {
             lock (_lockChannelInfo)

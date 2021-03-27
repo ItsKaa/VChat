@@ -30,6 +30,14 @@ namespace VChat.Messages
             }
         }
 
+        internal static void Reset()
+        {
+            lock (_lock)
+            {
+                ReceivedChannelInfo.Clear();
+            }
+        }
+
         public static IEnumerable<ServerChannelInfo> GetChannelInfo()
         {
             lock (_lock)
