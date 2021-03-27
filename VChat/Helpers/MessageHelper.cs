@@ -32,6 +32,11 @@ namespace VChat.Helpers
         /// <param name="onVChatInstalledAction">The action that's called when VChat is not installed</param>
         public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, Action onVChatInstalledAction, System.Version minPluginVersion, Color? color = null)
         {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
             if (GreetingMessage.PeerInfo.TryGetValue(peerId, out GreetingMessagePeerInfo peerInfo) && peerInfo.HasReceivedGreeting
                 && (minPluginVersion == null || (!string.IsNullOrEmpty(peerInfo.Version) && new System.Version(peerInfo.Version) >= minPluginVersion)))
             {
