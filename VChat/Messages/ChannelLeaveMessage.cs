@@ -23,6 +23,8 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
+                VChatPlugin.Log($"Registering custom routed messages for channel leave.");
+
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelCreateMessageHashName, OnMessage_Server);
             }
         }

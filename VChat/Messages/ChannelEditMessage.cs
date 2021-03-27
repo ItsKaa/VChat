@@ -31,6 +31,8 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
+                VChatPlugin.Log($"Registering custom routed messages for channel edit.");
+
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelEditMessageHashName, OnMessage_Client);
             }
         }

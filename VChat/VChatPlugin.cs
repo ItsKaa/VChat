@@ -37,6 +37,8 @@ namespace VChat
         public static CombinedMessageType LastChatType { get; set; }
         public static ServerChannelInfo CurrentCustomChatChannelInfo { get; set; }
         public static ServerChannelInfo LastCustomChatChannelInfo { get; set; }
+        public static Action onInitialised;
+
         public static float ChatHideTimer { get; set; }
         private static readonly object _commandHandlerLock = new();
         private static Harmony _harmony;

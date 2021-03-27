@@ -7,6 +7,7 @@ namespace VChat.Patches
     [HarmonyPatch(typeof(ZNet), nameof(ZNet.Awake))]
     public static class ZNetPatchAwake
     {
+        [HarmonyPriority(Priority.First)]
         private static void Postfix(ref ZNet __instance)
         {
             // Register our custom defined messages.
@@ -26,6 +27,9 @@ namespace VChat.Patches
 
             // Initialise server commands
             VChatPlugin.InitialiseServerCommands();
+
+            // Notify any listeners that VChat is ready to receive messages.
+            VChatPlugin.onInitialised?.Invoke();
         }
     }
 }

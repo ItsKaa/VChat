@@ -24,6 +24,8 @@ namespace VChat.Messages
         {
             if (!ZNet.m_isServer)
             {
+                VChatPlugin.Log($"Registering custom routed messages for channel info.");
+
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelInfoMessageHashName, OnMessage_Client);
             }
         }

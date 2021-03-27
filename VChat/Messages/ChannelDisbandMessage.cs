@@ -22,6 +22,8 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
+                VChatPlugin.Log($"Registering custom routed messages for channel disband.");
+
                 ZRoutedRpc.instance.Register<ZPackage>(ChannelDisbandMessageHashName, OnMessage_Server);
             }
         }
