@@ -460,6 +460,7 @@ namespace VChat
 
                                     LastChatType.Set(CustomMessageType.CustomServerChannel);
                                     LastCustomChatChannelInfo = channel;
+                                    CurrentCustomChatChannelInfo = channel;
                                 }
                             ));
                         }
@@ -472,11 +473,13 @@ namespace VChat
                         if(channel != null)
                         {
                             LastCustomChatChannelInfo = channel;
+                            CurrentCustomChatChannelInfo = channel;
                         }
                         else
                         {
                             LastChatType.Set(Talker.Type.Normal);
                             LastCustomChatChannelInfo = null;
+                            CurrentCustomChatChannelInfo = null;
                         }
 
                         // Update the input color of the chat

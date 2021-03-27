@@ -85,8 +85,10 @@ namespace VChat.Data
             {
                 switch (CustomTypeValue.Value)
                 {
-                    case CustomMessageType:
+                    case CustomMessageType.Global:
                         return "Global";
+                    case CustomMessageType.CustomServerChannel:
+                        return "Custom";
                 }
             }
 

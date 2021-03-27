@@ -34,6 +34,7 @@ namespace VChat
         public static int MessageSendHistoryIndex { get; set; } = 0;
         public static CombinedMessageType CurrentInputChatType { get; set; }
         public static CombinedMessageType LastChatType { get; set; }
+        public static ServerChannelInfo CurrentCustomChatChannelInfo { get; set; }
         public static ServerChannelInfo LastCustomChatChannelInfo { get; set; }
         public static float ChatHideTimer { get; set; }
         private static readonly object _commandHandlerLock = new();
@@ -44,6 +45,7 @@ namespace VChat
             MessageSendHistory = new List<string>();
             CommandHandler = new CommandHandler();
             LastCustomChatChannelInfo = null;
+            CurrentCustomChatChannelInfo = null;
             LastChatType = new CombinedMessageType(CustomMessageType.Global);
             CurrentInputChatType = new CombinedMessageType(LastChatType.Value);
         }
@@ -100,7 +102,7 @@ namespace VChat
                         color = (getDefault ? null : Settings.GlobalChatColor) ?? new Color(0.890f, 0.376f, 0.050f);
                         break;
                     case CustomMessageType.CustomServerChannel:
-                        color = LastCustomChatChannelInfo?.Color ?? Color.white;
+                        color = (CurrentCustomChatChannelInfo ?? LastCustomChatChannelInfo)?.Color ?? Color.white;
                         break;
                 }
             }
@@ -126,6 +128,7 @@ namespace VChat
             if (inputField != null && text != null)
             {
                 bool foundCommand = false;
+                var isCustomChannelChanged = false;
                 var messageType = new CombinedMessageType(LastChatType.Value);
 
                 // Attempt to look for the used chat channel if we're starting with the command prefix.
@@ -157,11 +160,25 @@ namespace VChat
                             && command is PluginCommandServerChannel serverCommand)
                         {
                             messageType.Set(CustomMessageType.CustomServerChannel);
-                            LastCustomChatChannelInfo = serverCommand.ChannelInfo;
                             foundCommand = true;
 
+                            // Since custom is a type for multiple channels, we'll have to notify this method
+                            // to force update the color when changing from one custom channel to another.
+                            if (!Equals(LastCustomChatChannelInfo, serverCommand.ChannelInfo))
+                            {
+                                CurrentCustomChatChannelInfo = serverCommand.ChannelInfo;
+                                isCustomChannelChanged = true;
+                            }
                         }
                     }
+                }
+
+                // Reset last custom channel if we can't find a command anymore.
+                // This happens when we type /ChannelName1 and then remove the slash, which will mean we want to color the input back to the previous channel.
+                if (!foundCommand && CurrentCustomChatChannelInfo != null && CurrentInputChatType.Equals(CustomMessageType.CustomServerChannel))
+                {
+                    CurrentCustomChatChannelInfo = null;
+                    isCustomChannelChanged = true;
                 }
 
                 // Use the default if we didn't bind /s yet.
@@ -172,11 +189,12 @@ namespace VChat
                 }
 
                 // Update the text to the used channel in the input box.
-                if (!CurrentInputChatType.Equals(messageType))
+                if (!CurrentInputChatType.Equals(messageType) || isCustomChannelChanged)
                 {
-                    CurrentInputChatType = messageType;
+                    CurrentInputChatType.Set(messageType);
                     UpdateChatInputColor(inputField, CurrentInputChatType);
                 }
+
                 return true;
             }
 
