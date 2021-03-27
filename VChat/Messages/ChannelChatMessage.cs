@@ -51,6 +51,7 @@ namespace VChat.Messages
                 var peer = ZNet.instance.GetPeer(peerId);
                 callerName = peer?.m_playerName ?? callerName;
                 pos = peer?.m_refPos ?? pos;
+                colorHtmlString = null;
             }
 
             SendMessageToChannel(senderId, peerId, channelName, pos, callerName, text, colorHtmlString?.ToColor());
