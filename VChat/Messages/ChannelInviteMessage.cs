@@ -271,7 +271,7 @@ namespace VChat.Messages
             {
                 SendToPeer(inviterPeerId, ChannelInviteResponseType.NoPermission, channelName);
             }
-            else if (inviterPeerId == peer.m_uid)
+            else if (channel.GetSteamIds().Contains(inviteeId))
             {
                 SendToPeer(inviterPeerId, ChannelInviteResponseType.UserAlreadyInChannel, channelName);
             }
