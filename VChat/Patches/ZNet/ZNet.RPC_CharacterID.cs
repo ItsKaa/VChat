@@ -48,7 +48,7 @@ namespace VChat.Patches
 
                             foreach (var message in messages)
                             {
-                                ServerChannelManager.SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, message);
+                                ServerChannelManager.SendMessageToPeerInChannel(peer.m_uid, VChatPlugin.Name, null, message);
                             }
                         }
 

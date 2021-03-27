@@ -18,10 +18,23 @@ namespace VChat.Messages
         {
             OK,
             UserNotFound,
+            UserAlreadyInChannel,
             ChannelNotFound,
             NoPermission,
+        }
+
+        public enum ChannelInviteAcceptResponseType
+        {
+            OK,
             NoInviteFound,
         }
+
+        public enum ChannelInviteDeclineResponseType
+        {
+            OK,
+            NoInviteFound,
+        }
+
 
         public const string ChannelInviteMessageHashName = VChatPlugin.Name + ".ChannelInvite";
         public const int Version = 1;
@@ -67,7 +80,7 @@ namespace VChat.Messages
                     }
                     else
                     {
-                        SendToPeer(senderPeerId, ChannelInviteType.Invite, ChannelInviteResponseType.UserNotFound, channelName, senderPeer.m_playerName);
+                        SendToPeer(senderPeerId, ChannelInviteResponseType.UserNotFound, channelName, senderPeer.m_playerName);
                     }
                 }
                 else if (requestType == (int)ChannelInviteType.Accept)
@@ -90,7 +103,92 @@ namespace VChat.Messages
         /// <summary>
         /// Send an invite message to a peer, this can only be executed by the server.
         /// </summary>
-        public static void SendToPeer(long peerId, ChannelInviteType inviteType, ChannelInviteResponseType responseType, string channelName, string inviterName = null)
+        public static void SendToPeer(long peerId, ChannelInviteResponseType responseType, string channelName, string inviterName = null)
+        {
+            if (ZNet.m_isServer)
+            {
+                var peer = ValheimHelper.GetPeer(peerId);
+                if (peer != null)
+                {
+                    string text = null;
+                    switch (responseType)
+                    {
+                        case ChannelInviteResponseType.OK:
+                            // No response needed for now to reduce clutter in the chat.
+                            break;
+                        case ChannelInviteResponseType.ChannelNotFound:
+                            text = "Cannot find a channel with that name.";
+                            break;
+                        case ChannelInviteResponseType.UserNotFound:
+                            text = "Couldn't find a user with that name.";
+                            break;
+                        case ChannelInviteResponseType.UserAlreadyInChannel:
+                            text = "User has already joined that channel.";
+                            break;
+                        case ChannelInviteResponseType.NoPermission:
+                            text = "You do not have permission to invite players to that channel.";
+                            break;
+                        default:
+                            VChatPlugin.LogError($"Unknown response type for channel invite received: {responseType}");
+                            break;
+                    }
+
+                    VChatPlugin.Log($"[Channel Invite] Sending response {responseType} to peer {peerId} for channel {channelName} from inviter {inviterName}");
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
+                    }
+                }
+            }
+            else
+            {
+                VChatPlugin.LogWarning($"Cannot send the invite message response to a client.");
+            }
+        }
+
+        /// <summary>
+        /// Send an invite accept response message to a peer, this can only be executed by the server.
+        /// </summary>
+        public static void SendToPeer(long peerId, ChannelInviteAcceptResponseType responseType, string channelName, string inviterName = null)
+        {
+            if (ZNet.m_isServer)
+            {
+                var peer = ValheimHelper.GetPeer(peerId);
+                if (peer != null)
+                {
+                    string text = null;
+                    switch (responseType)
+                    {
+                        case ChannelInviteAcceptResponseType.OK:
+                            // We do not need any response because ServerChannelManager will send a message to every online player in the channel when someone joins it.
+                            break;
+
+                        case ChannelInviteAcceptResponseType.NoInviteFound:
+                            text = "You have not been invited to a channel.";
+                            break;
+
+                        default:
+                            VChatPlugin.LogError($"Unknown response type for channel invite accept received: {responseType}");
+                            break;
+                    }
+
+                    VChatPlugin.Log($"[Channel InviteAccept] Sending response {responseType} to peer {peerId} for channel {channelName} from inviter {inviterName}");
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
+                    }
+                }
+            }
+            else
+            {
+                VChatPlugin.LogWarning($"Cannot send the invite accept response message to a client.");
+            }
+        }
+
+        /// <summary>
+        /// Send an invite accept response message to a peer, this can only be executed by the server.
+        /// </summary>
+        public static void SendToPeer(long peerId, ChannelInviteDeclineResponseType responseType, string channelName, string inviterName = null)
         {
             if (ZNet.m_isServer)
             {
@@ -101,36 +199,23 @@ namespace VChat.Messages
                     string text = null;
                     switch (responseType)
                     {
-                        case ChannelInviteResponseType.NoInviteFound:
+                        case ChannelInviteDeclineResponseType.OK:
+                            text = $"Declined the invite for channel '{channelName}.'";
+                            isSuccess = true;
+                            break;
+                        case ChannelInviteDeclineResponseType.NoInviteFound:
                             text = "You have not been invited to a channel.";
-                            break;
-                        case ChannelInviteResponseType.ChannelNotFound:
-                            text = "Cannot find a channel with that name.";
-                            break;
-                        case ChannelInviteResponseType.UserNotFound:
-                            text = "Couldn't find a user with that name.";
-                            break;
-                        case ChannelInviteResponseType.NoPermission:
-                            text = "You do not have permission to invite players to that channel.";
-                            break;
-                        case ChannelInviteResponseType.OK:
-                            {
-                                isSuccess = true;
-                                if (inviteType == ChannelInviteType.Decline)
-                                {
-                                    text = $"Declined the invite for channel '{channelName}.'";
-                                }
-                            }
                             break;
 
                         default:
-                            VChatPlugin.LogError($"Unknown response type for channel invite received: {responseType}");
+                            VChatPlugin.LogError($"Unknown response type for channel invite accept received: {responseType}");
                             break;
                     }
 
+                    VChatPlugin.Log($"[Channel InviteDecline] Sending response {responseType} to peer {peerId} for channel {channelName} from inviter {inviterName}");
                     if (!string.IsNullOrEmpty(text))
                     {
-                        if(isSuccess)
+                        if (isSuccess)
                         {
                             ServerChannelManager.SendVChatSuccessMessageToPeer(peerId, text);
                         }
@@ -143,7 +228,7 @@ namespace VChat.Messages
             }
             else
             {
-                VChatPlugin.LogWarning($"Cannot send the invite message to a client.");
+                VChatPlugin.LogWarning($"Cannot send the invite decline response message to a client.");
             }
         }
 
@@ -171,39 +256,39 @@ namespace VChat.Messages
         /// </summary>
         public static bool InvitePlayerToChannel(string channelName, long inviterPeerId, ulong inviterSteamId, ulong inviteeId)
         {
-            if (ServerChannelManager.DoesChannelExist(channelName))
-            {
-                if (ServerChannelManager.CanInvite(inviterSteamId, channelName))
-                {
-                    var peer = ValheimHelper.FindPeerBySteamId(inviteeId);
-                    if (peer != null)
-                    {
-                        var inviteInfo = new ServerChannelInviteInfo()
-                        {
-                            InviteeId = inviteeId,
-                            InviterId = inviterSteamId,
-                            ChannelName = channelName,
-                        };
+            var peer = ValheimHelper.FindPeerBySteamId(inviteeId);
+            var channel = ServerChannelManager.FindChannel(channelName);
 
-                        ServerChannelManager.AddInvite(peer, inviteInfo);
-                        SendInviteRequestToPeer(peer, inviteInfo);
-                    }
-                    else
-                    {
-                        SendToPeer(inviterPeerId, ChannelInviteType.Invite, ChannelInviteResponseType.UserNotFound, channelName);
-                        return false;
-                    }
-                    return true;
-                }
-                else
-                {
-                    SendToPeer(inviterPeerId, ChannelInviteType.Invite, ChannelInviteResponseType.NoPermission, channelName);
-                }
+            if (channel == null)
+            {
+                SendToPeer(inviterPeerId, ChannelInviteResponseType.ChannelNotFound, channelName);
+            }
+            else if (peer == null)
+            {
+                SendToPeer(inviterPeerId, ChannelInviteResponseType.UserNotFound, channelName);
+            }
+            else if (!ServerChannelManager.CanInvite(inviterSteamId, channelName))
+            {
+                SendToPeer(inviterPeerId, ChannelInviteResponseType.NoPermission, channelName);
+            }
+            else if (inviterPeerId == peer.m_uid)
+            {
+                SendToPeer(inviterPeerId, ChannelInviteResponseType.UserAlreadyInChannel, channelName);
             }
             else
             {
-                SendToPeer(inviterPeerId, ChannelInviteType.Invite, ChannelInviteResponseType.ChannelNotFound, channelName);
+                var inviteInfo = new ServerChannelInviteInfo()
+                {
+                    InviteeId = inviteeId,
+                    InviterId = inviterSteamId,
+                    ChannelName = channelName,
+                };
+
+                ServerChannelManager.AddInvite(inviteInfo);
+                SendInviteRequestToPeer(peer, inviteInfo);
+                return true;
             }
+
             return false;
         }
 
@@ -220,14 +305,14 @@ namespace VChat.Messages
                 {
                     VChatPlugin.Log($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{inviteePeer.m_playerName}\" ({inviteePeer.m_uid}).");
 
-                    string text = $"{inviterPeer.m_playerName} wishes to invite you into the channel '{channelInviteInfo.ChannelName}'. Please type /accept to accept or /decine to decline.";
-                    ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, text);
+                    string text = $"{inviterPeer.m_playerName} wishes to invite you to the channel '{channelInviteInfo.ChannelName}'. Please type /accept or /decline.";
+                    ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, null, text);
 
-                    SendToPeer(inviteePeer.m_uid, ChannelInviteType.Invite, ChannelInviteResponseType.OK, channelInviteInfo.ChannelName, inviterPeer.m_playerName);
+                    SendToPeer(inviteePeer.m_uid, ChannelInviteResponseType.OK, channelInviteInfo.ChannelName, inviterPeer.m_playerName);
                 }
                 else
                 {
-                    VChatPlugin.LogWarning($"Peer id could not be found for steam id {channelInviteInfo.InviteeId} or {channelInviteInfo.InviterId} from invite request");
+                    VChatPlugin.LogError($"Peer id could not be found for steam id {channelInviteInfo.InviteeId} or {channelInviteInfo.InviterId} from invite request, this should have been handled.");
                 }
             }
         }
@@ -255,23 +340,23 @@ namespace VChat.Messages
                             if (channelInfo != null)
                             {
                                 VChatPlugin.Log($"User '{peer.m_playerName}' accepted channel invite '{channelName}' exist?");
-                                SendToPeer(peerId, ChannelInviteType.Accept, ChannelInviteResponseType.OK, channelInfo.Name);
+                                SendToPeer(peerId, ChannelInviteAcceptResponseType.OK, channelInfo.Name);
                                 return true;
                             }
                             else
                             {
-                                SendToPeer(peerId, ChannelInviteType.Accept, ChannelInviteResponseType.NoInviteFound, channelInfo.Name);
+                                SendToPeer(peerId, ChannelInviteAcceptResponseType.NoInviteFound, channelInfo.Name);
                             }
                         }
                         else
                         {
                             VChatPlugin.LogWarning($"Channel invite accepted but somehow the channel wasn't found, did the channel '{channelName}' get deleted before the player accepted?");
-                            SendToPeer(peerId, ChannelInviteType.Accept, ChannelInviteResponseType.NoInviteFound, channelName);
+                            SendToPeer(peerId, ChannelInviteAcceptResponseType.NoInviteFound, channelName);
                         }
                     }
                     else
                     {
-                        SendToPeer(peerId, ChannelInviteType.Accept, ChannelInviteResponseType.NoInviteFound, channelName);
+                        SendToPeer(peerId, ChannelInviteAcceptResponseType.NoInviteFound, channelName);
                     }
                 }
             }
@@ -282,7 +367,7 @@ namespace VChat.Messages
         /// <summary>
         /// Declines a channel invite for a peer. Must be executed by the server.
         /// </summary>
-        private static void DeclineChannelInvite(long peerId, string channelName)
+        public static void DeclineChannelInvite(long peerId, string channelName)
         {
             if (ZNet.m_isServer)
             {
@@ -296,12 +381,12 @@ namespace VChat.Messages
                             channelName = invites.FirstOrDefault()?.ChannelName;
                             if (ServerChannelManager.DeclineChannelInvite(peer.m_uid, channelName))
                             {
-                                SendToPeer(peerId, ChannelInviteType.Decline, ChannelInviteResponseType.OK, channelName);
+                                SendToPeer(peerId, ChannelInviteDeclineResponseType.OK, channelName);
                             }
                         }
                         else
                         {
-                            SendToPeer(peer.m_uid, ChannelInviteType.Decline, ChannelInviteResponseType.NoInviteFound, channelName);
+                            SendToPeer(peer.m_uid, ChannelInviteDeclineResponseType.NoInviteFound, channelName);
                         }
                     }
                     else

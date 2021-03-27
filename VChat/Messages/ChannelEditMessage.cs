@@ -80,6 +80,10 @@ namespace VChat.Messages
                                 {
                                     text = $"Could not parse the color '{value}'";
                                 }
+                                else
+                                {
+                                    VChatPlugin.LogError($"Unknown type for edit channel - InvalidValue received: {responseType}");
+                                }
                             }
                             break;
                         default:
@@ -87,6 +91,7 @@ namespace VChat.Messages
                             break;
                     }
 
+                    VChatPlugin.Log($"[Channel Edit] Sending response {type}:{responseType} to peer {peerId} for channel {channelName}");
                     if (!string.IsNullOrEmpty(text))
                     {
                         ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
@@ -115,9 +120,14 @@ namespace VChat.Messages
 
         private static bool EditChannelColor(long peerId, ulong steamId, string channelName, string colorValue)
         {
-            if(!ServerChannelManager.DoesChannelExist(channelName))
+            var color = colorValue?.ToColor();
+            if (!ServerChannelManager.DoesChannelExist(channelName))
             {
                 SendToPeer(peerId, ChannelEditType.EditChannelColor, ChannelEditResponseType.ChannelNotFound, channelName, colorValue);
+            }
+            else if (!color.HasValue)
+            {
+                SendToPeer(peerId, ChannelEditType.EditChannelColor, ChannelEditResponseType.InvalidValue, channelName, colorValue);
             }
             else if(!ServerChannelManager.CanModerateChannel(steamId, channelName))
             {
@@ -125,16 +135,7 @@ namespace VChat.Messages
             }
             else
             {
-                var color = colorValue?.ToColor();
-                if (!color.HasValue)
-                {
-                    SendToPeer(peerId, ChannelEditType.EditChannelColor, ChannelEditResponseType.InvalidValue, channelName, colorValue);
-                }
-                else
-                {
-                    ServerChannelManager.EditChannelColor(channelName, color.Value, peerId);
-                }
-                return true;
+                return ServerChannelManager.EditChannelColor(channelName, color.Value, peerId);
             }
 
             return false;

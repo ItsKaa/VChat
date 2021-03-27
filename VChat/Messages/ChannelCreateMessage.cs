@@ -43,13 +43,13 @@ namespace VChat.Messages
                 var senderPeer = ZNet.instance?.GetPeer(senderPeerId);
                 if (ValheimHelper.GetSteamIdFromPeer(senderPeer, out ulong senderSteamId))
                 {
-                    VChatPlugin.LogWarning($"Player \"{senderPeer.m_playerName}\" ({senderPeerId}) requested to create channel named {channelName}.");
+                    VChatPlugin.Log($"Player \"{senderPeer.m_playerName}\" ({senderPeerId}) requested to create channel named {channelName}.");
                     AddChannelForPeer(senderPeerId, senderSteamId, channelName);
                 }
             }
         }
 
-        public static void SendResponseToPeer(long peerId, ChannelCreateResponseType responseType, string channelName)
+        public static void SendToPeer(long peerId, ChannelCreateResponseType responseType, string channelName)
         {
             if (ZNet.m_isServer)
             {
@@ -70,7 +70,8 @@ namespace VChat.Messages
                             break;
                     }
 
-                    if(!string.IsNullOrEmpty(text))
+                    VChatPlugin.Log($"[Create Channel] Sending response {responseType} to peer {peerId} for channel {channelName}");
+                    if (!string.IsNullOrEmpty(text))
                     {
                         ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
                     }
@@ -82,7 +83,7 @@ namespace VChat.Messages
             }
         }
 
-        public static void SendRequestToServer(long senderPeerId, string channelName)
+        public static void SendToServer(long senderPeerId, string channelName)
         {
             var package = new ZPackage();
             package.Write(Version);
@@ -101,20 +102,18 @@ namespace VChat.Messages
             {
                 if (ServerChannelManager.DoesChannelExist(channelName))
                 {
-                    SendResponseToPeer(peerId, ChannelCreateResponseType.ChannelAlreadyExists, channelName);
+                    SendToPeer(peerId, ChannelCreateResponseType.ChannelAlreadyExists, channelName);
+                }
+                else if (!ServerChannelManager.CanUsersCreateChannels && !ValheimHelper.IsAdministrator(steamId))
+                {
+                    SendToPeer(peerId, ChannelCreateResponseType.NoPermission, channelName);
                 }
                 else
                 {
-                    if (!ServerChannelManager.CanUsersCreateChannels && !ValheimHelper.IsAdministrator(steamId))
-                    {
-                        SendResponseToPeer(peerId, ChannelCreateResponseType.NoPermission, channelName);
-                    }
-                    else
-                    {
-                        return ServerChannelManager.AddChannel(channelName, steamId, false);
-                    }
+                    return ServerChannelManager.AddChannel(channelName, steamId, false);
                 }
             }
+
             return false;
         }
     }

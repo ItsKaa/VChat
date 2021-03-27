@@ -342,7 +342,7 @@ namespace VChat
                     {
                         LogWarning($"Got addchannel from local chat");
                         var channelName = text.Trim();
-                        ChannelCreateMessage.SendRequestToServer(peerId, channelName);
+                        ChannelCreateMessage.SendToServer(peerId, channelName);
                     }),
                     new PluginCommandServer("invite", (text, peerId, steamId) =>
                     {
@@ -428,16 +428,18 @@ namespace VChat
         {
             lock (_commandHandlerLock)
             {
-                if (ZNet.instance?.IsServer() == true)
+                if (ZNet.instance?.IsDedicated() == true || IsPlayerHostedServer)
                 {
                     // Initialise the server-wide channel commands for the server
-                    foreach (var channel in ServerChannelManager.GetServerChannelInfoCopy())
+                    foreach (var channel in ServerChannelManager.GetServerChannelInfoCollection())
                     {
                         if (!channel.IsPluginOwnedChannel)
                         {
+                            Log($"Registering server command for channel {channel.Name}");
                             CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName,
                                 (text, peerId, steamId) =>
                                 {
+                                    Log($"{channel.Name} server channel command called");
                                     var peer = ValheimHelper.GetPeer(peerId);
                                     if (peer != null)
                                     {
@@ -456,9 +458,13 @@ namespace VChat
                     {
                         if (!channel.IsPluginOwnedChannel)
                         {
+                            Log($"Registering user command for channel {channel.Name}");
+
                             CommandHandler.AddCommand(new PluginCommandServerChannel(channel.ServerCommandName, channel,
                                 (text, peerId, steamId) =>
                                 {
+                                    Log($"Sending message to server channel '{channel.Name}': {text}");
+
                                     var localPlayer = Player.m_localPlayer;
                                     ChannelChatMessage.SendToServer(peerId, channel.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.GetPlayerName() ?? string.Empty, text);
 

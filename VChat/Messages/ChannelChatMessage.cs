@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using VChat.Extensions;
 using VChat.Helpers;
 using VChat.Services;
@@ -9,6 +10,13 @@ namespace VChat.Messages
     {
         public const int Version = 1;
         public const string ChannelChatMessageHashName = VChatPlugin.Name + ".ChannelChatMessage";
+
+
+        public enum ChannelMessageResponseType
+        {
+            ChannelNotFound,
+            NoPermission,
+        }
 
         static ChannelChatMessage()
         {
@@ -45,19 +53,7 @@ namespace VChat.Messages
                 pos = peer?.m_refPos ?? pos;
             }
 
-            if (ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId))
-            {
-                // Check permissions of that user
-                var channel = ServerChannelManager.FindChannel(channelName);
-                if (isSentByServer || (channel != null && (!channel.IsPluginOwnedChannel || channel.OwnerId == steamId || ValheimHelper.IsAdministrator(steamId))))
-                {
-                    ServerChannelManager.SendMessageToAllUsersInChannel(peerId, channelName, callerName, text, colorHtmlString?.ToColor());
-                }
-                else
-                {
-                    ServerChannelManager.SendVChatErrorMessageToPeer(peerId, "You do not have permission to send a message in that channel");
-                }
-            }
+            SendMessageToChannel(senderId, peerId, channelName, pos, callerName, text, colorHtmlString?.ToColor());
         }
 
         private static void OnMessage_Client(long senderId, ZPackage package)
@@ -112,6 +108,45 @@ namespace VChat.Messages
             }
         }
 
+        private static void SendResponseToPeer(long peerId, ChannelMessageResponseType responseType, string channelName)
+        {
+            if (ZNet.m_isServer)
+            {
+                var package = new ZPackage();
+                package.Write(Version);
+                package.Write((int)responseType);
+                package.Write(channelName);
+
+                var peer = ValheimHelper.GetPeer(peerId);
+                if (peer != null)
+                {
+                    string text = null;
+                    switch (responseType)
+                    {
+                        case ChannelMessageResponseType.ChannelNotFound:
+                            text = "Cannot find a channel with that name.";
+                            break;
+                        case ChannelMessageResponseType.NoPermission:
+                            text = "You do not have permission to send a message to that channel.";
+                            break;
+                        default:
+                            VChatPlugin.LogError($"Unknown response type for disband channel received: {responseType}");
+                            break;
+                    }
+
+                    VChatPlugin.Log($"[Chat Message] Sending response {responseType} to peer {peerId} for channel {channelName}");
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
+                    }
+                }
+            }
+            else
+            {
+                VChatPlugin.LogWarning($"Cannot send the channel message response to a client.");
+            }
+        }
+
         public static void SendToServer(long senderPeerId, string channelName, Vector3 pos, string callerName, string text, Color? customColor = null)
         {
             var package = new ZPackage();
@@ -124,6 +159,37 @@ namespace VChat.Messages
             package.Write(customColor?.ToHtmlString() ?? string.Empty);
 
             ZRoutedRpc.instance.InvokeRoutedRPC(ValheimHelper.GetServerPeerId(), ChannelChatMessageHashName, package);
+        }
+
+        private static bool SendMessageToChannel(long senderPeerId, long peerId, string channelName, Vector3 pos, string callerName, string text, Color? color)
+        {
+            var channel = ServerChannelManager.FindChannel(channelName);
+
+            if (senderPeerId == ValheimHelper.GetServerPeerId() && peerId == senderPeerId)
+            {
+                // Server ignores every check, channel is verified again in this method.
+                VChatPlugin.Log($"Sending message as server to channel {channelName}");
+                return ServerChannelManager.SendMessageToAllPeersInChannel(channelName, callerName, text, color);
+            }
+            else if (channel == null)
+            {
+                SendResponseToPeer(peerId, ChannelMessageResponseType.ChannelNotFound, channel.Name);
+            }
+            else if (!ValheimHelper.GetSteamIdFromPeer(peerId, out ulong steamId))
+            {
+                VChatPlugin.LogError($"Peer {peerId} sent a message to the channel {channelName} but steam id cannot not be found.");
+            }
+            else if (!channel.GetSteamIds().Contains(steamId))
+            {
+                SendResponseToPeer(peerId, ChannelMessageResponseType.NoPermission, channel.Name);
+            }
+            else
+            {
+                VChatPlugin.Log($"Sending message as user: [{channelName}] {callerName}: {text}");
+                return ServerChannelManager.SendMessageToAllUsersInChannel(peerId, channel.Name, callerName, text, color);
+            }
+
+            return false;
         }
     }
 }

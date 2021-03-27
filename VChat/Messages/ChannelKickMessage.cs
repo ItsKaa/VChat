@@ -1,4 +1,5 @@
-﻿using VChat.Helpers;
+﻿using System.Linq;
+using VChat.Helpers;
 using VChat.Services;
 
 namespace VChat.Messages
@@ -8,7 +9,8 @@ namespace VChat.Messages
         public enum ChannelKickResponseType
         {
             ChannelNotFound,
-            PlayerNotFound,
+            UserNotFound,
+            UserNotFoundInChannel,
             NoPermission,
         }
 
@@ -62,6 +64,12 @@ namespace VChat.Messages
                         case ChannelKickResponseType.ChannelNotFound:
                             text = "Cannot find a channel with that name.";
                             break;
+                        case ChannelKickResponseType.UserNotFound:
+                            text = "Cannot find a user with that name.";
+                            break;
+                        case ChannelKickResponseType.UserNotFoundInChannel:
+                            text = "The found user is not part of that channel.";
+                            break;
                         case ChannelKickResponseType.NoPermission:
                             text = "You do not have permission to remove a player from this channel.";
                             break;
@@ -97,25 +105,27 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
-                if (!ServerChannelManager.DoesChannelExist(channelName))
+                var targetPeer = ValheimHelper.FindPeerByPlayerName(playerName);
+                var channel = ServerChannelManager.FindChannel(channelName);
+                if (channel == null)
                 {
                     SendToPeer(senderPeerId, ChannelKickResponseType.ChannelNotFound, channelName);
                 }
+                else if (targetPeer == null || !ValheimHelper.GetSteamIdFromPeer(targetPeer, out ulong targetSteamId))
+                {
+                    SendToPeer(senderPeerId, ChannelKickResponseType.UserNotFound, channelName);
+                }
+                else if (!ServerChannelManager.CanModerateChannel(senderSteamId, channelName))
+                {
+                    SendToPeer(senderPeerId, ChannelKickResponseType.NoPermission, channelName);
+                }
+                else if (channel.GetSteamIds().Contains(targetSteamId))
+                {
+                    return ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeer.m_uid, targetSteamId, channelName);
+                }
                 else
                 {
-                    var targetPeer = ValheimHelper.FindPeerByPlayerName(playerName);
-                    if (targetPeer == null || !ValheimHelper.GetSteamIdFromPeer(targetPeer, out ulong targetSteamId))
-                    {
-                        SendToPeer(senderPeerId, ChannelKickResponseType.PlayerNotFound, channelName);
-                    }
-                    else if (ServerChannelManager.CanModerateChannel(senderSteamId, channelName))
-                    {
-                        return ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeer.m_uid, targetSteamId, channelName);
-                    }
-                    else
-                    {
-                        SendToPeer(senderPeerId, ChannelKickResponseType.NoPermission, channelName);
-                    }
+                    SendToPeer(senderPeerId, ChannelKickResponseType.UserNotFoundInChannel, channelName);
                 }
             }
             return false;

@@ -65,14 +65,15 @@ namespace VChat.Messages
                     var colorString = channelPackage.ReadString();
                     var ownerId = channelPackage.ReadULong();
                     var isPublic = channelPackage.ReadBool();
-                    var isReadOnly = channelPackage.ReadBool();
+                    var isPluginOwnedChannel = channelPackage.ReadBool();
+
                     list.Add(new ServerChannelInfo()
                     {
                         Color = colorString.ToColor() ?? Color.white,
                         IsPublic = isPublic,
                         Name = channelName,
                         OwnerId = ownerId,
-                        IsPluginOwnedChannel = isReadOnly,
+                        IsPluginOwnedChannel = isPluginOwnedChannel,
                     });
                 }
 
@@ -96,12 +97,12 @@ namespace VChat.Messages
                         var existingChannel = FindChannel(channel.Name);
                         if (existingChannel != null)
                         {
-                            VChatPlugin.Log($"Updated channel configuration - channel name: {channel.Name}, command name: {channel.ServerCommandName}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, read-only: {channel.IsPluginOwnedChannel}");
+                            VChatPlugin.Log($"Updated channel configuration - channel name: {channel.Name}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, pluginChannel: {channel.IsPluginOwnedChannel}");
                             existingChannel.Update(channel);
                         }
                         else
                         {
-                            VChatPlugin.Log($"Received a channel configuration from the server - channel name: {channel.Name}, command name: {channel.ServerCommandName}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, read-only: {channel.IsPluginOwnedChannel}");
+                            VChatPlugin.Log($"Received a channel configuration from the server - channel name: {channel.Name}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, pluginChannel: {channel.IsPluginOwnedChannel}");
                             ReceivedChannelInfo.Add(channel);
                         }
                     }
@@ -135,7 +136,7 @@ namespace VChat.Messages
                     package.Write(channelDataPackage);
                 }
 
-                VChatPlugin.Log($"Sending channel pacakge to {peerId} with {channelInfoData.Count()} channels.");
+                VChatPlugin.Log($"Sending channel package to {peerId} with {channelInfoData.Count()} channels.");
                 ZRoutedRpc.instance.InvokeRoutedRPC(peerId, ChannelInfoMessageHashName, package);
             }
             else

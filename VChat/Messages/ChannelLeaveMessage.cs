@@ -69,7 +69,7 @@ namespace VChat.Messages
                             text = "Unable to leave a channel you haven't joined.";
                             break;
                         default:
-                            VChatPlugin.LogError($"Unknown response type for leave channel received: {responseType}");
+                            VChatPlugin.LogWarning($"Unknown response type for leave channel received: {responseType}");
                             break;
                     }
 
@@ -106,20 +106,23 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
-                if (ServerChannelManager.DoesChannelExist(channelName))
+                var channel = ServerChannelManager.FindChannel(channelName);
+                if (channel == null)
                 {
-                    var channel = ServerChannelManager.GetChannelsForUser(targetSteamId).FirstOrDefault(x => ValheimHelper.NameEquals(x.Name, channelName));
-                    if(channel != null)
-                    {
-                        if(ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeerId, targetSteamId, channelName))
-                        {
-                            SendToPeer(targetPeerId, ChannelLeaveResponseType.OK, channelName);
-                        }
-                    }
+                    SendToPeer(targetPeerId, ChannelLeaveResponseType.ChannelNotFound, channelName);
+                }
+                else if(!channel.GetSteamIds().Contains(targetSteamId))
+                {
+                    SendToPeer(targetPeerId, ChannelLeaveResponseType.ChannelNotFound, channelName);
+                }
+                else if(ServerChannelManager.RemovePlayerFromChannel(senderPeerId, targetPeerId, targetSteamId, channelName))
+                {
+                    SendToPeer(targetPeerId, ChannelLeaveResponseType.OK, channelName);
+                    return true;
                 }
                 else
                 {
-                    SendToPeer(targetPeerId, ChannelLeaveResponseType.ChannelNotFound, channelName);
+                    VChatPlugin.LogWarning($"Validation success to leave channel {channelName} for peer {targetPeerId}, but method returned false.");
                 }
             }
             return false;

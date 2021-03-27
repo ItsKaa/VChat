@@ -49,7 +49,7 @@ namespace VChat.Messages
             }
         }
 
-        public static void SendResponseToPeer(long peerId, ChannelDisbandResponseType responseType, string channelName)
+        public static void SendToPeer(long peerId, ChannelDisbandResponseType responseType, string channelName)
         {
             if (ZNet.m_isServer)
             {
@@ -75,6 +75,7 @@ namespace VChat.Messages
                             break;
                     }
 
+                    VChatPlugin.Log($"[Channel Disband] Sending response {responseType} to peer {peerId} for channel {channelName}");
                     if (!string.IsNullOrEmpty(text))
                     {
                         ServerChannelManager.SendVChatErrorMessageToPeer(peerId, text);
@@ -106,18 +107,15 @@ namespace VChat.Messages
             {
                 if (!ServerChannelManager.DoesChannelExist(channelName))
                 {
-                    SendResponseToPeer(peerId, ChannelDisbandResponseType.ChannelNotFound, channelName);
+                    SendToPeer(peerId, ChannelDisbandResponseType.ChannelNotFound, channelName);
+                }
+                else if(!ServerChannelManager.CanModerateChannel(steamId, channelName))
+                {
+                    SendToPeer(peerId, ChannelDisbandResponseType.NoPermission, channelName);
                 }
                 else
                 {
-                    if(!ServerChannelManager.CanModerateChannel(steamId, channelName))
-                    {
-                        SendResponseToPeer(peerId, ChannelDisbandResponseType.NoPermission, channelName);
-                    }
-                    else
-                    {
-                        ServerChannelManager.DisbandChannel(peerId, steamId, channelName);
-                    }
+                    return ServerChannelManager.DisbandChannel(peerId, steamId, channelName);
                 }
             }
             return false;

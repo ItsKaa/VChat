@@ -112,7 +112,7 @@ namespace VChat.Services
 
         private static void SerializeChannels(ZPackage package)
         {
-            var channels = ServerChannelManager.GetServerChannelInfoCopy();
+            var channels = ServerChannelManager.GetServerChannelInfoCollection();
             var channelsToWrite = channels.Where(x => !x.IsPluginOwnedChannel);
 
             var channelCollectionPackage = new ZPackage();

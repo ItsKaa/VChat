@@ -12,17 +12,22 @@ namespace VChat.Data.Messages
         public bool IsPublic { get; set; }
         public bool IsPluginOwnedChannel { get; set; }
         public List<ulong> Invitees { get; set; }
-        public string ServerCommandName => Name.StripRichTextFormatting().StripWhitespaces();
+        public string ServerCommandName => Name.StripRichTextFormatting().StripWhitespaces().ToLower();
         public Color Color { get; set; }
 
         public ServerChannelInfo()
         {
             Name = string.Empty;
-            OwnerId = 0;
+            OwnerId = 0UL;
             IsPublic = false;
             IsPluginOwnedChannel = false;
             Invitees = new List<ulong>();
             Color = Color.white;
+        }
+
+        public ServerChannelInfo(ServerChannelInfo other)
+        {
+            Update(other);
         }
 
         public void Update(ServerChannelInfo other)
@@ -33,6 +38,23 @@ namespace VChat.Data.Messages
             IsPluginOwnedChannel = other.IsPluginOwnedChannel;
             Invitees = other.Invitees.ToList();
             Color = other.Color;
+        }
+
+        /// <summary>
+        /// Returns a list of users that have access to this channel, used for sending messages or finding peers.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ulong> GetSteamIds()
+        {
+            return
+                // Known invitees
+                Invitees.ToList()
+                // Add Onwer ID
+                .Concat(new[] { OwnerId })
+                // Remove id 0
+                .Where(x => x != 0UL)
+                // Unique ids in case of duplicates.
+                .Distinct();
         }
     }
 }
