@@ -341,6 +341,66 @@ namespace VChat.Configuration
             set => SetConfigEntryValue(GlobalWhisperChatColorCommandNameEntry, value);
         }
         #endregion Command Names: Colors
+        #region Command Names: Server
+        private ConfigEntry<string> AddChannelCommandNameEntry { get; set; }
+        public IEnumerable<string> AddChannelCommandName
+        {
+            get => GetConfigEntryAsCollection(AddChannelCommandNameEntry);
+            set => SetConfigEntryValue(AddChannelCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> DisbandChannelCommandNameEntry { get; set; }
+        public IEnumerable<string> DisbandChannelCommandName
+        {
+            get => GetConfigEntryAsCollection(DisbandChannelCommandNameEntry);
+            set => SetConfigEntryValue(DisbandChannelCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> LeaveChannelCommandNameEntry { get; set; }
+        public IEnumerable<string> LeaveChannelCommandName
+        {
+            get => GetConfigEntryAsCollection(LeaveChannelCommandNameEntry);
+            set => SetConfigEntryValue(LeaveChannelCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> RemovePlayerFromChannelCommandNameEntry { get; set; }
+        public IEnumerable<string> RemovePlayerFromChannelCommandName
+        {
+            get => GetConfigEntryAsCollection(RemovePlayerFromChannelCommandNameEntry);
+            set => SetConfigEntryValue(RemovePlayerFromChannelCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> InviteCommandNameEntry { get; set; }
+        public IEnumerable<string> InviteCommandName
+        {
+            get => GetConfigEntryAsCollection(InviteCommandNameEntry);
+            set => SetConfigEntryValue(InviteCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> AcceptInviteCommandNameEntry { get; set; }
+        public IEnumerable<string> AcceptInviteCommandName
+        {
+            get => GetConfigEntryAsCollection(AcceptInviteCommandNameEntry);
+            set => SetConfigEntryValue(AcceptInviteCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> DeclineInviteCommandNameEntry { get; set; }
+        public IEnumerable<string> DeclineInviteCommandName
+        {
+            get => GetConfigEntryAsCollection(DeclineInviteCommandNameEntry);
+            set => SetConfigEntryValue(DeclineInviteCommandNameEntry, value);
+        }
+
+        private ConfigEntry<string> SetChannelColorCommandNameEntry { get; set; }
+        public IEnumerable<string> SetChannelColorCommandName
+        {
+            get => GetConfigEntryAsCollection(SetChannelColorCommandNameEntry);
+            set => SetConfigEntryValue(SetChannelColorCommandNameEntry, value);
+        }
+
+
+
+        #endregion Command Names: Server
         #endregion Command Names
         #endregion Commands
         #region Server
@@ -445,17 +505,19 @@ namespace VChat.Configuration
 
             // Command Names
             CommandPrefixEntry = ConfigFile.Bind(CommandsSection, nameof(CommandPrefix), DefaultCommandPrefix, CommandDescription);
+            // Commands: Channels
             LocalChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(LocalChatCommandName), "s|l|say|local", string.Empty);
             ShoutChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShoutChatCommandName), "y|sh|yell|shout", string.Empty);
             WhisperChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(WhisperChatCommandName), "w|whisper", string.Empty);
             GlobalChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(GlobalChatCommandName), "g|global", string.Empty);
 
+            // Commands: Colors
             SetLocalChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetLocalChatColorCommandName), "setlocalcolor", string.Empty);
             SetShoutChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetShoutChatColorCommandName), "setshoutcolor", string.Empty);
             SetWhisperChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetWhisperChatColorCommandName), "setwhispercolor", string.Empty);
             GlobalWhisperChatColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(GlobalWhisperChatColorCommandName), "setglobalcolor", string.Empty);
 
-            // Chat Window
+            // Commands: Chat Window
             ShowChatCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShowChatCommandName), "showchat", string.Empty);
             ShowChatOnMessageCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ShowChatOnMessageCommandName), "showchatonmessage", string.Empty);
             ChatClickThroughCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(ChatClickThroughCommandName), "chatclickthrough", string.Empty);
@@ -469,9 +531,20 @@ namespace VChat.Configuration
             SetHeightCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetHeightCommandName), "setheight", string.Empty);
             SetBufferSizeCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetBufferSizeCommandName), "setbuffersize", string.Empty);
 
+            // Commands: Server
+            AddChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(AddChannelCommandNameEntry), "addchannel", string.Empty);
+            DisbandChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(DisbandChannelCommandName), "disband", string.Empty);
+            LeaveChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(LeaveChannelCommandName), "leave", string.Empty);
+            RemovePlayerFromChannelCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(RemovePlayerFromChannelCommandName), "remove", string.Empty);
+            InviteCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(InviteCommandName), "invite", string.Empty);
+            AcceptInviteCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(AcceptInviteCommandName), "accept", string.Empty);
+            DeclineInviteCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(DeclineInviteCommandName), "decline", string.Empty);
+            SetChannelColorCommandNameEntry = ConfigFile.Bind(CommandsSection, nameof(SetChannelColorCommandName), "setcolor|setchannelcolor", string.Empty);
+
             // Server
             EnableModCompatibilityEntry = ConfigFile.Bind(ServerSection, nameof(EnableModCompatibility), true, $"{ServerDescription}\n\nEnabling this setting will redirect global messages as a local chat message if hosted as a dedicated server. This should allow other server mods to read these messages.\nThis will allow other server mods to read the global chat messages (if they capture the Chat.OnNewChatMessage method).");
             SendGlobalMessageConfirmationToNonVChatUsersEntry = ConfigFile.Bind(ServerSection, nameof(SendGlobalMessageConfirmationToNonVChatUsers), true, "Enable this option if you wish to send a confirmation global chat message to players without VChat installed, meaning if they type \"/g [text]\" they will also see a \"[Global] [text]\" message.");
+            
 
             // Create the config file
             // Version was added in 1.2.1
