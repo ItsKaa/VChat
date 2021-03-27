@@ -467,7 +467,7 @@ namespace VChat
                     }
 
                     // Update the last active chat channel
-                    if(LastCustomChatChannelInfo != null && LastChatType.CustomTypeValue == CustomMessageType.CustomServerChannel)
+                    if(LastCustomChatChannelInfo != null && LastChatType.Equals(CustomMessageType.CustomServerChannel))
                     {
                         var channel = ChannelInfoMessage.FindChannel(LastCustomChatChannelInfo.Name);
                         if(channel != null)

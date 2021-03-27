@@ -190,6 +190,13 @@ namespace VChat
                     isCustomChannelChanged = true;
                 }
 
+                // Reset if the message starts with a slash (default commands) or the predefined VChat prefix.
+                if (!foundCommand && (text.StartsWith("/") || text.StartsWith(CommandHandler.Prefix)))
+                {
+                    CurrentCustomChatChannelInfo = null;
+                    messageType.Set(Talker.Type.Normal);
+                }
+
                 // Use the default if we didn't bind /s yet.
                 if ((!foundCommand || CommandHandler.Prefix != "/")
                     && text.StartsWith("/s ", StringComparison.CurrentCultureIgnoreCase))
