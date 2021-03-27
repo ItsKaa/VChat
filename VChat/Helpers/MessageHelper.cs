@@ -1,7 +1,9 @@
 ﻿using System;
+using UnityEngine;
 using VChat.Data;
 using VChat.Extensions;
 using VChat.Messages;
+using VChat.Services;
 
 namespace VChat.Helpers
 {
@@ -42,13 +44,24 @@ namespace VChat.Helpers
                 var peer = ZNet.instance.GetPeer(peerId);
                 if (peer != null)
                 {
-                    // Reformat text since the vanilla client doesn't support rich-text formatting.
-                    text = text.ReplaceIgnoreCase(new[] { "<i>", "</i>", "<b>", "</b>" }, "");
+                    // Remove rich-text formatting because the the vanilla client doesn't support it.
+                    text = text.StripRichTextFormatting();
 
+                    // Find channel info to color the channel name
+                    var channelInfo = ServerChannelManager.FindChannel(channelName);
+                    var channelColor = (channelInfo?.Color ?? Color.white);
+
+                    // Set color for global, this isn't in the custom channels list yet.
+                    if (channelInfo == null && string.Equals(channelName, "Global"))
+                    {
+                        channelColor = VChatPlugin.GetTextColor(new CombinedMessageType(CustomMessageType.Global));
+                    }
+
+                    // Construct parameters for the ChatMessage command and send it to the target peer.
                     var chatMessageParameters = new object[] {
                         peer.m_refPos,
                         (int)Talker.Type.Normal,
-                        $"[{(string.IsNullOrEmpty(channelName) ? VChatPlugin.Name : channelName)}]",
+                        $"<color={channelColor.ToHtmlString()}>[{(string.IsNullOrEmpty(channelName) ? VChatPlugin.Name : channelName)}]</color>",
                         string.IsNullOrEmpty(playerName) ? text : $"{playerName}: {text}"
                     };
                     ZRoutedRpc.instance.InvokeRoutedRPC(peerId, "ChatMessage", chatMessageParameters);
