@@ -19,6 +19,7 @@ namespace VChat.Messages
             OK,
             UserNotFound,
             UserAlreadyInChannel,
+            UserAlreadyInvited,
             ChannelNotFound,
             NoPermission,
             InvitedUserToChannel,
@@ -131,6 +132,9 @@ namespace VChat.Messages
                             break;
                         case ChannelInviteResponseType.UserAlreadyInChannel:
                             text = "User has already joined that channel.";
+                            break;
+                        case ChannelInviteResponseType.UserAlreadyInvited:
+                            text = "User has already been invited to that channel.";
                             break;
                         case ChannelInviteResponseType.NoPermission:
                             text = "You do not have permission to invite players to that channel.";
@@ -311,8 +315,14 @@ namespace VChat.Messages
                     ChannelName = channelName,
                 };
 
-                ServerChannelManager.AddInvite(inviteInfo);
-                SendInviteRequestToPeer(peer, inviteInfo);
+                if (ServerChannelManager.AddInvite(inviteInfo))
+                {
+                    SendInviteRequestToPeer(peer, inviteInfo);
+                }
+                else
+                {
+                    SendToPeer(inviterPeerId, ChannelInviteResponseType.UserAlreadyInvited, channel.Name);
+                }
                 return true;
             }
 

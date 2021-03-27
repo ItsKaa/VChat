@@ -186,17 +186,23 @@ namespace VChat.Services
 
         /// <summary>
         /// Add an invite to the collection and sends the request to the peer.
-        /// This does not perform validation and is intended to be used as the server.
+        /// This returns false if there is already an invite for the specified user to the channel by any other existing user, otherwise true.
         /// </summary>
         /// <remarks>
         /// Also see method <see cref="ChannelInviteMessage.SendInviteRequestToPeer(ZNetPeer, ServerChannelInviteInfo)"/>
         /// </remarks>
-        public static void AddInvite(ServerChannelInviteInfo inviteInfo)
+        public static bool AddInvite(ServerChannelInviteInfo inviteInfo)
         {
             VChatPlugin.Log($"Added invite, channelName: {inviteInfo.ChannelName}, invitee: {inviteInfo.InviteeId}, inviter: {inviteInfo.InviterId}");
             lock (_lockChannelInviteInfo)
             {
-                ChannelInviteInfo.Add(new ServerChannelInviteInfo(inviteInfo));
+                var existingInviteInfo = ChannelInviteInfo.FirstOrDefault(x => x.InviteeId == inviteInfo.InviteeId && ValheimHelper.NameEquals(x.ChannelName, inviteInfo.ChannelName));
+                if(existingInviteInfo == null)
+                {
+                    ChannelInviteInfo.Add(new ServerChannelInviteInfo(inviteInfo));
+                    return true;
+                }
+                return false;
             }
         }
 
