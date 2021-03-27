@@ -100,7 +100,7 @@ namespace VChat.Messages
                 package.Write(text ?? string.Empty);
                 package.Write(customColor?.ToHtmlString() ?? string.Empty);
 
-                MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, ChannelChatMessageHashName, package, new System.Version(2,0,0));
+                MessageHelper.SendMessageToPeer(peerId, channelName, callerName, text, ChannelChatMessageHashName, package, new System.Version(2,0,0), customColor);
             }
             else
             {

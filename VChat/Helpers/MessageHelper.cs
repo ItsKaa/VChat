@@ -16,13 +16,13 @@ namespace VChat.Helpers
         /// <param name="text">The text message, used when the client does not have VChat</param>
         /// <param name="VChatMethodName">The method of the message sent to the VChat client</param>
         /// <param name="VChatParameters">The parameters for the method sent to a VChat client</param>
-        public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, string VChatMethodName, object[] VChatParameters, System.Version minPluginVersion = null)
+        public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, string VChatMethodName, object[] VChatParameters, System.Version minPluginVersion = null, Color? color = null)
         {
-            SendMessageToPeer(peerId, channelName, playerName, text, () => ZRoutedRpc.instance.InvokeRoutedRPC(peerId, VChatMethodName, VChatParameters), minPluginVersion);
+            SendMessageToPeer(peerId, channelName, playerName, text, () => ZRoutedRpc.instance.InvokeRoutedRPC(peerId, VChatMethodName, VChatParameters), minPluginVersion, color);
         }
 
-        public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, string VChatMethodName, object VChatParameter, System.Version minPluginVersion = null)
-            => SendMessageToPeer(peerId, channelName, playerName, text, VChatMethodName, new object[] { VChatParameter }, minPluginVersion);
+        public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, string VChatMethodName, object VChatParameter, System.Version minPluginVersion = null, Color? color = null)
+            => SendMessageToPeer(peerId, channelName, playerName, text, VChatMethodName, new object[] { VChatParameter }, minPluginVersion, color);
 
         /// <summary>
         /// Sends a message to a peer with VChat installed or a ChatMessage to a vanilla client.
@@ -30,7 +30,7 @@ namespace VChat.Helpers
         /// <param name="playerName">The player name used when the client does not have VChat</param>
         /// <param name="text">The text message, used when the client does not have VChat</param>
         /// <param name="onVChatInstalledAction">The action that's called when VChat is not installed</param>
-        public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, Action onVChatInstalledAction, System.Version minPluginVersion)
+        public static void SendMessageToPeer(long peerId, string channelName, string playerName, string text, Action onVChatInstalledAction, System.Version minPluginVersion, Color? color = null)
         {
             if (GreetingMessage.PeerInfo.TryGetValue(peerId, out GreetingMessagePeerInfo peerInfo) && peerInfo.HasReceivedGreeting
                 && (minPluginVersion == null || (!string.IsNullOrEmpty(peerInfo.Version) && new System.Version(peerInfo.Version) >= minPluginVersion)))
@@ -55,6 +55,11 @@ namespace VChat.Helpers
                     if (channelInfo == null && string.Equals(channelName, "Global"))
                     {
                         channelColor = VChatPlugin.GetTextColor(new CombinedMessageType(CustomMessageType.Global));
+                    }
+
+                    if(color.HasValue)
+                    {
+                        channelColor = color.Value;
                     }
 
                     // Construct parameters for the ChatMessage command and send it to the target peer.
