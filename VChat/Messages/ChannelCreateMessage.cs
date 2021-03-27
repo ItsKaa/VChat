@@ -102,7 +102,7 @@ namespace VChat.Messages
         {
             if (ZNet.m_isServer)
             {
-                if (ServerChannelManager.DoesChannelExist(channelName))
+                if (ServerChannelManager.DoesChannelExist(channelName) || string.IsNullOrWhiteSpace(channelName))
                 {
                     SendToPeer(peerId, ChannelCreateResponseType.ChannelAlreadyExists, channelName);
                 }
