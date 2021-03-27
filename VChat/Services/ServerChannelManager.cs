@@ -665,7 +665,7 @@ namespace VChat.Services
                     }
                     else
                     {
-                        var message = $"Successfully connected to the {channelInfo.Name} channel! Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message to this channel.";
+                        var message = $"Successfully connected to the channel {channelInfo.Name}. Type {VChatPlugin.Settings.CommandPrefix}{channelInfo.ServerCommandName} [text] to send a message to this channel.";
                         SendMessageToPeerInChannel(peerId, VChatPlugin.Name, null, message);
                     }
                 }
