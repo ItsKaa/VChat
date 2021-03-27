@@ -352,7 +352,7 @@ namespace VChat.Services
                             // Also send message to the previous owner if it's not part of the the channel anymore.
                             if (!channelSteamIds.Contains(targetSteamId))
                             {
-                                SendMessageToPeerInChannel(targetPeerId, VChatPlugin.Name, null, $"<i>You have been removed from the channel {channelName} by {senderPlayerName}.</i>", Color.gray);
+                                SendMessageToPeerInChannel(targetPeerId, VChatPlugin.Name, null, $"<i>You have been removed from the channel {channelName} by {senderPlayerName}.</i>");
                             }
 
                             // Also send message to the sender if it's not in the channel, this can be true if it's an administrator.
@@ -372,7 +372,8 @@ namespace VChat.Services
                     {
                         var ownerPeer = ValheimHelper.GetPeerFromSteamId(channelInfo.OwnerId);
                         var ownerPlayerName = ownerPeer?.m_playerName ?? $"{channelInfo.OwnerId}";
-                        SendMessageToAllPeersInChannel(channelName, null, $"<i>Channel '{channelName}' has been passed on to '{ownerPlayerName}'</i>", Color.gray);
+
+                        SendMessageToAllPeersInChannel(channelName, null, $"<i>{ownerPlayerName} is the new owner of this channel.</i>");
                     }
 
                     // Save data when channel is modified.
