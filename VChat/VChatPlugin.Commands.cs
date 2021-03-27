@@ -352,8 +352,8 @@ namespace VChat
                         string inviteePlayerName = null;
                         if (remainderData.Length >= 2)
                         {
-                            channelName = remainderData[0];
-                            inviteePlayerName = remainderData[1];
+                            channelName = remainderData.FirstOrDefault();
+                            inviteePlayerName = string.Join(" ", remainderData.Skip(1));
                         }
 
                         ChannelInviteMessage.SendToServer(peerId, ChannelInviteMessage.ChannelInviteType.Invite, channelName, inviteePlayerName);
@@ -387,8 +387,8 @@ namespace VChat
                         string playerName = null;
                         if (remainderData.Length >= 2)
                         {
-                            channelName = remainderData[0];
-                            playerName  = remainderData[1];
+                            channelName = remainderData.FirstOrDefault();
+                            playerName = string.Join(" ", remainderData.Skip(1));
                         }
 
                         ChannelKickMessage.SendToServer(peerId, channelName, playerName);
@@ -402,8 +402,8 @@ namespace VChat
                         string colorValue = null;
                         if (remainderData.Length >= 2)
                         {
-                            channelName = remainderData[0];
-                            colorValue = remainderData[1];
+                            channelName = remainderData.FirstOrDefault();
+                            colorValue = string.Join(" ", remainderData.Skip(1));
                         }
                         ChannelEditMessage.SendToServer(peerId, ChannelEditMessage.ChannelEditType.EditChannelColor, channelName, colorValue);
                     })
