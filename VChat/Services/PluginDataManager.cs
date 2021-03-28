@@ -120,7 +120,7 @@ namespace VChat.Services
         private static void SerializeChannels(ZPackage package)
         {
             var channels = ServerChannelManager.GetServerChannelInfoCollection();
-            var channelsToWrite = channels.Where(x => !x.IsPluginOwnedChannel);
+            var channelsToWrite = channels.Where(x => !x.IsNotificationChannel);
 
             var channelCollectionPackage = new ZPackage();
             channelCollectionPackage.Write(channelsToWrite.Count());
@@ -133,7 +133,7 @@ namespace VChat.Services
                 // Write basic channel information
                 channelPackage.Write(channel.Name ?? string.Empty);
                 channelPackage.Write(channel.OwnerId);
-                channelPackage.Write(channel.IsPublic);
+                channelPackage.Write(channel.IsEveryoneConnected);
                 channelPackage.Write(channel.Color.ToHtmlString() ?? string.Empty);
 
                 // Write the invitee list as its own package
@@ -198,7 +198,7 @@ namespace VChat.Services
                 // Read basic channel information
                 var name = channelPackage.ReadString();
                 var ownerId = channelPackage.ReadULong();
-                var isPublic = channelPackage.ReadBool();
+                var isEveryoneConnected = channelPackage.ReadBool();
                 var color = channelPackage.ReadString()?.ToColor() ?? Color.white;
 
                 // Read invitees
@@ -215,10 +215,10 @@ namespace VChat.Services
                 {
                     Name = name,
                     OwnerId = ownerId,
-                    IsPublic = isPublic,
+                    IsEveryoneConnected = isEveryoneConnected,
                     Color = color,
                     Invitees = invitees,
-                    IsPluginOwnedChannel = false
+                    IsNotificationChannel = false
                 });
             }
 

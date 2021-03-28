@@ -29,10 +29,10 @@ namespace VChat.Services
             AddChannelsDirect(new ServerChannelInfo()
             {
                 Name = VChatPlugin.Name,
-                IsPluginOwnedChannel = true,
+                IsNotificationChannel = true,
                 Color = new Color(0.035f, 0.714f, 0.902f),
                 OwnerId = ServerOwnerId,
-                IsPublic = true,
+                IsEveryoneConnected = true,
             });
         }
 
@@ -85,7 +85,7 @@ namespace VChat.Services
         /// </summary>
         public static IEnumerable<ServerChannelInfo> GetChannelsForUser(ulong steamId)
         {
-            return GetServerChannelInfoCollection().Where(x => x.IsPublic || x.OwnerId == steamId || x.Invitees.Contains(steamId));
+            return GetServerChannelInfoCollection().Where(x => x.IsEveryoneConnected || x.OwnerId == steamId || x.Invitees.Contains(steamId));
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace VChat.Services
                 }
                 else
                 {
-                    if (ValheimHelper.IsAdministrator(steamId) && !channel.IsPluginOwnedChannel)
+                    if (ValheimHelper.IsAdministrator(steamId) && !channel.IsNotificationChannel && channel.OwnerId != ServerOwnerId)
                     {
                         return true;
                     }
@@ -150,7 +150,13 @@ namespace VChat.Services
         /// <summary>
         /// Adds a channel to the server.
         /// </summary>
-        public static bool AddChannel(string name, ulong ownerSteamId, bool isPublic, Color? color = null)
+        /// <param name="name">Name of the channel</param>
+        /// <param name="ownerSteamId">Owner ID, 0 for server</param>
+        /// <param name="isEveryoneConnected">If this is set, every user will be added to the channel.</param>
+        /// <param name="isNotificationChannel">If this is set, this will act as a notification channel that cannot be disbanded or written to.</param>
+        /// <param name="color">Sets the color for the chat channel</param>
+        /// <returns></returns>
+        public static bool AddChannel(string name, ulong ownerSteamId, bool isEveryoneConnected, Color? color = null, bool isNotificationChannel = false)
         {
             if (DoesChannelExist(name))
             {
@@ -162,7 +168,8 @@ namespace VChat.Services
             {
                 Name = name,
                 OwnerId = ownerSteamId,
-                IsPublic = isPublic,
+                IsEveryoneConnected = isEveryoneConnected,
+                IsNotificationChannel = isNotificationChannel,
                 Color = color ?? Color.white,
             };
 
@@ -254,7 +261,7 @@ namespace VChat.Services
             lock (_lockChannelInfo)
             {
                 var channelInfo = FindChannel(channelName);
-                if (channelInfo != null && !channelInfo.IsPluginOwnedChannel)
+                if (channelInfo != null && !channelInfo.IsNotificationChannel)
                 {
                     if (!channelInfo.Invitees.Contains(steamId))
                     {
@@ -430,7 +437,7 @@ namespace VChat.Services
         {
             return channelInfo != null
                 && (channelInfo.OwnerId == steamId
-                && !channelInfo.IsPluginOwnedChannel
+                && !channelInfo.IsNotificationChannel
                 || channelInfo.Invitees.Contains(steamId)
                 || ValheimHelper.IsAdministrator(steamId));
         }
@@ -596,7 +603,17 @@ namespace VChat.Services
                 {
                     if (ValheimHelper.NameEquals(channel.Name, channelName))
                     {
-                        foreach (var channelUserSteamId in channel.GetSteamIds())
+                        var steamIds = channel.GetSteamIds();
+                        if (channel.IsEveryoneConnected && !channel.IsNotificationChannel)
+                        {
+                            steamIds = ZNet.instance.GetConnectedPeers().Select(peer =>
+                            {
+                                ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId);
+                                return steamId;
+                            }).Distinct().ToList();
+                        }
+
+                        foreach (var channelUserSteamId in steamIds)
                         {
                             var targetPeer = ValheimHelper.GetPeerFromSteamId(channelUserSteamId);
                             if (targetPeer != null)
@@ -604,6 +621,17 @@ namespace VChat.Services
                                 ChannelChatMessage.SendToPeer(targetPeer.m_uid, channel.Name, senderPeer?.m_refPos ?? new Vector3(), senderPeer?.m_playerName ?? callerName, text, customColor);
                             }
                         }
+
+                        // Send a message to any listeners
+                        TriggerOnCustomChannelMessageReceived(new CustomChannelChatMessageEventArgs()
+                        {
+                            ChannelName = channel.Name,
+                            CallerName = senderPeer?.m_playerName ?? callerName,
+                            Text = text,
+                            PeerId = senderPeerId,
+                            Position = senderPeer?.m_refPos ?? new Vector3(),
+                        });
+
                         return true;
                     }
                 }
@@ -640,14 +668,34 @@ namespace VChat.Services
             var channelInfo = FindChannel(channelName);
             if (channelInfo != null)
             {
+                var steamIds = channelInfo.GetSteamIds();
+                if(channelInfo.IsEveryoneConnected)
+                {
+                    steamIds = ZNet.instance.GetConnectedPeers().Select(peer =>
+                    {
+                        ValheimHelper.GetSteamIdFromPeer(peer, out ulong steamId);
+                        return steamId;
+                    }).Distinct().ToList();
+                }
+
                 // List of players ids to send that message to.
-                foreach (var inviteeSteamId in channelInfo.GetSteamIds())
+                foreach (var inviteeSteamId in steamIds)
                 {
                     if (ValheimHelper.GetPeerIdFromSteamId(inviteeSteamId, out long inviteePeerId))
                     {
                         SendMessageToPeerInChannel(inviteePeerId, channelName, callerName, text, color);
                     }
                 }
+
+                // Send a message to any listeners
+                TriggerOnCustomChannelMessageReceived(new CustomChannelChatMessageEventArgs()
+                {
+                    ChannelName = channelInfo.Name,
+                    CallerName = callerName,
+                    Text = text,
+                    PeerId = ValheimHelper.GetServerPeerId(),
+                });
+
                 return true;
             }
 
@@ -722,14 +770,14 @@ namespace VChat.Services
         /// </summary>
         public static void SendMessageToClient_ChannelConnected(long peerId, ServerChannelInfo channelInfo)
         {
-            if (ZNet.m_isServer && !channelInfo.IsPluginOwnedChannel)
+            if (ZNet.m_isServer && !channelInfo.IsNotificationChannel)
             {
                 var peer = ZNet.instance?.GetPeer(peerId);
                 if (peer != null)
                 {
                     VChatPlugin.Log($"User {peer?.m_playerName} ({peerId}) has connected to the channel {channelInfo.Name}");
 
-                    if (channelInfo.IsPluginOwnedChannel)
+                    if (channelInfo.IsNotificationChannel)
                     {
                         var message = $"Successfully connected to the {channelInfo.Name} channel.";
                         SendMessageToPeerInChannel(peerId, VChatPlugin.Name, null, message);

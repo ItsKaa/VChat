@@ -9,8 +9,8 @@ namespace VChat.Data.Messages
     {
         public string Name { get; set; }
         public ulong OwnerId { get; set; }
-        public bool IsPublic { get; set; }
-        public bool IsPluginOwnedChannel { get; set; }
+        public bool IsEveryoneConnected { get; set; }
+        public bool IsNotificationChannel { get; set; }
         public List<ulong> Invitees { get; set; }
         public string ServerCommandName => Name.StripRichTextFormatting().StripWhitespaces().ToLower();
         public Color Color { get; set; }
@@ -19,8 +19,8 @@ namespace VChat.Data.Messages
         {
             Name = string.Empty;
             OwnerId = 0UL;
-            IsPublic = false;
-            IsPluginOwnedChannel = false;
+            IsEveryoneConnected = false;
+            IsNotificationChannel = false;
             Invitees = new List<ulong>();
             Color = Color.white;
         }
@@ -34,8 +34,8 @@ namespace VChat.Data.Messages
         {
             Name = other.Name;
             OwnerId = other.OwnerId;
-            IsPublic = other.IsPublic;
-            IsPluginOwnedChannel = other.IsPluginOwnedChannel;
+            IsEveryoneConnected = other.IsEveryoneConnected;
+            IsNotificationChannel = other.IsNotificationChannel;
             Invitees = other.Invitees.ToList();
             Color = other.Color;
         }

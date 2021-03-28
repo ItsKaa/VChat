@@ -74,16 +74,16 @@ namespace VChat.Messages
                     var channelName = channelPackage.ReadString();
                     var colorString = channelPackage.ReadString();
                     var ownerId = channelPackage.ReadULong();
-                    var isPublic = channelPackage.ReadBool();
-                    var isPluginOwnedChannel = channelPackage.ReadBool();
+                    var isEveryoneConnected = channelPackage.ReadBool();
+                    var isNotificationChannel = channelPackage.ReadBool();
 
                     list.Add(new ServerChannelInfo()
                     {
                         Color = colorString.ToColor() ?? Color.white,
-                        IsPublic = isPublic,
+                        IsEveryoneConnected = isEveryoneConnected,
                         Name = channelName,
                         OwnerId = ownerId,
-                        IsPluginOwnedChannel = isPluginOwnedChannel,
+                        IsNotificationChannel = isNotificationChannel,
                     });
                 }
 
@@ -107,12 +107,12 @@ namespace VChat.Messages
                         var existingChannel = FindChannel(channel.Name);
                         if (existingChannel != null)
                         {
-                            VChatPlugin.Log($"Updated channel configuration - channel name: {channel.Name}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, pluginChannel: {channel.IsPluginOwnedChannel}");
+                            VChatPlugin.Log($"Updated channel configuration - channel name: {channel.Name}, color: {channel.Color}, owner ID: {channel.OwnerId}, isEveryoneConnected: {channel.IsEveryoneConnected}, notificationChannel: {channel.IsNotificationChannel}");
                             existingChannel.Update(channel);
                         }
                         else
                         {
-                            VChatPlugin.Log($"Received a channel configuration from the server - channel name: {channel.Name}, color: {channel.Color}, owner ID: {channel.OwnerId}, public: {channel.IsPublic}, pluginChannel: {channel.IsPluginOwnedChannel}");
+                            VChatPlugin.Log($"Received a channel configuration from the server - channel name: {channel.Name}, color: {channel.Color}, owner ID: {channel.OwnerId}, isEveryoneConnected: {channel.IsEveryoneConnected}, notificationChannel: {channel.IsNotificationChannel}");
                             ReceivedChannelInfo.Add(channel);
                         }
                     }
@@ -141,8 +141,8 @@ namespace VChat.Messages
                     channelDataPackage.Write(channelInfo.Name ?? string.Empty);
                     channelDataPackage.Write(channelInfo.Color.ToHtmlString());
                     channelDataPackage.Write(channelInfo.OwnerId);
-                    channelDataPackage.Write(channelInfo.IsPublic);
-                    channelDataPackage.Write(channelInfo.IsPluginOwnedChannel);
+                    channelDataPackage.Write(channelInfo.IsEveryoneConnected);
+                    channelDataPackage.Write(channelInfo.IsNotificationChannel);
                     package.Write(channelDataPackage);
                 }
 

@@ -426,7 +426,7 @@ namespace VChat
                     // Initialise the server-wide channel commands for the server
                     foreach (var channel in ServerChannelManager.GetServerChannelInfoCollection())
                     {
-                        if (!channel.IsPluginOwnedChannel)
+                        if (!channel.IsNotificationChannel)
                         {
                             Log($"Registering server command for channel {channel.Name}");
                             CommandHandler.AddCommand(new PluginCommandServer(channel.ServerCommandName,
@@ -448,7 +448,7 @@ namespace VChat
                     // Initialise the server-wide channel commands for a client
                     foreach(var channel in ChannelInfoMessage.GetChannelInfo())
                     {
-                        if (!channel.IsPluginOwnedChannel)
+                        if (!channel.IsNotificationChannel)
                         {
                             Log($"Registering user command for channel {channel.Name}");
 

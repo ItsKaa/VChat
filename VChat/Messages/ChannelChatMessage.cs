@@ -182,7 +182,7 @@ namespace VChat.Messages
             {
                 VChatPlugin.LogError($"Peer {peerId} sent a message to the channel {channelName} but steam id cannot not be found.");
             }
-            else if (!channel.GetSteamIds().Contains(steamId))
+            else if (!channel.GetSteamIds().Contains(steamId) && !channel.IsEveryoneConnected && !channel.IsNotificationChannel)
             {
                 SendResponseToPeer(peerId, ChannelMessageResponseType.NoPermission, channel.Name);
             }
