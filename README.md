@@ -1,9 +1,13 @@
 ## VChat
-A simple chat improvement mod for Valheim, a single dll that works for both servers and clients.
+A chat improvement mod for Valheim that aims to add quality-of-life features to Valheim, this mod has features for both servers and clients and is packed in a single .dll file.
+
+With 2.0.0 introduced, VChat now has the ability to host custom server-wide channels, these channels can be customised by the players, this feature adds a varieity of uses, examples would be clans, factions, parties, temporary one-on-one chats, and probably more! Please note that for now these channels are only supported for dedicated servers. The server-sided binary data is stored next to the .db world file, as 'worldName.vchat.bin'.
 
 ## Features
-- Adds a new global chat channel that doesn't ping players, this can be a server-hosted instance and users without VChat will be able to access it, however, if the server isn't hosting it then only clients with VChat installed can see the global chat.
-- Colours! colours for every chat channel (whisper, local, shout, global) and also colours the input field, even when typing channel commands like `/shout [text]`.
+- Adds custom server-hosted channels that are accessible from both vanilla clients and clients with VChat installed, these channels can be created by players and are fully customizable, these channels are private by default and players will have to invite others into them.
+- Adds a new global chat channel that doesn't ping players.
+- All channels are accessible by clients that do not have this mod installed, as long as the server has VChat. Note that VChat does add features to the channels added by the VChat server, so it is advisable to install this mod on every client, but optional.
+- Colours! colours for every chat channel (whisper, local, shout, global & custom) and also colours the input field, even when typing channel commands like `/shout [text]`.
 - Sent message history that can be called using arrow up and down when the chat is focused.
 - Easily configurable using ingame commands that can be also be adjusted in the configuration file.
 - Removes the annoying auto caps and lowercases for the shout and whisper channels.
@@ -16,14 +20,42 @@ A simple chat improvement mod for Valheim, a single dll that works for both serv
 /y /sh /yell /shout  
 /w /whisper  
 /g /global [text]
+/[customChannelName] [text]
 ```
 Switches to the provided chat channel, and if text is entered, also send a message to that channel.
 - Examples:
   - "/g Hello VChat" will send a message to the global chat channel and set it as the active channel for your next message.
   - "/sh" will switch the currently active chat channel to shout.
+  - "/test [text]" will send a message to the server-hosted custom channel named "Test", if it exists.
 
 ```
-/setlocalcolor /setshoutcolor /setwhispercolor /setglobalcolor [color]
+/addchannel [name]
+```
+Adds a channel to the server with the provided name, channel names must be unique.
+
+```
+/disband [channel]
+```
+Disbands a channel with the name, provided you have the permission to do so - either being the owner of the channel or an administrator in-game.
+
+```
+/invite [channel] [player]
+```
+Invites an online player to the channel, if you have the permission - having access to the channel means you can invite.
+
+```
+/remove [channel] [player]
+```
+Remove a player from a channel,
+The owner of the channel can also be removed by an administrator.
+
+```
+/setcolor [customChannelName] [value]
+```
+Changes the color of a custom channel with the provided color, this accepts either a html string like #ff0000 or a name, like 'red'.
+
+```
+/setlocalcolor /setshoutcolor /setwhispercolor /setglobalcolor [value]
 ```
 Changes the chat colour for the chat channel visible in the command name, this accepts either a html string like #ff0000 or a name, like 'red'.
 
@@ -93,7 +125,6 @@ The default height is 400.
 ```
 Changes the maximum amount of visible messages in the chat window, if this is set to 15 the function will resume as normal.
 
-
 ## Installation (manual)
 - Download [BepInEx Package](https://valheim.thunderstore.io/package/denikson/BepInExPack_Valheim/) and follow it's installation procedure.
 - Download the latest version of VChat from [here](https://github.com/ItsKaa/VChat/releases/latest/).
@@ -130,3 +161,8 @@ Or you can use the mod manager [r2modman](https://thunderstore.io/package/ebkr/r
 
 1.2.1
 - Fixed the input size when changing the width of the chat-box.
+
+2.0.0
+- Added custom server-hosted channels and added a few new commands to manage these.
+- Moved configuration file to VChat.cfg
+- Added NexusID to the configuration
