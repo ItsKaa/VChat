@@ -29,7 +29,7 @@ namespace VChat.Patches
             VChatPlugin.InitialiseServerCommands();
 
             // Notify any listeners that VChat is ready to receive messages.
-            VChatPlugin.onInitialised?.Invoke();
+            VChatPlugin.TriggerInitialisedEvent();
         }
     }
 }

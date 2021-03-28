@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VChat.Data.Events;
 using VChat.Data.Messages;
 using VChat.Extensions;
 using VChat.Helpers;
@@ -16,6 +17,9 @@ namespace VChat.Services
         private static readonly object _lockChannelInfo = new();
         private static readonly object _lockChannelInviteInfo = new();
         public const ulong ServerOwnerId = 0ul;
+
+        public delegate void OnCustomChannelMessageReceivedHandler(CustomChannelChatMessageEventArgs args);
+        public static event OnCustomChannelMessageReceivedHandler OnCustomChannelMessageReceived;
 
         // TODO: Setting
         public const bool CanUsersCreateChannels = true;
@@ -789,6 +793,11 @@ namespace VChat.Services
                     }
                 }
             }
+        }
+
+        internal static void TriggerOnCustomChannelMessageReceived(CustomChannelChatMessageEventArgs args)
+        {
+            OnCustomChannelMessageReceived?.Invoke(args);
         }
     }
 }
