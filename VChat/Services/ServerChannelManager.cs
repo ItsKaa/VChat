@@ -103,7 +103,7 @@ namespace VChat.Services
                 }
                 else
                 {
-                    if (ValheimHelper.IsAdministrator(steamId))
+                    if (ValheimHelper.IsAdministrator(steamId) && !channel.IsPluginOwnedChannel)
                     {
                         return true;
                     }
