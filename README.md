@@ -46,15 +46,27 @@ Adds a channel to the server with the provided name, channel names must be uniqu
 Disbands a channel with the name, provided you have the permission to do so - either being the owner of the channel or an administrator in-game.
 
 ```
+/remove [channel] [player]
+```
+Remove a player from a channel.
+The owner of the channel can also be removed by an administrator.
+
+```
 /invite [channel] [player]
 ```
 Invites an online player to the channel, if you have the permission - having access to the channel means you can invite.
 
 ```
-/remove [channel] [player]
+/accept
+/accept [channel]
 ```
-Remove a player from a channel.
-The owner of the channel can also be removed by an administrator.
+Accepts a received channel invite, if no argument is specified, it will accept the first found invite.
+
+```
+/decline
+/decline [channel]
+```
+Declines a received channel invite, if no argument is specified, it will accept the first found invite.
 
 ```
 /setcolor [customChannelName] [value]
