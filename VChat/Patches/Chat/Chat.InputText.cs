@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
+using UnityEngine;
 using VChat.Data;
+using VChat.Helpers;
 using VChat.Messages;
 
 namespace VChat.Patches
@@ -23,8 +25,12 @@ namespace VChat.Patches
                 VChatPlugin.MessageSendHistoryIndex = 0;
             }
 
-            // Attempt to parse a command.
-            if (VChatPlugin.CommandHandler.TryFindAndExecuteCommand(text, __instance, out PluginCommand _))
+            // Parse client or server commands.
+            if (VChatPlugin.CommandHandler.TryFindAndExecuteClientCommand(text, __instance, out PluginCommandClient _))
+            {
+                return false;
+            }
+            else if (VChatPlugin.CommandHandler.TryFindAndExecuteServerCommand(text, ValheimHelper.GetLocalPlayerPeerId(), ValheimHelper.GetLocalPlayerSteamId(), out PluginCommandServer _))
             {
                 return false;
             }
@@ -44,6 +50,16 @@ namespace VChat.Patches
                     {
                         case CustomMessageType.Global:
                             GlobalMessages.SendGlobalMessageToServer(text);
+                            break;
+                        case CustomMessageType.CustomServerChannel:
+                            {
+                                var command = VChatPlugin.CommandHandler.FindCustomChannelCommand(VChatPlugin.LastCustomChatChannelInfo);
+                                if (command != null && command.ChannelInfo != null)
+                                {
+                                    var localPlayer = Player.m_localPlayer;
+                                    ChannelChatMessage.SendToServer(ValheimHelper.GetLocalPlayerPeerId(), command.ChannelInfo.Name, localPlayer?.GetHeadPoint() ?? new Vector3(), localPlayer?.GetPlayerName() ?? string.Empty, text);
+                                }
+                            }
                             break;
                     }
                     return false;

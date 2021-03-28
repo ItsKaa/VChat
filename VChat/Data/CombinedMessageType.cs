@@ -72,7 +72,7 @@ namespace VChat.Data
                 switch(DefaultTypeValue.Value)
                 {
                     case Talker.Type.Normal:
-                        return "Local";
+                        return "Normal";
                     case Talker.Type.Shout:
                         return "Shout";
                     case Talker.Type.Whisper:
@@ -85,8 +85,10 @@ namespace VChat.Data
             {
                 switch (CustomTypeValue.Value)
                 {
-                    case CustomMessageType:
+                    case CustomMessageType.Global:
                         return "Global";
+                    case CustomMessageType.CustomServerChannel:
+                        return "Custom";
                 }
             }
 

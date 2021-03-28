@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using VChat.Data;
+using VChat.Helpers;
 
 namespace VChat.Messages
 {
@@ -62,7 +63,7 @@ namespace VChat.Messages
         /// </summary>
         private static void OnServerMessage(long senderId, string version)
         {
-            if (senderId != ZNet.instance.GetServerPeer()?.m_uid)
+            if (senderId != ValheimHelper.GetServerPeerId())
             {
                 var peer = ZRoutedRpc.instance?.GetPeer(senderId);
                 if (peer != null)
@@ -105,7 +106,7 @@ namespace VChat.Messages
         /// </summary>
         private static void OnClientMessage(long senderId, string version)
         {
-            if (senderId == ZNet.instance.GetServerPeer()?.m_uid)
+            if (senderId == ValheimHelper.GetServerPeerId())
             {
                 VChatPlugin.Log($"Received a greeting from the server ({senderId}) that's running on {VChatPlugin.Name} {version}.");
 
@@ -178,7 +179,7 @@ namespace VChat.Messages
             if (!ZNet.m_isServer)
             {
                 var parameters = new object[] { VChatPlugin.Version };
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZNet.instance.GetServerPeer().m_uid, GreetingHashName, parameters);
+                ZRoutedRpc.instance.InvokeRoutedRPC(ValheimHelper.GetServerPeerId(), GreetingHashName, parameters);
                 HasLocalPlayerGreetedToServer = true;
             }
             else

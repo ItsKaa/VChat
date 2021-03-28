@@ -15,6 +15,7 @@ namespace VChat.Patches
                 VChatPlugin.Log("Resetting variables for local player");
                 PlayerPatchOnSpawned.HasPlayerSpawnedOnce = false;
                 GreetingMessage.Reset();
+                ChannelInfoMessage.Reset();
             }
         }
     }
