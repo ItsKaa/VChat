@@ -189,7 +189,7 @@ namespace VChat.Messages
             else
             {
                 VChatPlugin.Log($"Sending message as user: [{channelName}] {callerName}: {text}");
-                return ServerChannelManager.SendMessageToAllUsersInChannel(peerId, channel.Name, callerName, text, color);
+                return ServerChannelManager.SendMessageToAllUsersInChannelForPeer(peerId, channel.Name, callerName, text, color);
             }
 
             return false;

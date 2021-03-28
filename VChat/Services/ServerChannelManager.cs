@@ -598,7 +598,7 @@ namespace VChat.Services
         /// <summary>
         /// Send a message to all connected peers within the provided channel.
         /// </summary>
-        public static bool SendMessageToAllUsersInChannel(long senderPeerId, string channelName, string callerName, string text, Color? customColor = null)
+        public static bool SendMessageToAllUsersInChannelForPeer(long senderPeerId, string channelName, string callerName, string text, Color? customColor = null)
         {
             var senderPeer = ValheimHelper.GetPeer(senderPeerId);
             if (senderPeer != null && ValheimHelper.GetSteamIdFromPeer(senderPeer, out ulong senderSteamId))
