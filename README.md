@@ -14,6 +14,13 @@ With 2.0.0 introduced, VChat now has the ability to host custom server-wide chan
 - Able to modify the opacity, width and height of the chat window.
 - Various other settings to improve the ingame chat.
 
+## For Developers
+To use the custom channels in your own mod, the simplest way is to add VChat as a dependency to your mod.
+Then create a channel using the `ServerChannelManager` class after the event `VChatPlugin.OnInitialised` is triggered.  
+When the channel is created, you can use `ServerChannelManager.SendMessageToAllPeersInChannel` to send a message and `ServerChannelManager.OnCustomChannelMessageReceived` to read messages from the custom channels.  
+  
+Alternatively, you can also use network messages to handle channels, feel free to explore the data structures for that.
+
 ## Commands:
 ```
 /s /l /say /local  
@@ -46,7 +53,7 @@ Invites an online player to the channel, if you have the permission - having acc
 ```
 /remove [channel] [player]
 ```
-Remove a player from a channel,
+Remove a player from a channel.
 The owner of the channel can also be removed by an administrator.
 
 ```
@@ -112,7 +119,7 @@ This value ranges from 0 to 100, where 0 means completely transparent and 100 is
 /setwidth [value]
 ```
 Changes the width of the chat window, this is based of 1920x1080 values regardless of the screen resolution.
-The default width is 400.
+The default width is 500.
 
 ```
 /setheight [value]
