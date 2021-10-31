@@ -20,10 +20,10 @@ namespace VChat.Patches
         }
     }
 
-    [HarmonyPatch(typeof(Chat), nameof(Chat.AddString), typeof(string))]
+    [HarmonyPatch(typeof(Chat), nameof(Chat.AddString), typeof(string), typeof(string), typeof(Talker.Type))]
     public static class ChatPatchAddStringToBuffer
     {
-        private static bool Prefix(ref Chat __instance, ref string text)
+        private static bool Prefix(ref Chat __instance, ref string user, ref string text, ref Talker.Type type)
         {
             // Display chat window when a new message is received.
             if (VChatPlugin.Settings.ShowChatWindowOnMessageReceived)
