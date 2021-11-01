@@ -171,7 +171,7 @@ namespace VChat
                 var messageType = new CombinedMessageType(LastChatType.Value);
 
                 // Attempt to look for the used chat channel if we're starting with the command prefix.
-                if (text.StartsWith(CommandHandler.Prefix, StringComparison.CurrentCultureIgnoreCase))
+                if (text.StartsWith(Settings.CommandPrefix, StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendLocalMessage))
                     {
@@ -221,14 +221,14 @@ namespace VChat
                 }
 
                 // Reset if the message starts with a slash (default commands) or the predefined VChat prefix.
-                if (!foundCommand && (text.StartsWith("/") || text.StartsWith(CommandHandler.Prefix)))
+                if (!foundCommand && (text.StartsWith("/") || text.StartsWith(Settings.CommandPrefix)))
                 {
                     CurrentCustomChatChannelInfo = null;
                     messageType.Set(Talker.Type.Normal);
                 }
 
                 // Use the default if we didn't bind /s yet.
-                if ((!foundCommand || CommandHandler.Prefix != "/")
+                if ((!foundCommand || Settings.CommandPrefix != "/")
                     && text.StartsWith("/s ", StringComparison.CurrentCultureIgnoreCase))
                 {
                     messageType.Set(Talker.Type.Shout);

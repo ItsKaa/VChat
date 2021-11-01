@@ -12,11 +12,9 @@ namespace VChat.Services
         private List<PluginCommandBase> _commands;
         public IEnumerable<PluginCommandBase> Commands => _commands;
         public object _lock = new object();
-        public string Prefix { get; set; }
 
         public CommandHandler()
         {
-            Prefix = "/";
             _commands = new List<PluginCommandBase>();
         }
 
@@ -37,7 +35,7 @@ namespace VChat.Services
                         {
                             if (string.Equals(commandName1, commandName2, StringComparison.CurrentCultureIgnoreCase))
                             {
-                                VChatPlugin.LogError($"Command with the name \"{Prefix}{duplicateCommandName}\" already exists, types {command.Type} and {pluginCommand.Type}.");
+                                VChatPlugin.LogError($"Command with the name \"{VChatPlugin.Settings.CommandPrefix}{duplicateCommandName}\" already exists, types {command.Type} and {pluginCommand.Type}.");
                                 duplicateCommandName = commandName1;
                                 break;
                             }
@@ -116,13 +114,15 @@ namespace VChat.Services
         /// <returns>True if successful</returns>
         public bool IsValidCommandString(string input, PluginCommandBase command, out string remainder)
         {
+            var prefix = VChatPlugin.Settings.CommandPrefix;
+
             foreach (var commandName in command.CommandNames)
             {
                 if (!string.IsNullOrEmpty(commandName)
-                    && (input.TrimEnd().Equals($"{Prefix}{commandName}", StringComparison.CurrentCultureIgnoreCase)
-                    || input.TrimEnd().StartsWith($"{Prefix}{commandName} ", StringComparison.CurrentCultureIgnoreCase)))
+                    && (input.TrimEnd().Equals($"{prefix}{commandName}", StringComparison.CurrentCultureIgnoreCase)
+                    || input.TrimEnd().StartsWith($"{prefix}{commandName} ", StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    remainder = input.Remove(0, Prefix.Length + commandName.Length).TrimStart();
+                    remainder = input.Remove(0, prefix.Length + commandName.Length).TrimStart();
                     return true;
                 }
             }

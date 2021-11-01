@@ -514,7 +514,7 @@ namespace VChat.Configuration
             );
             ChatWidthEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatWidth), 500u, "Sets the width of the chat window, the maximum value is 1920.");
             ChatHeightEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatHeight), 400u, "Sets the height of the chat window, the maximum value is 1080.");
-            ChatBufferSizeEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatBufferSize), 50u, "Changes the maximum amount of messages visible in the chat window. Setting this to 15 (game default) will remove the hook.");
+            ChatBufferSizeEntry = ConfigFile.Bind(ChatWindowSection, nameof(ChatBufferSize), 300u, "Changes the maximum amount of messages visible in the chat window. Setting this to 15 (game default) will remove the hook.");
 
             // Command Names
             CommandPrefixEntry = ConfigFile.Bind(CommandsSection, nameof(CommandPrefix), DefaultCommandPrefix, CommandDescription);

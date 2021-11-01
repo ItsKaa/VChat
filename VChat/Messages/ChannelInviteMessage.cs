@@ -344,7 +344,7 @@ namespace VChat.Messages
                 {
                     VChatPlugin.Log($"Sending channel invite for \"{channelInviteInfo.ChannelName}\" to \"{inviteePeer.m_playerName}\" ({inviteePeer.m_uid}).");
 
-                    string text = $"{inviterPeer.m_playerName} wishes to invite you to the channel '{channelInviteInfo.ChannelName}'. Please type /accept or /decline.";
+                    string text = $"{inviterPeer.m_playerName} wishes to invite you to the channel '{channelInviteInfo.ChannelName}'. Please type {VChatPlugin.Settings.CommandPrefix}accept or {VChatPlugin.Settings.CommandPrefix}decline.";
                     ServerChannelManager.SendMessageToPeerInChannel(inviteePeer.m_uid, VChatPlugin.Name, null, text);
 
                     if (inviterPeer.m_uid != inviteePeer.m_uid)
