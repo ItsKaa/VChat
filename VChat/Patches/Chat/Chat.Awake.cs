@@ -15,7 +15,8 @@ namespace VChat.Patches
             // Use a setting to add the canvas group, just in case a future update of Valheim breaks this.
             if (VChatPlugin.Settings.UseChatOpacity)
             {
-                var canvasGroup = __instance.m_chatWindow.gameObject.AddComponent<CanvasGroup>();
+                var canvasGroup = __instance.m_chatWindow.gameObject.GetComponent<CanvasGroup>()
+                                  ?? __instance.m_chatWindow.gameObject.AddComponent<CanvasGroup>();
                 if (canvasGroup != null)
                 {
                     canvasGroup.blocksRaycasts = false;
