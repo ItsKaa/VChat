@@ -157,7 +157,7 @@ namespace VChat.Messages
                     peerInfo = new GreetingMessagePeerInfo()
                     {
                         PeerId = peerId,
-                        Version = null,
+                        Version = "0.0.0",
                         HasReceivedGreeting = false,
                         HasSentGreeting = true,
                     };
