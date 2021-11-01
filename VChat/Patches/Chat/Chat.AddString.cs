@@ -20,31 +20,4 @@ namespace VChat.Patches
         }
     }
 
-    [HarmonyPatch(typeof(Chat), nameof(Chat.AddString), typeof(string))]
-    public static class ChatPatchAddStringToBuffer
-    {
-        private static bool Prefix(ref Chat __instance, ref string text)
-        {
-            // Display chat window when a new message is received.
-            if (VChatPlugin.Settings.ShowChatWindowOnMessageReceived)
-            {
-                __instance.m_hideTimer = 0;
-                VChatPlugin.ChatHideTimer = 0;
-            }
-
-            // Update the buffer manually
-            if (VChatPlugin.Settings.ChatBufferSize > 15)
-            {
-                __instance.m_chatBuffer.Add(text);
-                while (__instance.m_chatBuffer.Count > VChatPlugin.Settings.ChatBufferSize)
-                {
-                    __instance.m_chatBuffer.RemoveAt(0);
-                }
-                __instance.UpdateChat();
-                return false;
-            }
-
-            return true;
-        }
-    }
 }

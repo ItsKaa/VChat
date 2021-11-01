@@ -42,6 +42,7 @@
     <Compile Include="Configuration\PluginSettings.cs" />
     <Compile Include="Data\Events\CustomChannelChatMessageEventArgs.cs" />
     <Compile Include="Data\KnownPlayerData.cs" />
+    <Compile Include="Patches\Terminal\Terminal.AddString.cs" />
     <Compile Include="Services\PluginDataManager.cs" />
     <Compile Include="Data\CombinedMessageType.cs" />
     <Compile Include="Data\GreetingMessagePeerInfo.cs" />
