@@ -114,10 +114,19 @@ namespace VChat.Services
         /// <returns>True if successful</returns>
         public bool IsValidCommandString(string input, PluginCommandBase command, out string remainder)
         {
-            var prefix = VChatPlugin.Settings.CommandPrefix;
 
             foreach (var commandName in command.CommandNames)
             {
+                var prefix = "/";
+                if (!string.IsNullOrEmpty(commandName)
+                   && (input.TrimEnd().Equals($"{prefix}{commandName}", StringComparison.CurrentCultureIgnoreCase)
+                   || input.TrimEnd().StartsWith($"{prefix}{commandName} ", StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    remainder = input.Remove(0, prefix.Length + commandName.Length).TrimStart();
+                    return true;
+                }
+
+                prefix = VChatPlugin.Settings.CommandPrefix;
                 if (!string.IsNullOrEmpty(commandName)
                     && (input.TrimEnd().Equals($"{prefix}{commandName}", StringComparison.CurrentCultureIgnoreCase)
                     || input.TrimEnd().StartsWith($"{prefix}{commandName} ", StringComparison.CurrentCultureIgnoreCase)))

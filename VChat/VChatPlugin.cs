@@ -171,7 +171,8 @@ namespace VChat
                 var messageType = new CombinedMessageType(LastChatType.Value);
 
                 // Attempt to look for the used chat channel if we're starting with the command prefix.
-                if (text.StartsWith(Settings.CommandPrefix, StringComparison.CurrentCultureIgnoreCase))
+                if (text.StartsWith("/", StringComparison.CurrentCultureIgnoreCase) ||
+                    text.StartsWith(Settings.CommandPrefix, StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (CommandHandler.IsValidCommandString(text, PluginCommandType.SendLocalMessage))
                     {

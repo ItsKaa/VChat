@@ -13,7 +13,7 @@ namespace VChat.Configuration
     public class PluginSettings : IDisposable
     {
         private const string ListSeparator = "|";
-        private const string DefaultCommandPrefix = "/";
+        private const string DefaultCommandPrefix = ".";
         private const string GeneralSection = "General";
         private const string ColorSection = "Colors";
         private const string ChatWindowSection = "ChatWindow";
