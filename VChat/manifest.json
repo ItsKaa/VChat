@@ -1,9 +1,9 @@
 {
     "name": "VChat",
-    "version_number": "2.0.0",
+    "version_number": "2.1.0",
     "website_url": "https://github.com/ItsKaa/VChat",
     "description": "A chat improvement mod that adds custom server-hosted channels that do not ping, configurable colours per channel, chat history, removes auto character casing, and various other quality-of-life changes.",
     "dependencies": [
-        "denikson-BepInExPack_Valheim-5.4.901"
+        "denikson-BepInExPack_Valheim-5.4.1600"
     ]
 }
